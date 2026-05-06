@@ -1,0 +1,43 @@
+.btn__icon svg path {
+  fill: #434655;
+  transition: 0.25s;
+}
+
+.btn__icon:hover svg path {
+  fill: rgb(81, 81, 255);
+}
+
+a {
+  transition: 0.25s;
+  color: #434655;
+}
+
+.active {
+  border-radius: 2px;
+  background: #ff8c00;
+  box-shadow: 0 0 15px 0 rgba(255, 140, 0, 0.3);
+}
+.active span {
+  color: #fff;
+  font-family: Inter;
+  /* font-size: 10px; */
+  font-style: normal;
+  font-weight: 700;
+  line-height: 15px; /* 150% */
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+a svg {
+  transition: 0.25s;
+}
+
+a:hover span {
+  color: #fff;
+}
+
+a:hover svg {
+  color: #fff;
+}
+.active svg {
+  color: #fff;
+}
