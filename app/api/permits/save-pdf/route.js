@@ -1,19 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import { NextResponse } from 'next/server';
-import { renderToStream } from '@react-pdf/renderer';
+import { put } from '@vercel/blob';
+import { renderToBuffer } from '@react-pdf/renderer';
 import MyDocument from '@/components/ui/MyDocument';
-
-const pdfDir = path.join(process.cwd(), 'public', 'pdfs');
-
-function streamToFile(stream, outputPath) {
-  return new Promise((resolve, reject) => {
-    const writeStream = fs.createWriteStream(outputPath);
-    stream.pipe(writeStream);
-    writeStream.on('finish', resolve);
-    writeStream.on('error', reject);
-  });
-}
+import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   const body = await request.json();
@@ -23,14 +11,14 @@ export async function POST(request) {
     return NextResponse.json({ message: 'documentData va serverFilename kerak' }, { status: 400 });
   }
 
-  if (!fs.existsSync(pdfDir)) {
-    fs.mkdirSync(pdfDir, { recursive: true });
-  }
+  // PDF ni buffer ga render qilish
+  const buffer = await renderToBuffer(<MyDocument data={documentData} />);
 
-  const outputPath = path.join(pdfDir, serverFilename);
-  const pdfStream = await renderToStream(<MyDocument data={documentData} />);
-  await streamToFile(pdfStream, outputPath);
+  // Vercel Blob ga yuklash
+  const blob = await put(`pdfs/${serverFilename}`, buffer, {
+    access: 'public',
+    contentType: 'application/pdf',
+  });
 
-  const url = `/pdfs/${serverFilename}`;
-  return NextResponse.json({ url }, { status: 201 });
+  return NextResponse.json({ url: blob.url }, { status: 201 });
 }

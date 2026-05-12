@@ -1,23 +1,21 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useState, useEffect } from 'react';
 
 const PDFDownloadClient = dynamic(() => import('@/components/ui/PDFDownloadClient'), {
   ssr: false,
 });
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+
 export default function Home() {
+  const [permits, setPermits] = useState([]);
+  const [loadingList, setLoadingList] = useState(false);
+
   const now = new Date();
-
   const pad = (n) => String(n).padStart(2, '0');
-
-  const filename = `work-permit_${now.getFullYear()}-${pad(
-    now.getMonth() + 1
-  )}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(
-    now.getMinutes()
-  )}-${pad(now.getSeconds())}.pdf`;
-
-  console.log(filename);
+  const filename = `work-permit_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}.pdf`;
 
   const documentData = {
     title: 'INDUSTRIAL ARCHITECT CMS',
@@ -60,12 +58,114 @@ export default function Home() {
     ],
   };
 
+  // Sahifa ochilganda va yangi PDF saqlanganda ro'yxatni yuklash
+  async function getAllPermits() {
+    setLoadingList(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/permits`);
+      const data = await res.json();
+      setPermits(data);
+    } catch (error) {
+      console.error("Ro'yxatni olishda xato:", error);
+    } finally {
+      setLoadingList(false);
+    }
+  }
+
+  async function deletePermit(id, filename) {
+    if (!confirm(`"${filename}" o'chirilsinmi?`)) return;
+    try {
+      await fetch(`${BACKEND_URL}/api/permits/${id}`, { method: 'DELETE' });
+      setPermits((prev) => prev.filter((p) => p._id !== id));
+    } catch (error) {
+      console.error("O'chirishda xato:", error);
+    }
+  }
+
+  useEffect(() => {
+    getAllPermits();
+  }, []);
+
   return (
-    <div>
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>PDF Example</h1>
-      <PDFDownloadClient filename={filename} documentData={documentData}>
+
+      <PDFDownloadClient
+        filename={filename}
+        documentData={documentData}
+        onSaved={getAllPermits} // saqlangandan keyin ro'yxatni yangilash
+      >
         PDF yuklab olish
       </PDFDownloadClient>
+
+      <div style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+          <h2 style={{ margin: 0 }}>Barcha filelar</h2>
+          <button onClick={getAllPermits} disabled={loadingList}>
+            {loadingList ? 'Yuklanmoqda...' : 'Yangilash'}
+          </button>
+        </div>
+
+        {permits.length === 0 ? (
+          <p style={{ color: '#888' }}>Hozircha fayl yo'q</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#0D1B2A', color: '#fff' }}>
+                <th style={th}>T/R</th>
+                <th style={th}>Fayl nomi</th>
+                <th style={th}>Sana</th>
+                <th style={th}>Link</th>
+                <th style={th}>O'chirish</th>
+              </tr>
+            </thead>
+            <tbody>
+              {permits.map((permit, index) => (
+                <tr key={permit._id} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={td}>{index + 1}</td>
+                  <td style={td}>{permit.filename}</td>
+                  <td style={td}>{new Date(permit.createdAt).toLocaleString('uz-UZ')}</td>
+                  <td style={td}>
+                    <a
+                      href={permit.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: '#F4821F' }}
+                    >
+                      Ochish
+                    </a>
+                  </td>
+                  <td style={td}>
+                    <button
+                      onClick={() => deletePermit(permit._id, permit.filename)}
+                      style={{
+                        color: 'red',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      O'chirish
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
+
+const th = {
+  padding: '10px 14px',
+  textAlign: 'left',
+  fontSize: '16px',
+  letterSpacing: '0.5px',
+};
+
+const td = {
+  padding: '12px 14px',
+  fontSize: '16px',
+};

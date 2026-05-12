@@ -5,6 +5,8 @@ import MyDocument from '@/components/ui/MyDocument';
 import QRCode from 'qrcode';
 import { useState } from 'react';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+
 export default function PDFDownloadClient({ children, filename = 'my-file.pdf', documentData }) {
   const [loading, setLoading] = useState(false);
 
@@ -12,33 +14,40 @@ export default function PDFDownloadClient({ children, filename = 'my-file.pdf', 
     setLoading(true);
 
     try {
-      // 1. Fayl nomini oldindan belgilash (UUID bilan)
+      // 1. Fayl nomi
       const safeFilename = filename.replace(/[^a-zA-Z0-9_.-]/g, '_');
-      console.log('safeFilename=', safeFilename);
       const serverFilename = `${safeFilename}`;
 
-      const absoluteUrl = `${window.location.origin}/pdfs/${serverFilename}`;
+      // 2. Oldindan URL yasash
+      const absoluteUrl = `${BACKEND_URL}/pdfs/${serverFilename}`;
 
-      // 2. URL dan QR yaratish
+      // 3. URL dan QR yaratish
       const qrDataUrl = await QRCode.toDataURL(absoluteUrl);
 
-      // 3. QR bilan documentData
-      const dataWithQr = {
-        ...documentData, // barcha fieldlar
-        qrCode: qrDataUrl, // QR qo'shiladi
-      };
+      // 4. QR bilan documentData
+      const dataWithQr = { ...documentData, qrCode: qrDataUrl };
 
-      // 4. Serverga BIR MARTA saqlash
-      const saveRes = await fetch('/api/permits/save-pdf', {
+      // 5. PDF blob yaratish
+      const blob = await pdf(<MyDocument data={dataWithQr} />).toBlob();
+
+      // 6. Backendga PDF faylni yuklash
+      await fetch(`${BACKEND_URL}/api/permits/upload-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/pdf',
+          'x-filename': serverFilename,
+        },
+        body: blob,
+      });
+
+      // 7. MongoDB ga meta ma'lumot saqlash
+      await fetch(`${BACKEND_URL}/api/permits/save-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ documentData: dataWithQr, serverFilename }),
       });
 
-      if (!saveRes.ok) throw new Error('Saqlashda xato');
-
-      // 5. Foydalanuvchiga yuklab berish
-      const blob = await pdf(<MyDocument data={dataWithQr} />).toBlob();
+      // 8. Foydalanuvchiga yuklab berish
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
