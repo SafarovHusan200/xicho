@@ -1,8 +1,8 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,10 @@ import {
   Circle,
   Smile,
 } from 'lucide-react';
-import PDFDownloadClient from '@/components/ui/PDFDownloadClient';
+
+const PDFDownloadClient = dynamic(() => import('@/components/ui/PDFDownloadClient'), {
+  ssr: false,
+});
 
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
