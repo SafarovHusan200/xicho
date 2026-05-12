@@ -167,7 +167,7 @@ export default function WorkOrderTracking() {
               Создать заказ работы
             </Button>
           }
-          filename="my-document.pdf"
+          filename="my-document"
         />
       </div>
 

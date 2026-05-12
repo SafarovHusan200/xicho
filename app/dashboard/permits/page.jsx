@@ -13,9 +13,7 @@ export default function Home() {
   const [permits, setPermits] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
 
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  const filename = `work-permit_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}.pdf`;
+  const filename = `work-permit`;
 
   const documentData = {
     title: 'INDUSTRIAL ARCHITECT CMS',
