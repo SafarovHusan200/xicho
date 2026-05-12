@@ -25,6 +25,7 @@ import {
   Circle,
   Smile,
 } from 'lucide-react';
+import PDFDownloadClient from '@/components/ui/PDFDownloadClient';
 
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
@@ -156,10 +157,15 @@ export default function WorkOrderTracking() {
             Мониторинг статуса обслуживания блока 04 в реальном времени.
           </p>
         </div>
-        <Button className="bg-slate-900 text-white rounded-xl h-12 px-6 font-bold uppercase tracking-widest hover:bg-slate-700 flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Создать заказ работы
-        </Button>
+        <PDFDownloadClient
+          children={
+            <Button className="bg-slate-900 text-white rounded-xl h-12 px-6 font-bold uppercase tracking-widest hover:bg-slate-700 flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Создать заказ работы
+            </Button>
+          }
+          filename="my-document.pdf"
+        />
       </div>
 
       {/* Stats */}
