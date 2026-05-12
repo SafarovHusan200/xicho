@@ -15,6 +15,7 @@ export default function PDFDownloadClient({ children, filename = 'my-file', docu
 
     try {
       // 1. Fayl nomi
+      const now = new Date();
       const fileEnd = `${filename}_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}.pdf`;
       const safeFilename = fileEnd.replace(/[^a-zA-Z0-9_.-]/g, '_');
       const serverFilename = `${safeFilename}`;
