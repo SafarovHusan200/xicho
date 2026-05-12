@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://unit-control.maktab16.uz';
 
-export default function PDFDownloadClient({ children, filename = 'my-file.pdf', documentData }) {
+export default function PDFDownloadClient({ children, filename = 'my-file', documentData }) {
   const [loading, setLoading] = useState(false);
 
   async function handleDownload() {
@@ -15,7 +15,8 @@ export default function PDFDownloadClient({ children, filename = 'my-file.pdf', 
 
     try {
       // 1. Fayl nomi
-      const safeFilename = filename.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const fileEnd = `${filename}_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}.pdf`;
+      const safeFilename = fileEnd.replace(/[^a-zA-Z0-9_.-]/g, '_');
       const serverFilename = `${safeFilename}`;
 
       // 2. Oldindan URL yasash
