@@ -7,7 +7,7 @@ const PDFDownloadClient = dynamic(() => import('@/components/ui/PDFDownloadClien
   ssr: false,
 });
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://unit-control.maktab16.uz';
 
 export default function Home() {
   const [permits, setPermits] = useState([]);
