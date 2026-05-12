@@ -1,86 +1,71 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
-import QRCode from 'qrcode';
 
 const PDFDownloadClient = dynamic(() => import('@/components/ui/PDFDownloadClient'), {
   ssr: false,
 });
 
-const documentData = {
-  title: 'Work Permit #PTW-2023-08942',
-  rows: [
-    { label: 'Priority', value: 'HIGH / IMMEDIATE' },
-    { label: 'Valid From', value: '24 OCT 2023 08:00' },
-    { label: 'Valid Until', value: '24 OCT 2023 20:00' },
-    { label: 'Scope', value: 'HV TRANSFORMER MAINTENANCE & FLUID CHECK' },
-  ],
-};
-
 export default function Home() {
-  const [savedUrl, setSavedUrl] = useState('');
-  const [qrCode, setQrCode] = useState('');
-  const [saving, setSaving] = useState(false);
-  const filename = `work-permit-${new Date().toISOString().slice(0, 10)}.pdf`;
+  const now = new Date();
 
-  async function savePdfOnServer() {
-    setSaving(true);
+  const pad = (n) => String(n).padStart(2, '0');
 
-    try {
-      const response = await fetch('/api/permits/save-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentData, filename }),
-      });
+  const filename = `work-permit_${now.getFullYear()}-${pad(
+    now.getMonth() + 1
+  )}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(
+    now.getMinutes()
+  )}-${pad(now.getSeconds())}.pdf`;
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'PDF save failed');
+  console.log(filename);
 
-      const absoluteUrl = `${window.location.origin}${result.url}`;
-      setSavedUrl(absoluteUrl);
-      setQrCode(await QRCode.toDataURL(absoluteUrl));
-    } catch (error) {
-      console.error(error);
-      setQrCode('');
-      setSavedUrl('');
-    } finally {
-      setSaving(false);
-    }
-  }
+  const documentData = {
+    title: 'INDUSTRIAL ARCHITECT CMS',
+    subtitle: 'UNIT 04 CONTROL • PRIMARY GRID',
+    permitNumber: 'WORK PERMIT #PTW-2023-08942',
+    docHash: 'DOCUMENT HASH: 4F2A-9X77-L10',
+    workOrder: [
+      { label: 'PRIORITY', value: 'HIGH / IMMEDIATE', highlight: true },
+      { label: 'VALID FROM', value: '24 OCT 2023 08:00' },
+      { label: 'VALID UNTIL', value: '24 OCT 2023 20:00' },
+      { label: 'SCOPE', value: 'HV TRANSFORMER MAINTENANCE & FLUID CHECK' },
+    ],
+    equipment: [
+      { label: 'ASSET ID', value: 'U04-TR-0012' },
+      { label: 'LOCATION', value: 'SUBSTATION ALPHA - SECTOR 4' },
+      { label: 'VOLTAGE CLASS', value: '400 KV' },
+      { label: 'COOLING SYSTEM', value: 'ONAF (FORCED AIR)' },
+    ],
+    team: [
+      { name: 'M. J. Petrovich (ID: 4421)', role: 'Lead Electrician', cert: true },
+      { name: 'S. O. Kostic (ID: 9012)', role: 'Safety Observer', cert: true },
+      { name: 'A. R. Miller (ID: 1104)', role: 'HV Technician', cert: true },
+    ],
+    checklist: [
+      'LOTO (LOCK OUT TAG OUT) VERIFIED',
+      'ARC FLASH PPE CONFIRMED',
+      'EARTHING STICKS GROUNDED',
+      'EXCLUSION ZONE BARRIERS SET',
+    ],
+    blitzQuestions: [
+      { q: 'Q1: IS THE BACKUP GENERATOR ISOLATED?', a: 'YES [ ]   NO [ ]' },
+      { q: 'Q2: LAST CALIBRATION OF GAS MONITOR?', a: '' },
+      { q: 'Q3: ANY HAZARDOUS WEATHER PREDICTED?', a: 'YES [ ]   NO [ ]' },
+    ],
+    signatures: [
+      { role: 'SAFETY CONTROLLER', name: 'H. VARGAS' },
+      { role: 'CHTS REP.', name: 'K. IVANOV' },
+      { role: 'PROJECT SUPERVISOR', name: 'L. CHEN' },
+      { role: 'PLANT MANAGER', name: 'D. FOSTER' },
+    ],
+  };
 
   return (
     <div>
       <h1>PDF Example</h1>
-
       <PDFDownloadClient filename={filename} documentData={documentData}>
         PDF yuklab olish
       </PDFDownloadClient>
-
-      <button
-        type="button"
-        onClick={savePdfOnServer}
-        disabled={saving}
-        style={{ marginTop: '1rem' }}
-      >
-        {saving ? 'Saqlanmoqda...' : 'Serverga saqlash va QR kod yaratish'}
-      </button>
-
-      {savedUrl && (
-        <div style={{ marginTop: '1rem' }}>
-          <p>Saqlangan PDF manzili:</p>
-          <a href={savedUrl} target="_blank" rel="noreferrer">
-            {savedUrl}
-          </a>
-        </div>
-      )}
-
-      {qrCode && (
-        <div style={{ marginTop: '1rem' }}>
-          <p>QR kodni skanerlash bilan ushbu fayl ochiladi:</p>
-          <img src={qrCode} alt="PDF QR code" width={220} height={220} />
-        </div>
-      )}
     </div>
   );
 }
