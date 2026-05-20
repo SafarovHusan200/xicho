@@ -1,0 +1,108 @@
+'use client';
+
+import React from 'react';
+import CountUp from 'react-countup';
+
+const StatsComponent = () => {
+  return (
+    <div className="stats flex flex-wrap gap-6 justify-between mb-8">
+      {/* All stats */}
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-2 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+        <div className="w-full flex justify-between flex-wrap">
+          <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(3,22,52,0.05)]">
+            <img src="/icons/device.svg" alt="icon" />
+          </div>
+
+          <span className="text-[#B6C6EE] text-[10px] font-bold leading-[15px] tracking-[0.5px] uppercase">
+            DEVICE ID: 1248
+          </span>
+        </div>
+
+        <p className="text-[#44474E] font-normal text-[16px] leading-6">Jami qurilmalar</p>
+
+        <h3 className="text-[#031634] font-bold text-[30px]">
+          <CountUp start={0} end={1248} duration={2} separator=" " />
+        </h3>
+
+        <div className="flex items-center gap-1.5">
+          <img src="/icons/grov.svg" alt="" />
+
+          <span className="text-[#10B981] font-medium text-[12px] leading-4.5">
+            +12 o'tgan oydan
+          </span>
+        </div>
+      </div>
+
+      {/* Success stats */}
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+        <div className="w-full flex justify-between flex-wrap">
+          <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(16,185,129,0.10)]">
+            <img src="/icons/checked_success.svg" alt="icon" />
+          </div>
+        </div>
+
+        <p className="text-[#44474E] font-normal text-[16px] leading-6">
+          O'z vaqtida sinovdan o'tgan
+        </p>
+
+        <h3 className="text-[#031634] font-bold text-[30px]">
+          <CountUp start={0} end={1089} duration={2} separator=" " />
+        </h3>
+
+        <div className="w-full h-3 bg-[#ECECEC] rounded-full overflow-hidden">
+          <div className="h-full w-[85%] bg-[#10B981] rounded-full"></div>
+        </div>
+      </div>
+
+      {/* Warning stats */}
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+        <div className="w-full flex justify-between flex-wrap">
+          <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(254,166,25,0.10)]">
+            <img src="/icons/warning.svg" alt="icon" />
+          </div>
+        </div>
+
+        <p className="text-[#44474E] font-normal text-[16px] leading-6">
+          Sinov muddati yaqinlashgan
+        </p>
+
+        <h3 className="text-[#031634] font-bold text-[30px]">
+          <CountUp start={0} end={112} duration={2} />
+        </h3>
+
+        <div className="flex items-center gap-1.5">
+          <img src="/icons/time.svg" alt="" />
+
+          <span className="text-[#FEA619] font-medium text-[12px] leading-4.5">
+            Diqqat talab qilinadi
+          </span>
+        </div>
+      </div>
+
+      {/* Error stats */}
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+        <div className="w-full flex justify-between flex-wrap">
+          <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(239,68,68,0.10)]">
+            <img src="/icons/error.svg" alt="icon" />
+          </div>
+        </div>
+
+        <p className="text-[#44474E] font-normal text-[16px] leading-6">Sinov muddati o'tgan</p>
+
+        <h3 className="text-[#031634] font-bold text-[30px]">
+          <CountUp start={0} end={47} duration={2} />
+        </h3>
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#EF4444]">!</span>
+
+          <span className="text-[#EF4444] font-medium text-[12px] leading-4.5">
+            Shoshilinch chora!
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default StatsComponent;

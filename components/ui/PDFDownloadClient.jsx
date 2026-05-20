@@ -65,8 +65,8 @@ export default function PDFDownloadClient({ children, filename = 'my-file', docu
   }
 
   return (
-    <button type="button" onClick={handleDownload} disabled={loading}>
+    <div type="button" onClick={handleDownload} disabled={loading}>
       {loading ? 'Tayyorlanmoqda...' : children}
-    </button>
+    </div>
   );
 }

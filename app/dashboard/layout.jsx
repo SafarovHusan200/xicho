@@ -2,13 +2,16 @@
 
 import Link from 'next/link';
 import React, { useContext, useMemo, useState, useEffect } from 'react';
-import { MdDashboard, MdOutlineNotificationsActive } from 'react-icons/md';
+import { MdDashboard } from 'react-icons/md';
 
 import { FaChartBar, FaTimes, FaBars } from 'react-icons/fa';
 import { MdOutlineHomeWork } from 'react-icons/md';
 import { usePathname } from 'next/navigation';
 import { AiOutlineSafety } from 'react-icons/ai';
-import { FaPrint } from 'react-icons/fa6';
+
+import { FaArrowLeft } from 'react-icons/fa';
+import { IoSettingsOutline } from 'react-icons/io5';
+import { TbDeviceDesktopAnalytics } from 'react-icons/tb';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -29,27 +32,27 @@ import {
 import '../../styles/dashboard/style.css';
 
 const menuItems = [
-  { label: 'ПАНЕЛЬ', href: '/dashboard', icon: MdDashboard, key: '' },
+  { label: 'Monitoring', href: '/dashboard', icon: MdDashboard, key: '' },
+  { label: 'Hisobotlar', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
   {
-    label: 'УВЕДОМЛЕНИЯ',
-    href: '/dashboard/notifications',
-    icon: MdOutlineNotificationsActive,
-    key: 'notifications',
+    label: 'Qurilmalar',
+    href: '/dashboard/devices',
+    icon: TbDeviceDesktopAnalytics,
+    key: 'devices',
   },
-  { label: 'ЗАКАЗЫ РАБОТ', href: '/dashboard/work-order', icon: FaChartBar, key: 'work-order' },
   {
-    label: 'ОДОБРЕНИЯ БЕЗОПАСНОСТИ',
+    label: 'Xavfsizlik',
     href: '/dashboard/safety-approvals',
     icon: AiOutlineSafety,
     key: 'safety-approvals',
   },
-  { label: 'РАЗРЕШЕНИЯ', href: '/dashboard/permits', icon: FaPrint, key: 'permits' },
-  { label: 'АНАЛИТИКА', href: '/dashboard/analytics', icon: FaChartBar, key: 'analytics' },
+  { label: 'Sozlamalar', href: '/dashboard/permits', icon: IoSettingsOutline, key: 'permits' },
 ];
 
 const DashboardLayout = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarSmall, setSidebarSmall] = useState(true);
 
   const route = useMemo(() => pathname.split('/')[2] || '', [pathname]);
 
@@ -68,60 +71,72 @@ const DashboardLayout = ({ children }) => {
     };
   }, [sidebarOpen]);
 
+  useEffect(() => {
+    console.log(sidebarSmall);
+  }, [sidebarSmall]);
+
   const SidebarContent = () => (
-    <>
-      <div className="mt-4 mb-10 px-4  flex items-center justify-between">
-        <div className="flex items-center gap-3 ">
-          <div className="logo">
-            <MdOutlineHomeWork className="text-2xl" />
+    <div className="h-full  flex  flex-col justify-between ">
+      <div>
+        <div className="mt-4 mb-10 px-4  flex items-center justify-between">
+          <div className="flex items-center gap-3 relative ">
+            <div className="logo">
+              <MdOutlineHomeWork className="text-2xl" />
+            </div>
+            {sidebarSmall && (
+              <div>
+                <h3 className=" font-extrabold text-md ">XICHO</h3>
+                <p className="text-[#b6bacf] text-sm  w-33.25">SANOAT NAZORATI</p>
+              </div>
+            )}
           </div>
-          <div>
-            <h3 className=" font-extrabold text-md ">УПРАВЛЕНИЕ УЗЛОМ 04</h3>
-            <p className="text-[#434655] text-sm">ОСНОВНАЯ СЕТЬ: АКТИВНА</p>
-          </div>
+
+          <button
+            className="lg:hidden absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <FaTimes size={16} />
+          </button>
         </div>
 
-        <button
-          className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500"
-          onClick={() => setSidebarOpen(false)}
-        >
-          <FaTimes size={14} />
-        </button>
-      </div>
-
-      <div className="mt-4 mb-10 px-4  flex items-center justify-between">
-        <button className="w-full text-white py-2 px-4 rounded-xs bg-[#FF8C00] shadow-[0_0_15px_0_rgba(255,140,0,0.30)] cursor-pointer">
-          АВАРИЙНАЯ ОСТАНОВКА
-        </button>
-      </div>
-
-      <nav className="space-y-1">
-        {menuItems.map(({ label, href, icon: Icon, key }) => {
-          const active = route === key;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`
+        <nav className="space-y-1">
+          {menuItems.map(({ label, href, icon: Icon, key }) => {
+            const active = route === key;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`
                 flex items-center gap-3 px-4 py-3 rounded
-                transition duration-300
+                transition duration-300 sidebar__link
               
                 ${active ? 'active' : ''}
               `}
-            >
-              <Icon className="text-[#475569] text-xl" />
-              <span className="text-sm font-medium">{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </>
+              >
+                <Icon className="text-[#475569] text-xl" />
+                {sidebarSmall && <span className="text-sm font-medium">{label}</span>}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="rounded-lg border border-[rgba(197,198,207,0.10)] bg-[rgba(26,43,74,0.40)] p-4 flex flex-col gap-2">
+        <p>Tizim holati</p>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-2 h-2 rounded-2xl bg-[#10B981]"></span>
+          <b>Barchasi joyida</b>
+        </div>
+      </div>
+    </div>
   );
 
   return (
     <div className="w-full flex h-screen bg-[#F8FAFC]">
       {/* ── DESKTOP SIDEBAR ── */}
-      <aside className="hidden lg:block w-63.75 shrink-0 p-2 border-r border-[#E2E8F0] bg-[#041627] text-[#CBD5E1]">
+      <aside
+        className={`hidden transition-all duration-400 lg:block ${sidebarSmall ? 'w-63.75' : 'w-18'}  shrink-0 p-2 border-r border-[#E2E8F0] bg-[#041627] text-[#CBD5E1]`}
+      >
         <SidebarContent />
       </aside>
 
@@ -153,17 +168,28 @@ const DashboardLayout = ({ children }) => {
           <div className="flex items-center gap-3">
             <button
               className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-600"
-              onClick={() => setSidebarOpen(true)}
+              onClick={() => {
+                setSidebarOpen(true);
+                setSidebarSmall(true);
+              }}
               aria-label="Открыть меню"
             >
               <FaBars size={16} />
             </button>
-            <h1 className="text-base sm:text-lg font-semibold text-black">
-              ПАНЕЛЬ INDUSTRIAL ARCHITECT CMS
-            </h1>
+
+            <button
+              className="hidden lg:flex w-9 h-9  items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-600"
+              onClick={() => setSidebarSmall((prev) => !prev)}
+            >
+              <FaArrowLeft
+                className={`text-gray-500 transition ${sidebarSmall ? 'transform: rotate-0' : 'transform: rotate-180'}`}
+                size={16}
+              />
+            </button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
+            <p className="text-[#031634] ">Boshqaruv paneli</p>
             <button className="notification btn__icon">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
