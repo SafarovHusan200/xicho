@@ -5,15 +5,15 @@ import CountUp from 'react-countup';
 
 const StatsComponent = () => {
   return (
-    <div className="stats flex flex-wrap gap-6 justify-between mb-8">
+    <div className="stats flex flex-wrap gap-3 xl:gap-6 justify-between mb-8">
       {/* All stats */}
-      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-2 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-16px)] xl:w-[calc(25%-24px)] flex flex-col items-start gap-2 p-4 xl:p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
         <div className="w-full flex justify-between flex-wrap">
           <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(3,22,52,0.05)]">
             <img src="/icons/device.svg" alt="icon" />
           </div>
 
-          <span className="text-[#B6C6EE] text-[10px] font-bold leading-[15px] tracking-[0.5px] uppercase">
+          <span className="text-[#B6C6EE] text-[10px] font-bold leading-3.75 tracking-[0.5px] uppercase">
             DEVICE ID: 1248
           </span>
         </div>
@@ -34,7 +34,7 @@ const StatsComponent = () => {
       </div>
 
       {/* Success stats */}
-      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-16px)] xl:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-4 xl:p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
         <div className="w-full flex justify-between flex-wrap">
           <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(16,185,129,0.10)]">
             <img src="/icons/checked_success.svg" alt="icon" />
@@ -55,7 +55,7 @@ const StatsComponent = () => {
       </div>
 
       {/* Warning stats */}
-      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-16px)] xl:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-4 xl:p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
         <div className="w-full flex justify-between flex-wrap">
           <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(254,166,25,0.10)]">
             <img src="/icons/warning.svg" alt="icon" />
@@ -80,7 +80,7 @@ const StatsComponent = () => {
       </div>
 
       {/* Error stats */}
-      <div className="w-[calc(50%-12px)] md:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+      <div className="w-[calc(50%-12px)] md:w-[calc(25%-16px)] xl:w-[calc(25%-24px)] flex flex-col items-start gap-1 p-4 xl:p-6 rounded-lg border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
         <div className="w-full flex justify-between flex-wrap">
           <div className="w-10.5 h-10.5 p-3 rounded-lg bg-[rgba(239,68,68,0.10)]">
             <img src="/icons/error.svg" alt="icon" />

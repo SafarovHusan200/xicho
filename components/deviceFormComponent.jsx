@@ -16,6 +16,7 @@ import {
   XCircle,
   CheckCircle2,
   AlertCircle,
+  CalendarIcon,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar } from './ui/calendar';
 
 // ─── Zod schema ───────────────────────────────────────────────
 const schema = z.object({
@@ -55,7 +58,7 @@ function ErrorMsg({ message }) {
   if (!message) return null;
   return (
     <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
-      <AlertCircle className="w-3 h-3 flex-shrink-0" />
+      <AlertCircle className="w-3 h-3 shrink-0" />
       {message}
     </p>
   );
@@ -120,11 +123,9 @@ function DropZone({ accept, maxSize, label, hint, icon: Icon, files, onDrop, onR
               className="flex items-center justify-between text-xs bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                 <span className="truncate text-slate-700">{f.name}</span>
-                <span className="text-slate-400 flex-shrink-0">
-                  ({(f.size / 1024).toFixed(0)} KB)
-                </span>
+                <span className="text-slate-400 shrink-0">({(f.size / 1024).toFixed(0)} KB)</span>
               </div>
               <button
                 type="button"
@@ -155,6 +156,8 @@ function useKeyingiSinov(oxirgiSinov, sinovTuri) {
 
 // ─── Main component ────────────────────────────────────────────
 export default function DeviceFormComponent({ onSubmit: onSubmitProp, onCancel }) {
+  const [open, setOpen] = React.useState(false);
+  const [date, setDate] = React.useState(null);
   const {
     register,
     handleSubmit,
@@ -191,10 +194,10 @@ export default function DeviceFormComponent({ onSubmit: onSubmitProp, onCancel }
       setImageError('Kamida bitta rasm yuklang');
       return;
     }
-    if (!docFiles.length) {
-      setDocError('Kamida bitta hujjat yuklang');
-      return;
-    }
+    // if (!docFiles.length) {
+    //   setDocError('Kamida bitta hujjat yuklang');
+    //   return;
+    // }
     await onSubmitProp?.({ ...data, imageFiles, docFiles });
   };
 
@@ -240,11 +243,30 @@ export default function DeviceFormComponent({ onSubmit: onSubmitProp, onCancel }
 
             {/* Ishga tushirilgan sana */}
             <Field label="Ishga tushirilgan sana" error={errors.ishgaTushirilganSana?.message}>
-              <Input
-                type="date"
-                {...register('ishgaTushirilganSana')}
-                className={inputCls(errors.ishgaTushirilganSana)}
-              />
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="date"
+                    className="flex  justify-between font-normal text-[]"
+                  >
+                    {date ? date.toLocaleDateString() : 'mm/dd/yyyy'}
+                    <CalendarIcon />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    defaultMonth={date}
+                    captionLayout="dropdown"
+                    onSelect={(date) => {
+                      setDate(date);
+                      setOpen(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             </Field>
 
             {/* Ro'yxat raqami */}

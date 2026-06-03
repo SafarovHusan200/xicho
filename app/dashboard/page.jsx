@@ -30,7 +30,7 @@ const DashboardPage = () => {
           <h2 className="text-[#031634] text-[18px] font-semibold">
             Bu oy rejalashtirilgan sinovlar
           </h2>
-          <Link href={'#!'} className="flex items-center gap-2">
+          <Link href={'/dashboard/calendar'} className="flex items-center gap-2">
             <span className="text-[#031634] text-center text-[14px] font-semibold leading-4 tracking-[0.6px]">
               Barchasini ko'rish
             </span>

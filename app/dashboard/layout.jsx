@@ -6,14 +6,13 @@ import { MdDashboard } from 'react-icons/md';
 
 import { FaChartBar, FaTimes, FaBars } from 'react-icons/fa';
 import { MdOutlineHomeWork } from 'react-icons/md';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AiOutlineSafety } from 'react-icons/ai';
 
 import { FaArrowLeft } from 'react-icons/fa';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { TbDeviceDesktopAnalytics } from 'react-icons/tb';
 
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +29,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import '../../styles/dashboard/style.css';
+import { signOut, useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
+import { AnimatePresence } from 'framer-motion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import NotificationComponent from '@/components/NotificationComponent';
 
 const menuItems = [
   { label: 'Monitoring', href: '/dashboard', icon: MdDashboard, key: '' },
@@ -51,10 +66,28 @@ const menuItems = [
 
 const DashboardLayout = ({ children }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarSmall, setSidebarSmall] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
+  const [isNotification, setIsNotification] = useState(false);
 
   const route = useMemo(() => pathname.split('/')[2] || '', [pathname]);
+
+  // Ruxsat tekshirish va login bo'lmasa redirect qilish
+  useEffect(() => {
+    console.log(status);
+
+    if (status === 'loading') {
+      setIsLoading(true);
+    } else if (status === 'unauthenticated') {
+      router.push('/');
+    } else {
+      setIsLoading(false);
+      console.log('session=', session);
+    }
+  }, [status, session, router]);
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -71,9 +104,19 @@ const DashboardLayout = ({ children }) => {
     };
   }, [sidebarOpen]);
 
-  useEffect(() => {
-    console.log(sidebarSmall);
-  }, [sidebarSmall]);
+  // Loading screen ko'rsatish
+  if (status === 'loading' || isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // Agar login qilmagan bo'lsa null qaytarish (redirect allaqachon qilindi)
+  if (status === 'unauthenticated') {
+    return null;
+  }
 
   const SidebarContent = () => (
     <div className="h-full  flex  flex-col justify-between ">
@@ -122,17 +165,27 @@ const DashboardLayout = ({ children }) => {
       </div>
 
       <div className="rounded-lg border border-[rgba(197,198,207,0.10)] bg-[rgba(26,43,74,0.40)] p-4 flex flex-col gap-2">
-        <p>Tizim holati</p>
-        <div className="flex items-center gap-2">
+        {sidebarSmall && <p>Tizim holati</p>}
+        <div className={`flex items-center ${!sidebarSmall && 'justify-center'} gap-2`}>
           <span className="inline-block w-2 h-2 rounded-2xl bg-[#10B981]"></span>
-          <b>Barchasi joyida</b>
+
+          {sidebarSmall && <b>Barchasi joyida</b>}
         </div>
       </div>
     </div>
   );
 
+  const LogOut = async () => {
+    try {
+      await signOut({ redirect: false });
+      toast.success('Siz muvaffaqiyatli tizimdan chiqdingiz');
+    } catch (error) {
+      toast.error('Chiqishda xato yuz berdi');
+    }
+  };
+
   return (
-    <div className="w-full flex h-screen bg-[#F8FAFC]">
+    <div className="w-full flex h-screen ">
       {/* ── DESKTOP SIDEBAR ── */}
       <aside
         className={`hidden transition-all duration-400 lg:block ${sidebarSmall ? 'w-63.75' : 'w-18'}  shrink-0 p-2 border-r border-[#E2E8F0] bg-[#041627] text-[#CBD5E1]`}
@@ -190,7 +243,10 @@ const DashboardLayout = ({ children }) => {
 
           <div className="flex items-center gap-2 sm:gap-4">
             <p className="text-[#031634] ">Boshqaruv paneli</p>
-            <button className="notification btn__icon">
+            <button
+              className="notification btn__icon"
+              onClick={() => setIsNotification((prev) => !prev)}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -205,7 +261,9 @@ const DashboardLayout = ({ children }) => {
               </svg>
             </button>
 
-            <button className="profile btn__icon"></button>
+            <AnimatePresence>
+              {isNotification && <NotificationComponent onClose={() => setIsNotification(false)} />}
+            </AnimatePresence>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -271,10 +329,24 @@ const DashboardLayout = ({ children }) => {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    Выйти
-                    <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-                  </DropdownMenuItem>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" className={'w-full border-none'}>
+                        Chiqish
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Rostdan ham tizimdan chiqasizmi?</AlertDialogTitle>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className={'flex justify-between '}>
+                        <AlertDialogCancel className={'w-[49%]'}>Yo'q</AlertDialogCancel>
+                        <AlertDialogAction className={'w-[49%]'} onClick={LogOut}>
+                          Ha
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>

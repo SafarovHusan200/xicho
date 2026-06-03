@@ -4,23 +4,43 @@ import React, { useState } from 'react';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import toast from 'react-hot-toast';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
-  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
     const formData = new FormData(e.target);
 
-    const data = {
+    const form = {
       username: formData.get('username'),
       password: formData.get('password'),
     };
 
-    console.log(data);
+    const result = await signIn('credentials', {
+      username: form.username,
+      password: form.password,
+      redirect: false,
+    });
 
-    setData(data);
+    setIsLoading(false);
+
+    if (result?.error) {
+      setError("Username yoki parol noto'g'ri");
+      toast.error("Username yoki parol noto'g'ri");
+    } else if (result?.ok) {
+      toast.success('Muvaffaqiyatli kirish');
+      router.push('/dashboard');
+    }
   };
   return (
     <div className="w-full h-screen flex">
@@ -57,6 +77,11 @@ const LoginPage = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="text-[16px] max-w-120">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
+            </div>
+          )}
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="fieldgroup-name" className={'text-[16px]'}>
@@ -64,7 +89,7 @@ const LoginPage = () => {
               </FieldLabel>
               <Input
                 id="fieldgroup-name"
-                placeholder="John Doe"
+                placeholder="Admin"
                 className="text-[16px]! py-5"
                 required
                 name="username"
