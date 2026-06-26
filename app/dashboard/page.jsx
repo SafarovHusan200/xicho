@@ -1,11 +1,20 @@
-import React from 'react';
+'use client';
+import React, { useEffect } from 'react';
 import { ChartAreaInteractive } from '@/components/chartAreaInteractive';
 import { ChartPieDonutText } from '@/components/chartPieDonutText';
 import StatsComponent from '@/components/statsComponent';
 import TableComponent from '@/components/tableComponent';
 import Link from 'next/link';
+import useFacilityStore from '@/store/useFacilityStore';
 
 const DashboardPage = () => {
+  // faqat kerakli qismni oling (re-render optimallashtirish uchun)
+  const facilities = useFacilityStore((s) => s.facilities);
+  const selectedFacility = useFacilityStore((s) => s.selectedFacility);
+  const setSelectedFacility = useFacilityStore((s) => s.setSelectedFacility);
+
+  console.log(facilities);
+
   return (
     <div className="">
       <h2 className="title text-[#031634]  text-[32px] font-bold leading-10 tracking-[-0.64px]">
@@ -37,8 +46,11 @@ const DashboardPage = () => {
             <img src="/icons/arrow.svg" alt="icon" />
           </Link>
         </div>
-
-        <TableComponent />
+        {/* <TableComponent
+          data={null}
+          onEdit={(device) => console.log('edit', device)}
+          onDetail={(device) => console.log('detail', device)}
+        /> */}
       </div>
     </div>
   );

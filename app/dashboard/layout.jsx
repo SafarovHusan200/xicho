@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { AiOutlineSafety } from 'react-icons/ai';
 
 import { FaArrowLeft } from 'react-icons/fa';
+import { HiMenu } from 'react-icons/hi';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { TbDeviceDesktopAnalytics } from 'react-icons/tb';
 
@@ -48,6 +49,12 @@ import NotificationComponent from '@/components/NotificationComponent';
 
 const menuItems = [
   { label: 'Monitoring', href: '/dashboard', icon: MdDashboard, key: '' },
+  {
+    label: 'Korxonalar',
+    href: '/dashboard/facility',
+    icon: AiOutlineSafety,
+    key: 'facility',
+  },
   { label: 'Hisobotlar', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
   {
     label: 'Qurilmalar',
@@ -56,12 +63,13 @@ const menuItems = [
     key: 'devices',
   },
   {
-    label: 'Xavfsizlik',
-    href: '/dashboard/safety-approvals',
-    icon: AiOutlineSafety,
-    key: 'safety-approvals',
+    label: 'Lokatsiyalar',
+    href: '/dashboard/locations',
+    icon: TbDeviceDesktopAnalytics,
+    key: 'locations',
   },
-  { label: 'Sozlamalar', href: '/dashboard/permits', icon: IoSettingsOutline, key: 'permits' },
+
+  { label: 'Sozlamalar', href: '/dashboard/settings', icon: IoSettingsOutline, key: 'settings' },
 ];
 
 const DashboardLayout = ({ children }) => {
@@ -77,17 +85,19 @@ const DashboardLayout = ({ children }) => {
 
   // Ruxsat tekshirish va login bo'lmasa redirect qilish
   useEffect(() => {
-    console.log(status);
-
     if (status === 'loading') {
       setIsLoading(true);
     } else if (status === 'unauthenticated') {
       router.push('/');
+    } else if (
+      session?.error === 'RefreshTokenExpired' ||
+      session?.error === 'RefreshAccessTokenError'
+    ) {
+      signOut({ callbackUrl: '/' });
     } else {
       setIsLoading(false);
-      console.log('session=', session);
     }
-  }, [status, session, router]);
+  }, [status, session?.error, router]);
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -119,7 +129,7 @@ const DashboardLayout = ({ children }) => {
   }
 
   const SidebarContent = () => (
-    <div className="h-full  flex  flex-col justify-between ">
+    <div className="h-full   flex  flex-col justify-between ">
       <div>
         <div className="mt-4 mb-10 px-4  flex items-center justify-between">
           <div className="flex items-center gap-3 relative ">
@@ -142,7 +152,7 @@ const DashboardLayout = ({ children }) => {
           </button>
         </div>
 
-        <nav className="space-y-1">
+        <nav className="space-y-1 overflow-hidden">
           {menuItems.map(({ label, href, icon: Icon, key }) => {
             const active = route === key;
             return (
@@ -234,7 +244,7 @@ const DashboardLayout = ({ children }) => {
               className="hidden lg:flex w-9 h-9  items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-600"
               onClick={() => setSidebarSmall((prev) => !prev)}
             >
-              <FaArrowLeft
+              <HiMenu
                 className={`text-gray-500 transition ${sidebarSmall ? 'transform: rotate-0' : 'transform: rotate-180'}`}
                 size={16}
               />
@@ -353,7 +363,7 @@ const DashboardLayout = ({ children }) => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-3 sm:p-5">{children}</main>
       </div>
     </div>
   );

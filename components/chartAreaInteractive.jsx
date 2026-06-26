@@ -158,11 +158,11 @@ export function ChartAreaInteractive() {
             className="hidden w-40 rounded-lg sm:ml-auto sm:flex"
             aria-label="Select a value"
           >
-            <SelectValue placeholder="O'tgan 3 oy" />
+            <SelectValue placeholder="O'tgan 90 kun" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
             <SelectItem value="90d" className="rounded-lg">
-              O'tgan 3 oy
+              O'tgan 90 kun
             </SelectItem>
             <SelectItem value="30d" className="rounded-lg">
               O'tgan 30 kun

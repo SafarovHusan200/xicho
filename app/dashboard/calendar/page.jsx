@@ -86,7 +86,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen ">
       <Breadcrumb className={'mb-3'}>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -110,9 +110,9 @@ export default function CalendarPage() {
       <h2 className="text-[#031634]  text-[32px] font-bold leading-10 tracking-[-0.64px]">
         Sinov va ko'rik kalendari
       </h2>
-      <div className="w-full mt-5 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="w-full mt-5 grid md:grid-cols-4 xl:grid-cols-3 gap-4 xl:gap-6 items-start">
         {/* CALENDAR */}
-        <div className="lg:col-span-1 rounded-lg bg-white shadow-md p-4 border">
+        <div className="md:col-span-2 xl:col-span-1 rounded-lg bg-white shadow-md p-4 border">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FaRegCalendarCheck className="text-blue-700 text-[20px]" />
             <span className="text-blue-700">Calendar</span>
@@ -129,12 +129,11 @@ export default function CalendarPage() {
             modifiersClassNames={{
               hasEvent:
                 'relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-red-500 after:rounded-full',
-              selected: 'bg-slate-300',
             }}
           />
         </div>
 
-        <div className="lg:col-span-1 rounded-lg bg-white shadow-md p-6 border">
+        <div className="md:col-span-2 xl:col-span-1 rounded-lg bg-white shadow-md p-4 border">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <BsFillPinAngleFill className="text-blue-700 text-[20px]" />
             <span className="text-blue-700">Calendar ma'lumotlari</span>
@@ -174,8 +173,9 @@ export default function CalendarPage() {
             <p className="text-gray-400">Sanani tanlang</p>
           )}
         </div>
+
         {/* SELECTED DATE INFO & PERFORMANCE */}
-        <div className=" w-100 flex flex-col gap-6">
+        <div className="md:col-span-4    xl:col-span-1 xl:max-w-100 flex flex-col gap-6">
           {/* UPCOMING TESTS */}
           <div className="rounded-lg bg-white shadow-md p-5 border">
             <div className="flex items-center justify-between mb-4">
