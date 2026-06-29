@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
 
@@ -53,9 +54,12 @@ export default function LocationFormComponent({
   const validate = () => {
     const e = {};
     if (!values.facility_id) e.facility_id = "Ob'ekt tanlanishi shart";
-    if (!values.address_line || values.address_line.length < 2) e.address_line = 'Manzil kiritilishi shart';
-    if (values.latitude === '' || isNaN(Number(values.latitude))) e.latitude = 'Kenglik kiritilishi shart';
-    if (values.longitude === '' || isNaN(Number(values.longitude))) e.longitude = 'Uzunlik kiritilishi shart';
+    if (!values.address_line || values.address_line.length < 2)
+      e.address_line = 'Manzil kiritilishi shart';
+    if (values.latitude === '' || isNaN(Number(values.latitude)))
+      e.latitude = 'Kenglik kiritilishi shart';
+    if (values.longitude === '' || isNaN(Number(values.longitude)))
+      e.longitude = 'Uzunlik kiritilishi shart';
     return e;
   };
 
@@ -74,6 +78,7 @@ export default function LocationFormComponent({
     });
   };
 
+  const t = useTranslations('locationForm');
   const initialCoords =
     initialData?.latitude != null && initialData?.longitude != null
       ? { lat: Number(initialData.latitude), lng: Number(initialData.longitude) }
@@ -81,86 +86,63 @@ export default function LocationFormComponent({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-2">
-      {/* Ob'ekt */}
       <div className="flex flex-col gap-1.5">
-        <Label className="text-[11px] font-bold tracking-widest uppercase text-slate-400">
-          Ob&apos;ekt <span className="text-red-500">*</span>
-        </Label>
+        <Label className="text-[15px]">{t('facilityLabel')} <span className="text-red-500">*</span></Label>
         <Select value={values.facility_id} onValueChange={set('facility_id')}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Ob'ektni tanlang" />
+          <SelectTrigger className="w-full text-[15px]">
+            <SelectValue placeholder={t('facilityPlaceholder')} />
           </SelectTrigger>
           <SelectContent modal={false}>
             {facilities.map((f) => (
-              <SelectItem key={f.id} value={f.id}>
-                {f.name}
-              </SelectItem>
+              <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {errors.facility_id && (
-          <p className="text-sm text-destructive">{errors.facility_id}</p>
-        )}
+        {errors.facility_id && <p className="text-sm text-destructive">{t('facilityError')}</p>}
       </div>
 
-      {/* Manzil */}
       <div className="flex flex-col gap-1.5">
-        <Label className="text-[11px] font-bold tracking-widest uppercase text-slate-400">
-          Manzil <span className="text-red-500">*</span>
-        </Label>
+        <Label className="text-[15px]">{t('addressLabel')} <span className="text-red-500">*</span></Label>
         <Input
-          placeholder="Masalan: Toshkent, Chilonzor tumani"
+          placeholder={t('addressPlaceholder')}
           value={values.address_line}
           onChange={(e) => set('address_line')(e.target.value)}
           aria-invalid={!!errors.address_line}
+          className="text-[15px]"
         />
-        {errors.address_line && (
-          <p className="text-sm text-destructive">{errors.address_line}</p>
-        )}
+        {errors.address_line && <p className="text-sm text-destructive">{t('addressError')}</p>}
       </div>
 
-      {/* Kenglik / Uzunlik */}
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[11px] font-bold tracking-widest uppercase text-slate-400">
-            Kenglik (Latitude) <span className="text-red-500">*</span>
-          </Label>
+          <Label className="text-[15px]">{t('latLabel')} <span className="text-red-500">*</span></Label>
           <Input
-            type="number"
-            step="any"
-            placeholder="41.2995"
+            type="number" step="any" placeholder="41.2995"
             value={values.latitude}
             onChange={(e) => set('latitude')(e.target.value)}
             aria-invalid={!!errors.latitude}
+            className="text-[15px]"
           />
-          {errors.latitude && (
-            <p className="text-sm text-destructive">{errors.latitude}</p>
-          )}
+          {errors.latitude && <p className="text-sm text-destructive">{t('latError')}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[11px] font-bold tracking-widest uppercase text-slate-400">
-            Uzunlik (Longitude) <span className="text-red-500">*</span>
-          </Label>
+          <Label className="text-[15px]">{t('lngLabel')} <span className="text-red-500">*</span></Label>
           <Input
-            type="number"
-            step="any"
-            placeholder="69.2401"
+            type="number" step="any" placeholder="69.2401"
             value={values.longitude}
             onChange={(e) => set('longitude')(e.target.value)}
             aria-invalid={!!errors.longitude}
+            className="text-[15px]"
           />
-          {errors.longitude && (
-            <p className="text-sm text-destructive">{errors.longitude}</p>
-          )}
+          {errors.longitude && <p className="text-sm text-destructive">{t('lngError')}</p>}
         </div>
       </div>
 
-      {/* Xarita */}
       <div className="flex flex-col gap-1.5">
-        <p className="text-[11px] font-bold tracking-widest uppercase text-slate-400 flex items-center gap-1.5">
-          <MapPin className="size-3.5 text-orange-400" />
-          {isEdit ? "Xarita ko'rinishi" : 'Aniq koordinatalarni xaritadan aniqlang'}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <MapPin size={14} style={{ color: '#3b82f6' }} />
+          <Label className="text-[15px]">{isEdit ? t('mapEditLabel') : t('mapLabel')}</Label>
+        </div>
         <MapPicker
           initialCoords={initialCoords}
           onChange={({ latitude, longitude }) => {
@@ -170,26 +152,19 @@ export default function LocationFormComponent({
         />
       </div>
 
-      {/* Actions */}
       <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Bekor qilish
+        <Button type="button" variant="outline" className="rounded-[8px]" onClick={onClose}>
+          {t('cancel')}
         </Button>
         <Button
-          type="submit"
-          disabled={isPending}
-          className="bg-[#FF8C00] hover:bg-[#e07800] text-white font-semibold"
+          type="submit" disabled={isPending}
+          className="rounded-[8px] gap-2 text-white font-semibold"
+          style={{ backgroundColor: '#3b82f6' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
         >
-          {isPending ? (
-            <>
-              <Loader2 className="size-4 animate-spin mr-1" />
-              Saqlanmoqda...
-            </>
-          ) : isEdit ? (
-            "O'zgarishlarni saqlash"
-          ) : (
-            'Saqlash'
-          )}
+          {isPending && <Loader2 size={14} className="animate-spin" />}
+          {isPending ? t('saving') : isEdit ? t('saveChanges') : t('save')}
         </Button>
       </div>
     </form>

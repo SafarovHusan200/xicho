@@ -49,6 +49,25 @@
 }
 
 :root {
+  /* Custom dashboard semantic colors — light mode */
+  --surface: #ffffff;
+  --surface-2: #fafbfc;
+  --surface-3: #f8f9fb;
+  --border-card: rgba(197,198,207,0.30);
+  --border-inner: rgba(197,198,207,0.20);
+  --divider: #f0f1f5;
+  --divider-2: #eef0f4;
+  --clr-heading: #031634;
+  --clr-muted: #7b8499;
+  --clr-body: #3c4043;
+  --clr-mono: #64748b;
+  --badge-blue-bg: #eff6ff;
+  --badge-blue-text: #3b82f6;
+  --badge-blue-border: #bfdbfe;
+  --row-hover: #f8faff;
+  --row-active: #eff6ff;
+  --header-bg: rgba(255,255,255,0.85);
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -84,11 +103,30 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  /* Custom dashboard semantic colors — dark mode */
+  --surface: #1e293b;
+  --surface-2: #1a2744;
+  --surface-3: #152035;
+  --border-card: rgba(255,255,255,0.09);
+  --border-inner: rgba(255,255,255,0.06);
+  --divider: rgba(255,255,255,0.07);
+  --divider-2: rgba(255,255,255,0.05);
+  --clr-heading: #f1f5f9;
+  --clr-muted: #94a3b8;
+  --clr-body: #cbd5e1;
+  --clr-mono: #94a3b8;
+  --badge-blue-bg: rgba(59,130,246,0.15);
+  --badge-blue-text: #93c5fd;
+  --badge-blue-border: rgba(59,130,246,0.35);
+  --row-hover: rgba(255,255,255,0.04);
+  --row-active: rgba(59,130,246,0.13);
+  --header-bg: rgba(10,20,40,0.92);
+
+  --background: oklch(0.118 0.018 254);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.196 0.023 252);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: oklch(0.196 0.023 252);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);

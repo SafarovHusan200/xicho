@@ -20,13 +20,14 @@ import { useSession } from 'next-auth/react';
 import useFacilityStore from '@/store/useFacilityStore';
 import CustomModal from '@/components/modals/CustomModal';
 import LocationFormComponent from '@/components/forms/LocationFormComponent';
-import { MapPin, Plus, Loader2, Navigation2, Pencil, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Loader2, Navigation2, Pencil, Trash2, Map } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const LocationsMap = dynamic(() => import('@/components/LocationsMap'), {
   ssr: false,
   loading: () => (
-    <div className="flex-1 bg-slate-800 flex items-center justify-center">
-      <Loader2 className="animate-spin text-blue-400 size-8" />
+    <div className="flex-1 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+      <Loader2 className="animate-spin text-blue-500 size-8" />
     </div>
   ),
 });
@@ -35,7 +36,6 @@ const LocationsPage = () => {
   const { data: session } = useSession();
   const [selectedFacilityId, setSelectedFacilityId] = useState('all');
   const [activeLocationId, setActiveLocationId] = useState(null);
-
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -64,9 +64,7 @@ const LocationsPage = () => {
   const apiFacilities = getFacilityData?.data?.data ?? [];
 
   useEffect(() => {
-    if (apiFacilities.length > 0 && storeF.length === 0) {
-      setFacilities(apiFacilities);
-    }
+    if (apiFacilities.length > 0 && storeF.length === 0) setFacilities(apiFacilities);
   }, [apiFacilities]);
 
   const facilities = storeF.length > 0 ? storeF : apiFacilities;
@@ -89,11 +87,9 @@ const LocationsPage = () => {
     return locations.filter((l) => l.facility_id === selectedFacilityId);
   }, [locations, selectedFacilityId]);
 
-  const handleLocationClick = (id) => {
-    setActiveLocationId((prev) => (prev === id ? null : id));
-  };
+  const t = useTranslations('locations');
+  const handleLocationClick = (id) => setActiveLocationId((prev) => (prev === id ? null : id));
 
-  // Mutations
   const { mutate: createMutate, isPending: createPending } = usePostQuery({
     listKeyId: KEYS.locations,
   });
@@ -104,14 +100,13 @@ const LocationsPage = () => {
     listKeyId: KEYS.locations,
   });
 
-  const handleCreate = (data) => {
+  const handleCreate = (data) =>
     createMutate(
       { url: URLS.locations, attributes: data, config: { headers: authHeader } },
       { onSuccess: () => setCreateOpen(false) }
     );
-  };
 
-  const handleEdit = (data) => {
+  const handleEdit = (data) =>
     patchMutate(
       {
         url: `${URLS.locations}/${selectedLocation?.id}`,
@@ -120,9 +115,8 @@ const LocationsPage = () => {
       },
       { onSuccess: () => setEditOpen(false) }
     );
-  };
 
-  const handleDelete = () => {
+  const handleDelete = () =>
     deleteMutate(
       { url: `${URLS.locations}/${selectedLocation?.id}`, config: { headers: authHeader } },
       {
@@ -132,73 +126,90 @@ const LocationsPage = () => {
         },
       }
     );
-  };
 
   return (
     <>
-      <div className="flex h-[calc(100vh-96px)] overflow-hidden rounded-2xl border border-slate-200 shadow-lg">
-        {/* ── Left sidebar ── */}
-        <div className="w-[50%] flex flex-col shrink-0 overflow-hidden">
-          {/* Header */}
-          <div className="px-6 pt-6 pb-4 border-b border-white/10">
-            <h1 className="text-[22px] font-bold leading-tight">Joylashuvlar ro&apos;yxati</h1>
-            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Barcha nazorat ostidagi industrial ob&apos;ektlar boshqaruvi
-            </p>
+      {/* Page header */}
+      <div className="flex flex-col gap-1 mb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-11 w-11 items-center justify-center rounded-xl shadow-md"
+            style={{ backgroundColor: '#3b82f6' }}
+          >
+            <Map size={22} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#031634] dark:text-slate-100 leading-tight">{t('title')}</h1>
+            <p className="text-sm text-[#7B8499] dark:text-slate-400">{t('subtitle')}</p>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-2 mt-4">
-              <Select value={selectedFacilityId} onValueChange={setSelectedFacilityId}>
-                <SelectTrigger className="flex-1 h-9 bg-white/10 border-white/15 text-sm hover:bg-white/15 transition-colors [&>span]:text-slate-300">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all"> Barcha ob&apos;ektlar</SelectItem>
-                  {uniqueFacilities.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      {f.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <Button
+          onClick={() => setCreateOpen(true)}
+          className="gap-2 rounded-xl px-5 h-10 text-sm font-semibold transition-all self-start sm:self-auto shadow-md text-white"
+          style={{ backgroundColor: '#3b82f6' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+        >
+          <Plus size={16} />
+          {t('addNew')}
+        </Button>
+      </div>
 
-              <Button
-                size="sm"
-                onClick={() => setCreateOpen(true)}
-                className="h-9 bg-[#FF8C00] hover:bg-[#e07800] text-white gap-1.5 shrink-0 font-semibold shadow-lg shadow-orange-500/20"
+      {/* Main card */}
+      <div className="flex h-[calc(100vh-170px)] overflow-hidden rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm">
+        {/* Left panel */}
+        <div className="w-[50%] flex flex-col shrink-0 overflow-hidden border-r border-[#F0F1F5] dark:border-slate-700/40">
+          {/* Panel header */}
+          <div className="px-5 pt-4 pb-3 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/80">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100">{t('listTitle')}</span>
+              <span
+                className="rounded-full px-3 py-0.5 text-xs font-semibold border"
+                style={{ backgroundColor: 'var(--badge-blue-bg)', color: 'var(--badge-blue-text)', borderColor: 'var(--badge-blue-border)' }}
               >
-                <Plus className="size-3.5" />
-                Yangi joylashuv
-              </Button>
+                {filteredLocations.length} {t('total')}
+              </span>
             </div>
+
+            <Select value={selectedFacilityId} onValueChange={setSelectedFacilityId}>
+              <SelectTrigger className="h-9 text-sm border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filterAll')}</SelectItem>
+                {uniqueFacilities.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Column headers */}
-          <div className="grid grid-cols-[1fr_1.4fr_auto_auto_auto] gap-x-2 px-5 py-2 border-b border-white/10 bg-white/5">
-            <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">
-              Manzil
-            </span>
-            <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">
-              Ob&apos;ekt
-            </span>
-            <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase w-14 text-center">
-              Kenglik
-            </span>
-            <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase w-14 text-center">
-              Uzunlik
-            </span>
-            <span className="w-16" />
+          <div className="grid grid-cols-[1fr_1.2fr_auto_auto_auto] gap-x-2 px-5 py-2.5 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#F8F9FB] dark:bg-slate-800/60">
+            {[t('colAddress'), t('colFacility'), t('colLat'), t('colLng'), ''].map((label, i) => (
+              <span
+                key={i}
+                className={`text-[10px] font-semibold tracking-widest text-[#7B8499] dark:text-slate-500 uppercase ${i >= 2 ? 'text-right' : ''} ${i === 4 ? 'w-16' : ''}`}
+              >
+                {label}
+              </span>
+            ))}
           </div>
 
-          {/* Location list */}
-          <div className="flex-1 overflow-y-auto">
+          {/* List */}
+          <div className="flex-1 overflow-y-auto divide-y divide-[#F0F1F5] dark:divide-slate-700/30">
             {locationsLoading ? (
-              <div className="flex items-center justify-center h-40">
-                <Loader2 className="animate-spin text-blue-400 size-6" />
+              <div className="flex items-center justify-center h-40 gap-2 text-[#7B8499] dark:text-slate-400">
+                <Loader2 className="animate-spin size-5" style={{ color: '#3b82f6' }} />
+                <span className="text-sm">{t('loading')}</span>
               </div>
             ) : filteredLocations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 gap-2 text-slate-500">
-                <Navigation2 className="size-8 opacity-50" />
-                <p className="text-sm">Joylashuvlar topilmadi</p>
+              <div className="flex flex-col items-center justify-center h-40 gap-2 text-[#7B8499] dark:text-slate-400">
+                <Navigation2 className="size-8 text-slate-200 dark:text-slate-700" />
+                <p className="text-sm">{t('empty')}</p>
               </div>
             ) : (
               filteredLocations.map((location) => {
@@ -209,84 +220,74 @@ const LocationsPage = () => {
                   <div
                     key={location.id}
                     onClick={() => handleLocationClick(location.id)}
-                    className={`cursor-pointer w-full text-left border-b border-white/5 transition-all duration-150 ${
+                    className={`cursor-pointer grid grid-cols-[1fr_1.2fr_auto_auto_auto] gap-x-2 px-5 py-3 items-center transition-all duration-150 border-l-2 ${
                       isActive
-                        ? 'bg-gray-200 border-l-2 border-l-orange-500'
-                        : 'hover:bg-white/5 border-l-2 border-l-transparent'
+                        ? 'bg-[#EFF6FF] dark:bg-blue-950/40 border-l-[#3b82f6]'
+                        : 'hover:bg-[#F8FAFF] dark:hover:bg-slate-700/20 border-l-transparent'
                     }`}
                   >
-                    <div className="grid grid-cols-[1fr_1.4fr_auto_auto_auto] gap-x-2 px-4 py-3 items-center">
-                      {/* Address */}
-                      <div className="flex items-center gap-2 min-w-0">
-                        <MapPin
-                          className={`size-3.5 shrink-0 ${isActive ? 'text-orange-400' : 'text-slate-500'}`}
-                        />
-                        <span className="text-sm font-medium truncate">
-                          {location.address_line}
-                        </span>
-                      </div>
-
-                      {/* Facility badge */}
-                      <div className="min-w-0">
-                        {facility ? (
-                          <Badge className="text-[12px] font-medium px-2 py-0.5 bg-blue-500/20 text-blue-600 border border-blue-400/25 rounded-full truncate max-w-full">
-                            {facility.name}
-                          </Badge>
-                        ) : (
-                          <span className="text-[10px] text-slate-600">—</span>
-                        )}
-                      </div>
-
-                      {/* Lat */}
-                      <span className="text-[12px] font-mono w-14 text-right tabular-nums">
-                        {location.latitude.toFixed(4)}
-                      </span>
-
-                      {/* Lng */}
-                      <span className="text-[12px] font-mono w-14 text-right tabular-nums">
-                        {location.longitude.toFixed(4)}
-                      </span>
-
-                      {/* Actions */}
-                      <div
-                        className="flex items-center gap-1 w-16 justify-end"
-                        onClick={(e) => e.stopPropagation()}
+                    {/* Address */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <MapPin
+                        size={13}
+                        className={`shrink-0 ${isActive ? 'text-[#3b82f6]' : 'text-[#94A3B8]'}`}
+                      />
+                      <span
+                        className={`text-[13px] font-medium truncate ${isActive ? 'text-[#1D4ED8] dark:text-blue-300' : 'text-[#3C4043] dark:text-slate-300'}`}
                       >
-                        <button
-                          onClick={() => {
-                            setSelectedLocation(location);
-                            setEditOpen(true);
-                          }}
-                          className="p-1.5 rounded bg-blue-500/20 text-blue-400 hover:text-blue-400 transition-colors"
-                        >
-                          <Pencil className="size-3.5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedLocation(location);
-                            setDeleteOpen(true);
-                          }}
-                          className="p-1.5 rounded bg-red-500/20 text-red-400 hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      </div>
+                        {location.address_line}
+                      </span>
+                    </div>
+
+                    {/* Facility badge */}
+                    <div className="min-w-0">
+                      {facility ? (
+                        <Badge className="text-[11px] font-medium px-2 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-full truncate max-w-full">
+                          {facility.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-[11px] text-[#94A3B8] dark:text-slate-600">—</span>
+                      )}
+                    </div>
+
+                    {/* Lat */}
+                    <span className="text-[11px] font-mono w-14 text-right tabular-nums text-[#64748B] dark:text-slate-500">
+                      {location.latitude.toFixed(4)}
+                    </span>
+
+                    {/* Lng */}
+                    <span className="text-[11px] font-mono w-14 text-right tabular-nums text-[#64748B] dark:text-slate-500">
+                      {location.longitude.toFixed(4)}
+                    </span>
+
+                    {/* Actions */}
+                    <div
+                      className="flex items-center gap-1 w-16 justify-end"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => { setSelectedLocation(location); setEditOpen(true); }}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-500 dark:hover:text-orange-400 transition-all"
+                        title="Tahrirlash"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => { setSelectedLocation(location); setDeleteOpen(true); }}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                        title="O'chirish"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </div>
                 );
               })
             )}
           </div>
-
-          {/* Footer */}
-          <div className="px-5 py-3 border-t border-white/10">
-            <p className="text-[11px] text-slate-500">
-              Jami: <span className="font-semibold">{filteredLocations.length}</span> ta joylashuv
-            </p>
-          </div>
         </div>
 
-        {/* ── Map panel ── */}
+        {/* Map panel */}
         <LocationsMap
           locations={filteredLocations}
           facilityMap={facilityMap}
@@ -299,7 +300,7 @@ const LocationsPage = () => {
       <CustomModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="Yangi joylashuv qo'shish"
+        title={t('createTitle')}
         className="max-w-200! w-full"
       >
         <LocationFormComponent
@@ -315,9 +316,9 @@ const LocationsPage = () => {
       <CustomModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        title="Joylashuvni tahrirlash"
+        title={t('editTitle')}
         description="Ob'ekt ma'lumotlarini o'zgartirish"
-        className="max-w-lg"
+        className="max-w-200! w-full"
       >
         <LocationFormComponent
           key={selectedLocation?.id}
@@ -330,35 +331,28 @@ const LocationsPage = () => {
         />
       </CustomModal>
 
-      {/* Delete confirmation modal */}
+      {/* Delete modal */}
       <CustomModal
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
-        title="Joylashuvni o'chirish"
-        className="max-w-sm"
+        title={t('deleteTitle')}
+        className="max-w-md w-full"
       >
-        <div className="flex flex-col gap-4 pt-2">
-          <p className="text-sm text-slate-400">
-            <span className="font-semibold text-white">{selectedLocation?.address_line}</span>{' '}
-            joylashuvini o&apos;chirmoqchimisiz? Bu amalni ortga qaytarib bo&apos;lmaydi.
-          </p>
+        <div className="flex flex-col gap-5 pt-1">
+          <div className="flex items-start gap-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 px-4 py-3">
+            <Trash2 size={18} className="text-red-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
+              <strong className="font-semibold">{selectedLocation?.address_line}</strong>{' '}
+              {t('deleteWarning')}
+            </p>
+          </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Bekor qilish
+            <Button variant="outline" className="rounded-xl" onClick={() => setDeleteOpen(false)}>
+              {t('cancel')}
             </Button>
-            <Button
-              disabled={deletePending}
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold"
-            >
-              {deletePending ? (
-                <>
-                  <Loader2 className="size-4 animate-spin mr-1" />
-                  O&apos;chirilmoqda...
-                </>
-              ) : (
-                "O'chirish"
-              )}
+            <Button variant="destructive" className="rounded-xl gap-2" disabled={deletePending} onClick={handleDelete}>
+              {deletePending && <Loader2 size={14} className="animate-spin" />}
+              {deletePending ? t('deleting') : t('confirmDelete')}
             </Button>
           </div>
         </div>

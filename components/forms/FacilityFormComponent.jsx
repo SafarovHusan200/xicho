@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckIcon } from 'lucide-react';
+import { CheckIcon, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -149,97 +150,94 @@ export default function FacilityFormComponent({
     }
   }, [initialData, reset]);
 
+  const t = useTranslations('facilityForm');
   const isFacility = watch('is_facilities');
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-2">
-      <div className="flex flex-col gap-1.5 ">
-        <Label htmlFor="facility-name" className={'text-[16px]'}>
-          Nomi
-        </Label>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="facility-name" className="text-[15px]">{t('name')}</Label>
         <Input
           id="facility-name"
-          placeholder="Gaz Taqsimlash Stansiyasi №1"
+          placeholder={t('namePlaceholder')}
           {...register('name')}
           aria-invalid={!!errors.name}
-          className={'text-[16px]'}
+          className="text-[15px]"
         />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        {errors.name && <p className="text-sm text-destructive">{t('nameError')}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label className={'text-[16px]'}>Unit Code</Label>
+        <Label className="text-[15px]">{t('unitCode')}</Label>
         <Controller
           name="unit_code"
-          className={'text-[16px]'}
           control={control}
           render={({ field }) => (
             <CreatableSelect
               value={field.value}
               onChange={field.onChange}
               options={UNIT_CODES}
-              placeholder="Kodni tanlang yoki kiriting..."
+              placeholder={t('unitCodePlaceholder')}
               error={errors.unit_code}
             />
           )}
         />
-        {errors.unit_code && <p className="text-sm text-destructive">{errors.unit_code.message}</p>}
+        {errors.unit_code && <p className="text-sm text-destructive">{t('unitCodeError')}</p>}
       </div>
 
       <div className="flex items-center gap-2">
         <Controller
           name="is_facilities"
-          className={'text-[16px]'}
           control={control}
           render={({ field }) => (
             <Checkbox id="is-facilities" checked={field.value} onCheckedChange={field.onChange} />
           )}
         />
-        <Label htmlFor="is-facilities" className="cursor-pointer font-normal text-[16px]">
-          Bu asosiy ob'ekt (ОПО)
+        <Label htmlFor="is-facilities" className="cursor-pointer font-normal text-[15px]">
+          {t('isMain')}
         </Label>
       </div>
 
       {!isFacility && (
         <div className="flex flex-col gap-1.5">
-          <Label className={'text-[16px]'}>Asosiy ob'ekt (ota-ob'ekt)</Label>
+          <Label className="text-[15px]">{t('parentLabel')}</Label>
           <Controller
             name="parent_id"
-            className={'text-[16px]'}
             control={control}
             render={({ field }) => (
               <Select value={field.value ?? ''} onValueChange={field.onChange}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Ob'ektni tanlang..." />
+                  <SelectValue placeholder={t('parentPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {facilities.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">
-                      Asosiy ob'ektlar mavjud emas
-                    </div>
+                    <div className="px-3 py-2 text-sm text-muted-foreground">{t('noParents')}</div>
                   ) : (
                     facilities.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.name}
-                      </SelectItem>
+                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
                     ))
                   )}
                 </SelectContent>
               </Select>
             )}
           />
-          {errors.parent_id && (
-            <p className="text-sm text-destructive">{errors.parent_id.message}</p>
-          )}
+          {errors.parent_id && <p className="text-sm text-destructive">{t('parentError')}</p>}
         </div>
       )}
 
       <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Bekor qilish
+        <Button type="button" variant="outline" className="rounded-md" onClick={onClose}>
+          {t('cancel')}
         </Button>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+        <Button
+          type="submit" disabled={isPending}
+          className="rounded-md gap-2 text-white font-semibold"
+          style={{ backgroundColor: '#3b82f6' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+        >
+          {isPending && <Loader2 size={14} className="animate-spin" />}
+          {isPending ? t('saving') : t('save')}
         </Button>
       </div>
     </form>

@@ -4,41 +4,49 @@
 }
 
 .btn__icon:hover svg path {
-  fill: rgb(81, 81, 255);
+  fill: #3b82f6;
 }
 
 .sidebar__link {
-  transition: 0.25s;
-  color: #e0d2d2;
+  transition: all 0.2s ease;
+  color: #94a3b8;
+  border-radius: 8px;
+}
+
+.sidebar__link:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: #e2e8f0;
 }
 
 .active {
-  border-radius: 2px;
-  background: #ff8c00;
-  box-shadow: 0 0 15px 0 rgba(255, 140, 0, 0.3);
+  background: #3b82f6;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.35);
 }
+
 .active span {
   color: #fff;
   font-family: Inter;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 15px;
-  letter-spacing: 1px;
-  /* text-transform: uppercase; */
+  letter-spacing: 0.3px;
 }
+
 a svg {
-  transition: 0.25s;
+  transition: 0.2s;
 }
 
 @media screen and (min-width: 1024px) {
   .sidebar__link:hover span {
-    color: #fff;
+    color: #e2e8f0;
   }
 
   .sidebar__link:hover svg {
-    color: #fff;
+    color: #e2e8f0;
   }
 }
+
 .active svg {
   color: #fff;
 }

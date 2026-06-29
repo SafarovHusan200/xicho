@@ -1,27 +1,24 @@
 'use client';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ChartAreaInteractive } from '@/components/chartAreaInteractive';
 import { ChartPieDonutText } from '@/components/chartPieDonutText';
 import StatsComponent from '@/components/statsComponent';
-import TableComponent from '@/components/tableComponent';
 import Link from 'next/link';
 import useFacilityStore from '@/store/useFacilityStore';
+import { useTranslations } from 'next-intl';
 
 const DashboardPage = () => {
   // faqat kerakli qismni oling (re-render optimallashtirish uchun)
   const facilities = useFacilityStore((s) => s.facilities);
-  const selectedFacility = useFacilityStore((s) => s.selectedFacility);
-  const setSelectedFacility = useFacilityStore((s) => s.setSelectedFacility);
-
-  console.log(facilities);
+  const t = useTranslations('dashboard');
 
   return (
     <div className="">
-      <h2 className="title text-[#031634]  text-[32px] font-bold leading-10 tracking-[-0.64px]">
-        Tizim holati
+      <h2 className="title text-[#031634] dark:text-slate-100 text-[32px] font-bold leading-10 tracking-[-0.64px]">
+        {t('title')}
       </h2>
-      <p className="text-[#44474E] text-[16px] font-normal leading-6 mb-6 ">
-        Sanoat ob'ektlarining texnik xavfsizlik monitoringi
+      <p className="text-[#44474E] dark:text-slate-400 text-[16px] font-normal leading-6 mb-6">
+        {t('subtitle')}
       </p>
 
       {/* Stats */}
@@ -34,16 +31,16 @@ const DashboardPage = () => {
       </div>
 
       {/* Table */}
-      <div className="w-full rounded-[12px] border border-[rgba(197,198,207,0.30)] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] overflow-hidden ">
-        <div className="flex  justify-between px-8 py-6 bg-[#FBF8FC] border-b border-[rgba(197,198,207,0.20)] ">
-          <h2 className="text-[#031634] text-[18px] font-semibold">
-            Bu oy rejalashtirilgan sinovlar
+      <div className="w-full rounded-[12px] border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="flex justify-between px-8 py-6 bg-white dark:bg-slate-800/80 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40">
+          <h2 className="text-[#031634] dark:text-slate-100 text-[18px] font-semibold">
+            {t('scheduledTests')}
           </h2>
           <Link href={'/dashboard/calendar'} className="flex items-center gap-2">
-            <span className="text-[#031634] text-center text-[14px] font-semibold leading-4 tracking-[0.6px]">
-              Barchasini ko'rish
+            <span className="text-[#031634] dark:text-slate-300 text-center text-[14px] font-semibold leading-4 tracking-[0.6px]">
+              {t('viewAll')}
             </span>
-            <img src="/icons/arrow.svg" alt="icon" />
+            <img src="/icons/arrow.svg" alt="icon" className="dark:invert dark:opacity-60" />
           </Link>
         </div>
         {/* <TableComponent

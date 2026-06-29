@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
 
 export const description = 'An interactive area chart';
 
@@ -115,22 +116,15 @@ const chartData = [
   { date: '2024-06-30', desktop: 446, mobile: 400 },
 ];
 
-const chartConfig = {
-  visitors: {
-    label: 'Visitors',
-  },
-  desktop: {
-    label: "O'z vaqtida sinovdan o'tgan",
-    color: '#10B981',
-  },
-  mobile: {
-    label: 'Sinov muddati yaqinlashgan',
-    color: '#FEA619',
-  },
-};
-
 export function ChartAreaInteractive() {
+  const t = useTranslations('stats');
   const [timeRange, setTimeRange] = React.useState('90d');
+
+  const chartConfig = {
+    visitors: { label: t('pieSafe') },
+    desktop: { label: t('onTime'), color: '#10B981' },
+    mobile: { label: t('approaching'), color: '#FEA619' },
+  };
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
@@ -147,10 +141,10 @@ export function ChartAreaInteractive() {
   });
 
   return (
-    <Card className="pt-0 w-[calc(50%-12px)] md:max-w-[calc(100%-352px)] lg:w-full   rounded-[12px]">
+    <Card className="pt-0 w-[calc(50%-12px)] md:max-w-[calc(100%-352px)] lg:w-full   rounded-[12px] dark:bg-[#1D293D]">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle>Oylik sinov faolligi</CardTitle>
+          <CardTitle>{t('areaTitle')}</CardTitle>
           {/* <CardDescription>Showing total visitors for the last 3 months</CardDescription> */}
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -158,18 +152,12 @@ export function ChartAreaInteractive() {
             className="hidden w-40 rounded-lg sm:ml-auto sm:flex"
             aria-label="Select a value"
           >
-            <SelectValue placeholder="O'tgan 90 kun" />
+            <SelectValue placeholder={t('last90')} />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
-            <SelectItem value="90d" className="rounded-lg">
-              O'tgan 90 kun
-            </SelectItem>
-            <SelectItem value="30d" className="rounded-lg">
-              O'tgan 30 kun
-            </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
-              O'tgan 7 kun
-            </SelectItem>
+            <SelectItem value="90d" className="rounded-lg">{t('last90')}</SelectItem>
+            <SelectItem value="30d" className="rounded-lg">{t('last30')}</SelectItem>
+            <SelectItem value="7d" className="rounded-lg">{t('last7')}</SelectItem>
           </SelectContent>
         </Select>
       </CardHeader>
@@ -186,13 +174,14 @@ export function ChartAreaInteractive() {
                 <stop offset="95%" stopColor="var(--color-mobile)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
+            <CartesianGrid vertical={false} className="stroke-[#E2E8F0] dark:stroke-slate-700/50" />
             <XAxis
               dataKey="date"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
+              className="fill-[#7B8499] dark:fill-slate-500"
               tickFormatter={(value) => {
                 const date = new Date(value);
                 return date.toLocaleDateString('en-US', {

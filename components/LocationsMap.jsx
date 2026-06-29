@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MapPin } from 'lucide-react';
 
-const activeIconHtml = renderToStaticMarkup(<MapPin size={32} color="#f97316" fill="#fff7ed" />);
+const activeIconHtml = renderToStaticMarkup(<MapPin size={32} color="#1d4ed8" fill="#dbeafe" />);
 const defaultIconHtml = renderToStaticMarkup(<MapPin size={28} color="#3b82f6" fill="#eff6ff" />);
 
 const createIcon = (isActive) =>
