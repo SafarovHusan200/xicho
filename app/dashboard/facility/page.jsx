@@ -14,18 +14,29 @@ import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { useSession } from 'next-auth/react';
-import { Building2, Plus, ShieldAlert, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Building2, Plus, ShieldAlert, Loader2, LayoutGrid } from 'lucide-react';
+import CountUp from 'react-countup';
+import { useTranslations, useLocale } from 'next-intl';
+import { getUnitCodeName } from '@/constants/unit_codes';
 
-const StatCard = ({ label, value, sub, color }) => (
-  <div className="flex flex-col gap-1 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-6 py-5 shadow-sm">
-    <span className="text-xs font-medium uppercase tracking-widest text-[#7B8499] dark:text-slate-400">
-      {label}
-    </span>
+const StatCard = ({ label, value, color, icon: Icon, iconColor }) => (
+  <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-5 py-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <span className="text-xs font-medium uppercase tracking-widest text-[#7B8499] dark:text-slate-400">
+        {label}
+      </span>
+      {Icon && (
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-lg"
+          style={{ backgroundColor: `${iconColor}18` }}
+        >
+          <Icon size={20} style={{ color: iconColor }} />
+        </div>
+      )}
+    </div>
     <span className={`text-3xl font-bold ${color ?? 'text-[#031634] dark:text-slate-100'}`}>
-      {value}
+      <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />
     </span>
-    {sub && <span className="text-xs text-[#7B8499] dark:text-slate-500">{sub}</span>}
   </div>
 );
 
@@ -76,6 +87,7 @@ const HazardousFacilities = () => {
   });
 
   const t = useTranslations('facility');
+  const locale = useLocale();
   const openCreate = () => {
     setSelectedItem(null);
     setIsOpen(true);
@@ -182,9 +194,9 @@ const HazardousFacilities = () => {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label={t('total')} value={total} sub={t('totalSub')} />
-        <StatCard label={t('main')} value={mainCount} color="text-[#3b82f6]" sub={t('mainSub')} />
-        <StatCard label={t('sub')} value={subCount} color="text-amber-500" sub={t('subSub')} />
+        <StatCard label={t('total')} value={total} icon={Building2} iconColor="#7B8499" />
+        <StatCard label={t('main')} value={mainCount} color="text-[#3b82f6]" icon={ShieldAlert} iconColor="#3b82f6" />
+        <StatCard label={t('sub')} value={subCount} color="text-amber-500" icon={LayoutGrid} iconColor="#f59e0b" />
       </div>
 
       {/* Table card */}
@@ -232,12 +244,15 @@ const HazardousFacilities = () => {
           <TableComponent
             column={[
               { key: 'name', label: t('colName'), align: 'left' },
-              { key: 'unit_code', label: t('colCode'), align: 'left' },
+              { key: '_stationName', label: t('colCode'), align: 'left' },
               { key: 'is_facilities', label: t('colIsObj'), align: 'left' },
               { key: 'created_at', label: t('colDate'), align: 'left' },
               { key: 'action', label: t('colActions'), align: 'right' },
             ]}
-            data={facilities}
+            data={facilities?.map((f) => ({
+              ...f,
+              _stationName: getUnitCodeName(f.unit_code, locale),
+            }))}
             onEdit={handleUpdate}
             handleDelete={handleDelete}
           />
@@ -249,7 +264,7 @@ const HazardousFacilities = () => {
         open={isOpen}
         onClose={() => setIsOpen(false)}
         title={selectedItem ? t('editTitle') : t('createTitle')}
-        className="max-w-lg w-full"
+        className="max-w-180! w-full"
       >
         <FacilityFormComponent
           facilities={facilities?.filter((f) => f.is_facilities)}

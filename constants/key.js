@@ -7,4 +7,5 @@ export const KEYS = {
   device: 'device',
   testLogs: 'test-logs',
   documents: 'documents',
+  employees: 'staffio-employees',
 };

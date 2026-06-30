@@ -139,7 +139,9 @@ const LocationsPage = () => {
             <Map size={22} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#031634] dark:text-slate-100 leading-tight">{t('title')}</h1>
+            <h1 className="text-2xl font-bold text-[#031634] dark:text-slate-100 leading-tight">
+              {t('title')}
+            </h1>
             <p className="text-sm text-[#7B8499] dark:text-slate-400">{t('subtitle')}</p>
           </div>
         </div>
@@ -163,10 +165,16 @@ const LocationsPage = () => {
           {/* Panel header */}
           <div className="px-5 pt-4 pb-3 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/80">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100">{t('listTitle')}</span>
+              <span className="text-[14px] font-semibold text-[#031634] dark:text-slate-100">
+                {t('listTitle')}
+              </span>
               <span
-                className="rounded-full px-3 py-0.5 text-xs font-semibold border"
-                style={{ backgroundColor: 'var(--badge-blue-bg)', color: 'var(--badge-blue-text)', borderColor: 'var(--badge-blue-border)' }}
+                className="rounded-full px-3 py-0.5 text-[14px] font-semibold border"
+                style={{
+                  backgroundColor: 'var(--badge-blue-bg)',
+                  color: 'var(--badge-blue-text)',
+                  borderColor: 'var(--badge-blue-border)',
+                }}
               >
                 {filteredLocations.length} {t('total')}
               </span>
@@ -192,7 +200,7 @@ const LocationsPage = () => {
             {[t('colAddress'), t('colFacility'), t('colLat'), t('colLng'), ''].map((label, i) => (
               <span
                 key={i}
-                className={`text-[10px] font-semibold tracking-widest text-[#7B8499] dark:text-slate-500 uppercase ${i >= 2 ? 'text-right' : ''} ${i === 4 ? 'w-16' : ''}`}
+                className={`text-[12px] font-semibold tracking-widest text-[#7B8499] dark:text-slate-500 uppercase ${i >= 2 ? 'text-right' : ''} ${i === 4 ? 'w-16' : ''}`}
               >
                 {label}
               </span>
@@ -229,11 +237,11 @@ const LocationsPage = () => {
                     {/* Address */}
                     <div className="flex items-center gap-2 min-w-0">
                       <MapPin
-                        size={13}
+                        size={14}
                         className={`shrink-0 ${isActive ? 'text-[#3b82f6]' : 'text-[#94A3B8]'}`}
                       />
                       <span
-                        className={`text-[13px] font-medium truncate ${isActive ? 'text-[#1D4ED8] dark:text-blue-300' : 'text-[#3C4043] dark:text-slate-300'}`}
+                        className={`text-[14px] font-medium truncate ${isActive ? 'text-[#1D4ED8] dark:text-blue-300' : 'text-[#3C4043] dark:text-slate-300'}`}
                       >
                         {location.address_line}
                       </span>
@@ -242,7 +250,7 @@ const LocationsPage = () => {
                     {/* Facility badge */}
                     <div className="min-w-0">
                       {facility ? (
-                        <Badge className="text-[11px] font-medium px-2 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-full truncate max-w-full">
+                        <Badge className="text-[12px] font-medium px-2 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-full truncate max-w-full">
                           {facility.name}
                         </Badge>
                       ) : (
@@ -251,12 +259,12 @@ const LocationsPage = () => {
                     </div>
 
                     {/* Lat */}
-                    <span className="text-[11px] font-mono w-14 text-right tabular-nums text-[#64748B] dark:text-slate-500">
+                    <span className="text-[14px] font-mono w-14 text-right tabular-nums text-[#64748B] dark:text-slate-500">
                       {location.latitude.toFixed(4)}
                     </span>
 
                     {/* Lng */}
-                    <span className="text-[11px] font-mono w-14 text-right tabular-nums text-[#64748B] dark:text-slate-500">
+                    <span className="text-[14px] font-mono w-14 text-right tabular-nums text-[#64748B] dark:text-slate-500">
                       {location.longitude.toFixed(4)}
                     </span>
 
@@ -266,18 +274,24 @@ const LocationsPage = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
-                        onClick={() => { setSelectedLocation(location); setEditOpen(true); }}
+                        onClick={() => {
+                          setSelectedLocation(location);
+                          setEditOpen(true);
+                        }}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-500 dark:hover:text-orange-400 transition-all"
                         title="Tahrirlash"
                       >
-                        <Pencil size={13} />
+                        <Pencil size={14} />
                       </button>
                       <button
-                        onClick={() => { setSelectedLocation(location); setDeleteOpen(true); }}
+                        onClick={() => {
+                          setSelectedLocation(location);
+                          setDeleteOpen(true);
+                        }}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 transition-all"
                         title="O'chirish"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
@@ -350,7 +364,12 @@ const LocationsPage = () => {
             <Button variant="outline" className="rounded-xl" onClick={() => setDeleteOpen(false)}>
               {t('cancel')}
             </Button>
-            <Button variant="destructive" className="rounded-xl gap-2" disabled={deletePending} onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              className="rounded-xl gap-2"
+              disabled={deletePending}
+              onClick={handleDelete}
+            >
               {deletePending && <Loader2 size={14} className="animate-spin" />}
               {deletePending ? t('deleting') : t('confirmDelete')}
             </Button>

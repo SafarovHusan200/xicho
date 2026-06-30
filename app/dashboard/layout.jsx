@@ -12,6 +12,7 @@ import { HiMenu } from 'react-icons/hi';
 import { IoSettingsOutline, IoLocationOutline } from 'react-icons/io5';
 
 import { TbDeviceDesktopAnalytics } from 'react-icons/tb';
+import { MdKeyboardArrowDown } from 'react-icons/md';
 
 import {
   DropdownMenu,

@@ -92,7 +92,7 @@ export default function LocationFormComponent({
           <SelectTrigger className="w-full text-[15px]">
             <SelectValue placeholder={t('facilityPlaceholder')} />
           </SelectTrigger>
-          <SelectContent modal={false}>
+          <SelectContent>
             {facilities.map((f) => (
               <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
             ))}

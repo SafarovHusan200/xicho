@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckIcon, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
+import { getUnitCodes } from '@/constants/unit_codes';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,25 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-
-const UNIT_CODES = [
-  '1010',
-  '1020',
-  '1030',
-  '1040',
-  '1050',
-  '1060',
-  '1070',
-  '1080',
-  '1090',
-  '1100',
-  '1110',
-  '1120',
-  '1130',
-  '1140',
-  '1150',
-];
 
 const schema = z
   .object({
@@ -54,64 +36,6 @@ const schema = z
       });
     }
   });
-
-function CreatableSelect({ value, onChange, options, placeholder, error }) {
-  const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState(value || '');
-
-  useEffect(() => {
-    setInputValue(value || '');
-  }, [value]);
-
-  const filtered = options.filter((opt) => opt.toLowerCase().includes(inputValue.toLowerCase()));
-
-  function handleInputChange(e) {
-    const val = e.target.value;
-    setInputValue(val);
-    onChange(val);
-    setOpen(true);
-  }
-
-  function handleSelect(opt) {
-    setInputValue(opt);
-    onChange(opt);
-    setOpen(false);
-  }
-
-  return (
-    <div className="relative">
-      <Input
-        value={inputValue}
-        onChange={handleInputChange}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder={placeholder}
-        aria-invalid={!!error}
-        autoComplete="off"
-      />
-      {open && filtered.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover py-1 shadow-md">
-          {filtered.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              className={cn(
-                'flex w-full items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground text-left',
-                value === opt && 'text-primary font-medium'
-              )}
-              onMouseDown={() => handleSelect(opt)}
-            >
-              <CheckIcon
-                className={cn('size-4 shrink-0', value === opt ? 'opacity-100' : 'opacity-0')}
-              />
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function FacilityFormComponent({
   facilities = [],
@@ -151,12 +75,16 @@ export default function FacilityFormComponent({
   }, [initialData, reset]);
 
   const t = useTranslations('facilityForm');
+  const locale = useLocale();
+  const unitCodes = getUnitCodes(locale);
   const isFacility = watch('is_facilities');
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-2">
+    <form onSubmit={handleSubmit(onSubmit)} className=" flex flex-col gap-4 pt-2">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="facility-name" className="text-[15px]">{t('name')}</Label>
+        <Label htmlFor="facility-name" className="text-[15px]">
+          {t('name')}
+        </Label>
         <Input
           id="facility-name"
           placeholder={t('namePlaceholder')}
@@ -173,13 +101,30 @@ export default function FacilityFormComponent({
           name="unit_code"
           control={control}
           render={({ field }) => (
-            <CreatableSelect
-              value={field.value}
-              onChange={field.onChange}
-              options={UNIT_CODES}
-              placeholder={t('unitCodePlaceholder')}
-              error={errors.unit_code}
-            />
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('unitCodePlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {unitCodes.map((opt) => (
+                  <SelectItem key={opt.code} value={opt.code}>
+                    <div className="w-full  flex items-center gap-3">
+                      <span className="font-mono text-[14px] text-muted-foreground w-10 shrink-0">
+                        {opt.code}
+                      </span>
+                      <div className="flex items-center justify-between gap-10 ">
+                        <p className="text-[14px]">{opt.name}</p>
+                        <p>
+                          {opt.city && (
+                            <p className="text-[12px] text-muted-foreground">{opt.city}</p>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         />
         {errors.unit_code && <p className="text-sm text-destructive">{t('unitCodeError')}</p>}
@@ -214,7 +159,9 @@ export default function FacilityFormComponent({
                     <div className="px-3 py-2 text-sm text-muted-foreground">{t('noParents')}</div>
                   ) : (
                     facilities.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.name}
+                      </SelectItem>
                     ))
                   )}
                 </SelectContent>
@@ -230,7 +177,8 @@ export default function FacilityFormComponent({
           {t('cancel')}
         </Button>
         <Button
-          type="submit" disabled={isPending}
+          type="submit"
+          disabled={isPending}
           className="rounded-md gap-2 text-white font-semibold"
           style={{ backgroundColor: '#3b82f6' }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}

@@ -19,9 +19,10 @@
 }
 
 .active {
-  background: #3b82f6;
+  background: #3b82f6 !important;
   border-radius: 8px;
   box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.35);
+  color: #fff !important;
 }
 
 .active span {
