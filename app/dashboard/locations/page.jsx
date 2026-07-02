@@ -278,7 +278,7 @@ const LocationsPage = () => {
                           setSelectedLocation(location);
                           setEditOpen(true);
                         }}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-500 dark:hover:text-orange-400 transition-all"
+                        className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400  hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
                         title="Tahrirlash"
                       >
                         <Pencil size={14} />
@@ -288,7 +288,7 @@ const LocationsPage = () => {
                           setSelectedLocation(location);
                           setDeleteOpen(true);
                         }}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                        className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400  hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
                         title="O'chirish"
                       >
                         <Trash2 size={14} />

@@ -72,6 +72,7 @@ function StatusBadge({ status, t }) {
 }
 
 function ActiveBadge({ value }) {
+  const tc = useTranslations('common');
   const color = value ? '#10B981' : '#94a3b8';
   return (
     <span
@@ -79,7 +80,7 @@ function ActiveBadge({ value }) {
       style={{ backgroundColor: `${color}18`, color, borderColor: `${color}30` }}
     >
       <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-      {value ? 'Ha' : "Yo'q"}
+      {value ? tc('yes') : tc('no')}
     </span>
   );
 }
@@ -372,7 +373,7 @@ function DeviceForm({ initialData, onSubmit, onClose, isPending, t, deviceTypes,
           id="dev_is_active"
           checked={form.is_active}
           onCheckedChange={(v) => set('is_active', v)}
-          className={'bg-blue-500'}
+          className={'-blue-500'}
         />
         <Label htmlFor="dev_is_active" className="cursor-pointer font-normal text-[14px]">
           {t('isActiveLabel')}
@@ -544,6 +545,13 @@ const DevicePage = () => {
   const tableData = items.map((item, i) => ({
     ...item,
     _rowNumber: offset + i + 1,
+    _nameSerial: (
+      <div className="flex flex-col gap-0.5">
+        <span className="font-semibold text-[13px] text-[#031634] dark:text-slate-100">
+          {item.name}
+        </span>
+      </div>
+    ),
     _typeName: getTypeName(item.device_type_id),
     _facilityName: getFacilityName(item.facility_id),
     _statusBadge: <StatusBadge status={item.test_status} t={t} />,
@@ -700,8 +708,7 @@ const DevicePage = () => {
           <TableComponent
             column={[
               { key: '_rowNumber', label: '№', align: 'left' },
-              { key: 'name', label: t('colName'), align: 'left' },
-              { key: 'serial_number', label: t('colSerial'), align: 'left' },
+              { key: '_nameSerial', label: `${t('colName')}`, align: 'left' },
               { key: '_typeName', label: t('colType'), align: 'left' },
               { key: '_facilityName', label: t('colFacility'), align: 'left' },
               { key: '_statusBadge', label: t('colStatus'), align: 'center' },
@@ -735,7 +742,7 @@ const DevicePage = () => {
         open={isOpen}
         onClose={() => setIsOpen(false)}
         title={selectedItem ? t('editTitle') : t('createTitle')}
-        className="max-w-160! w-full"
+        className="max-w-200! w-full"
       >
         <div className="max-h-[70vh] overflow-y-auto px-1">
           <DeviceForm

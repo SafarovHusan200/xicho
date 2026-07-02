@@ -44,7 +44,7 @@ const menuKeys = [
     key: 'locations',
   },
   { labelKey: 'users', href: '/dashboard/users', icon: FaUserShield, key: 'users' },
-  { labelKey: 'reports', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
+
   {
     labelKey: 'devices',
     icon: TbDeviceDesktopAnalytics,
@@ -54,6 +54,7 @@ const menuKeys = [
       { labelKey: 'devicesList', href: '/dashboard/devices' },
     ],
   },
+  { labelKey: 'reports', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
   { labelKey: 'settings', href: '/dashboard/settings', icon: IoSettingsOutline, key: 'settings' },
 ];
 

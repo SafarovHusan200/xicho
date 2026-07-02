@@ -64,11 +64,11 @@ const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView }
                 if (col.key === 'action') {
                   return (
                     <td key="action" className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
                         {onView && (
                           <button
                             onClick={() => onView(row)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-500 dark:hover:text-blue-400 transition-all duration-150"
+                            className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400  hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
                             title="Ko'rish"
                           >
                             <Eye size={15} />
@@ -76,14 +76,14 @@ const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView }
                         )}
                         <button
                           onClick={() => onEdit?.(row)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-500 dark:hover:text-orange-400 transition-all duration-150"
+                          className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400  hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
                           title="Tahrirlash"
                         >
                           <Pencil size={15} />
                         </button>
                         <button
                           onClick={() => handleDelete?.(row)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 transition-all duration-150"
+                          className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400  hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
                           title="O'chirish"
                         >
                           <Trash2 size={15} />
