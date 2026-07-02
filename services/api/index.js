@@ -1,7 +1,8 @@
+import { config } from '@/config';
 import axios from 'axios';
 
 const request = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  baseURL: config.API_URL,
   params: {},
   headers: {
     common: {

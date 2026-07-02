@@ -4,8 +4,9 @@ import { pdf } from '@react-pdf/renderer';
 import MyDocument from '@/components/ui/MyDocument';
 import QRCode from 'qrcode';
 import { useState } from 'react';
+import { config } from '@/config';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://unit-control.maktab16.uz';
+const BACKEND_URL = config.API_URL || 'https://unit-control.maktab16.uz';
 
 export default function PDFDownloadClient({ children, filename = 'my-file', documentData }) {
   const [loading, setLoading] = useState(false);

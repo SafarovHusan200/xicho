@@ -35,7 +35,7 @@ const formatValue = (value) => {
   return value;
 };
 
-const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView }) => {
+const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView, rowClassName }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -58,7 +58,7 @@ const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView }
           {data.map((row, index) => (
             <tr
               key={row.id ?? index}
-              className="group hover:bg-[#F8FAFF] dark:hover:bg-slate-700/20 transition-colors duration-150"
+              className={`group hover:bg-[#F8FAFF] dark:hover:bg-slate-700/20 transition-colors duration-150 ${rowClassName?.(row) ?? ''}`}
             >
               {column.map((col, i) => {
                 if (col.key === 'action') {

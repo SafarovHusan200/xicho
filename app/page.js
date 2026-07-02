@@ -77,8 +77,8 @@ const LoginPage = () => {
       {/* ── LEFT PANEL ── */}
       <div className="hidden lg:w-[50%] bg-[#3525CD] dark:bg-[#0A1628] h-full lg:flex flex-col justify-center text-white p-16 relative overflow-hidden">
         {/* Decoration */}
-        <div className="absolute top-[-100px] right-[-100px] w-80 h-80 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute bottom-[-80px] left-[-80px] w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute -top-25 -right-25 w-80 h-80 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
 
         <motion.div
           initial={{ x: -60, opacity: 0 }}

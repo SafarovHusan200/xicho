@@ -12,4 +12,7 @@ export const config = {
   // JAVA_API_URL: "http://localhost:8080/",
   // PYTHON_API_URL: "http://10.40.9.45:8004/",
   // GENERAL_AUTH_URL: "http://10.20.6.23:5656",
+
+  // API_URL: 'http://10.40.9.46:8080/api/v1',
+  API_URL: 'http://10.20.6.97:8080/api/v1',
 };

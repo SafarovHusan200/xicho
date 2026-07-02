@@ -52,6 +52,7 @@ const menuKeys = [
     children: [
       { labelKey: 'deviceTypes', href: '/dashboard/devices/types' },
       { labelKey: 'devicesList', href: '/dashboard/devices' },
+      { labelKey: 'testLogs', href: '/dashboard/devices/test-logs' },
     ],
   },
   { labelKey: 'reports', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
