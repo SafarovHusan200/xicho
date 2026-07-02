@@ -11,11 +11,13 @@
   transition: all 0.2s ease;
   color: #94a3b8;
   border-radius: 8px;
+  /* transition: 0.3s; */
 }
 
 .sidebar__link:hover {
   background: rgba(59, 130, 246, 0.08);
   color: #e2e8f0;
+  /* transform: translateX(5px); */
 }
 
 .active {

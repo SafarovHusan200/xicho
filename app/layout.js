@@ -21,7 +21,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   const cookieStore = await cookies();
-  const locale = cookieStore.get('locale')?.value || 'uz';
+  const locale = cookieStore.get('locale')?.value || 'ru';
   const messages = (await import(`../messages/${locale}.json`)).default;
 
   return (

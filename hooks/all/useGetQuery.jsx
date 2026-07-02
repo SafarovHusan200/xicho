@@ -42,15 +42,15 @@ const useGetQuery = ({
     if (status === 401) {
       // Don't redirect, let component decide
     }
-    // 🔴 403
+    // 🔴 403 - Forbidden
     else if (status === 403 && redirectOn403) {
       router.replace('/403');
     }
-    // 🔴 404
+    // 🔴 404 - Page Not Found
     else if (status === 404 && showErrorMsg) {
       toast.error(error?.response?.data?.message || 'Resurs topilmadi');
     }
-    // 🔴 500
+    // 🔴 500 - Server error
     else if (status >= 500 && redirectOn500) {
       router.replace('/500');
     } else if (showErrorMsg) {

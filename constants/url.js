@@ -4,7 +4,7 @@ export const URLS = {
   locations: 'locations',
   person: 'responsible-persons',
   deviceTypes: 'device-types',
-  device: 'device',
+  device: 'devices',
   testLogs: 'test-logs',
   documents: 'documents',
   employee: 'staffio/employee/',

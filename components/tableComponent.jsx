@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Eye } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 const BooleanBadge = ({ value }) => {
@@ -35,7 +35,7 @@ const formatValue = (value) => {
   return value;
 };
 
-const TableComponent = ({ column = [], data = [], onEdit, handleDelete }) => {
+const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -65,6 +65,15 @@ const TableComponent = ({ column = [], data = [], onEdit, handleDelete }) => {
                   return (
                     <td key="action" className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">
+                        {onView && (
+                          <button
+                            onClick={() => onView(row)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-500 dark:hover:text-blue-400 transition-all duration-150"
+                            title="Ko'rish"
+                          >
+                            <Eye size={15} />
+                          </button>
+                        )}
                         <button
                           onClick={() => onEdit?.(row)}
                           className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7B8499] dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-500 dark:hover:text-orange-400 transition-all duration-150"

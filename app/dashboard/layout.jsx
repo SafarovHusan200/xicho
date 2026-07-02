@@ -43,18 +43,16 @@ const menuKeys = [
     icon: IoLocationOutline,
     key: 'locations',
   },
-  {
-    labelKey: 'users',
-    href: '/dashboard/users',
-    icon: FaUserShield,
-    key: 'users',
-  },
+  { labelKey: 'users', href: '/dashboard/users', icon: FaUserShield, key: 'users' },
   { labelKey: 'reports', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
   {
     labelKey: 'devices',
-    href: '/dashboard/devices',
     icon: TbDeviceDesktopAnalytics,
     key: 'devices',
+    children: [
+      { labelKey: 'deviceTypes', href: '/dashboard/devices/types' },
+      { labelKey: 'devicesList', href: '/dashboard/devices' },
+    ],
   },
   { labelKey: 'settings', href: '/dashboard/settings', icon: IoSettingsOutline, key: 'settings' },
 ];
@@ -70,6 +68,18 @@ const DashboardLayout = ({ children }) => {
 
   const route = useMemo(() => pathname.split('/')[2] || '', [pathname]);
   const t = useTranslations('nav');
+
+  const [openGroups, setOpenGroups] = useState(() => {
+    const initial = {};
+    menuKeys.forEach((item) => {
+      if (item.children?.some((c) => pathname.startsWith(c.href))) {
+        initial[item.key] = true;
+      }
+    });
+    return initial;
+  });
+
+  const toggleGroup = (key) => setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
     if (status === 'loading') {
@@ -121,7 +131,7 @@ const DashboardLayout = ({ children }) => {
               <div>
                 <h3 className="font-bold text-[15px] text-white tracking-wide">XICHO</h3>
                 <p className="text-[#64748b] text-[11px] uppercase tracking-widest">
-                  Sanoat nazorati
+                  {t('subtitle')}
                 </p>
               </div>
             )}
@@ -136,7 +146,50 @@ const DashboardLayout = ({ children }) => {
         </div>
 
         <nav className="space-y-1 overflow-hidden">
-          {menuKeys.map(({ labelKey, href, icon: Icon, key }) => {
+          {menuKeys.map(({ labelKey, href, icon: Icon, key, children }) => {
+            if (children) {
+              const isGroupActive = children.some((c) => pathname.startsWith(c.href));
+              const isOpen = openGroups[key] ?? isGroupActive;
+              return (
+                <div key={key}>
+                  <button
+                    onClick={() => toggleGroup(key)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded transition duration-300 sidebar__link ${isGroupActive ? 'active' : ''}`}
+                  >
+                    <Icon className="text-xl shrink-0" />
+                    {sidebarSmall && (
+                      <>
+                        <span className="text-sm font-medium flex-1 text-left">{t(labelKey)}</span>
+                        <MdKeyboardArrowDown
+                          size={16}
+                          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                        />
+                      </>
+                    )}
+                  </button>
+                  {isOpen && (
+                    <div className={`mt-0.5 space-y-0.5 ${sidebarSmall ? 'pl-4' : ''}`}>
+                      {children.map((child) => {
+                        const childActive = pathname === child.href;
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded transition duration-300 sidebar__link ${childActive ? 'active' : ''}`}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0 opacity-60" />
+                            {sidebarSmall && (
+                              <span className="text-[13px] font-medium">{t(child.labelKey)}</span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             const active = route === key;
             return (
               <Link
