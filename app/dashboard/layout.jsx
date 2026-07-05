@@ -9,7 +9,7 @@ import { MdOutlineHomeWork } from 'react-icons/md';
 import { usePathname, useRouter } from 'next/navigation';
 import { AiOutlineSafety } from 'react-icons/ai';
 import { HiMenu } from 'react-icons/hi';
-import { IoSettingsOutline, IoLocationOutline } from 'react-icons/io5';
+import { IoSettingsOutline, IoLocationOutline, IoDocumentOutline } from 'react-icons/io5';
 
 import { TbDeviceDesktopAnalytics } from 'react-icons/tb';
 import { MdKeyboardArrowDown } from 'react-icons/md';
@@ -55,6 +55,7 @@ const menuKeys = [
       { labelKey: 'testLogs', href: '/dashboard/devices/test-logs' },
     ],
   },
+  { labelKey: 'documents', href: '/dashboard/documents', icon: IoDocumentOutline, key: 'documents' },
   { labelKey: 'reports', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
   { labelKey: 'settings', href: '/dashboard/settings', icon: IoSettingsOutline, key: 'settings' },
 ];

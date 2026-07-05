@@ -162,7 +162,7 @@ const LoginPage = () => {
 
                 {/* Text */}
                 <motion.div {...fadeUp(0.3)}>
-                  <h2 className="text-[22px] font-bold text-[#1B1B24] dark:text-slate-100 mb-1.5">
+                  <h2 className="text-[22px] font-bold text-[#031634] dark:text-slate-100 mb-1.5">
                     {t('alreadyIn')}
                   </h2>
                   <p className="text-[15px] text-[#3b82f6] dark:text-blue-400">

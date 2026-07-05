@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
   MonitorSpeaker,
@@ -291,7 +291,20 @@ function DeviceForm({ initialData, onSubmit, onClose, isPending, t, deviceTypes,
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[14px] font-medium">{t('ecoLabel')}</Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-[14px] font-medium">{t('ecoLabel')}</Label>
+            <a
+              href="https://ekotizim.cirns.uz"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-2 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+              ekotizim.cirns.uz
+            </a>
+          </div>
           <Input
             value={form.ecosystem_reg_number}
             onChange={(e) => set('ecosystem_reg_number', e.target.value)}
@@ -405,6 +418,8 @@ const DevicePage = () => {
   const { data: session } = useSession();
   const t = useTranslations('devices');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
 
   const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -416,6 +431,22 @@ const DevicePage = () => {
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
+
+  /* ── edit by URL param (?edit=id) ───────────────────────────── */
+  const { data: editDeviceData } = useGetQuery({
+    key: ['device-edit', editId],
+    url: `${URLS.device}/${editId}`,
+    headers: authHeader,
+    enabled: !!editId && !!session?.accessToken,
+  });
+
+  useEffect(() => {
+    const device = editDeviceData?.data;
+    if (editId && device && !isOpen) {
+      setSelectedItem(device);
+      setIsOpen(true);
+    }
+  }, [editId, editDeviceData?.data]);
 
   const queryParams = useMemo(() => {
     const p = { limit: LIMIT, offset };
@@ -740,7 +771,10 @@ const DevicePage = () => {
       {/* Create / Edit Modal */}
       <CustomModal
         open={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={() => {
+          setIsOpen(false);
+          if (editId) router.replace('/dashboard/devices');
+        }}
         title={selectedItem ? t('editTitle') : t('createTitle')}
         className="max-w-200! w-full"
       >
@@ -748,7 +782,10 @@ const DevicePage = () => {
           <DeviceForm
             initialData={selectedItem}
             onSubmit={handleFormSubmit}
-            onClose={() => setIsOpen(false)}
+            onClose={() => {
+              setIsOpen(false);
+              if (editId) router.replace('/dashboard/devices');
+            }}
             isPending={isCreating || isUpdating}
             t={t}
             deviceTypes={deviceTypes}

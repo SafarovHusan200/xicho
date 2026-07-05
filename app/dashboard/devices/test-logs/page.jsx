@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import toast from 'react-hot-toast';
@@ -61,6 +61,15 @@ const ROW_BG = {
   expiring_soon: 'bg-orange-50 dark:bg-orange-950/20',
   overdue: 'bg-red-50 dark:bg-red-950/20',
 };
+
+function useDebounce(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
 
 /* ── helpers ─────────────────────────────────────────────────── */
 const getStatus = (next_test_date) => {
@@ -302,6 +311,14 @@ export default function TestLogsPage() {
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
+  const debouncedProtocol = useDebounce(filterProtocol, 500);
+  const debouncedTestType = useDebounce(filterTestType, 500);
+  const debouncedUnitCode = useDebounce(filterUnitCode, 1000);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedProtocol, debouncedTestType, debouncedUnitCode]);
+
   const offset = (page - 1) * LIMIT;
 
   const hasFilters = filterProtocol || filterDeviceId || filterTestType || filterUnitCode;
@@ -326,10 +343,10 @@ export default function TestLogsPage() {
     params: {
       limit: LIMIT,
       offset,
-      ...(filterProtocol.trim() ? { test_protocol_number: filterProtocol.trim() } : {}),
-      ...(filterDeviceId ? { device_id: filterDeviceId } : {}),
-      ...(filterTestType.trim() ? { test_type: filterTestType.trim() } : {}),
-      ...(filterUnitCode.trim() ? { unit_code: filterUnitCode.trim() } : {}),
+      ...(debouncedProtocol.trim() ? { test_protocol_number: debouncedProtocol.trim() } : {}),
+      ...(filterDeviceId && filterDeviceId.trim() ? { device_id: filterDeviceId.trim() } : {}),
+      ...(debouncedTestType.trim() ? { test_type: debouncedTestType.trim() } : {}),
+      ...(debouncedUnitCode.trim() ? { unit_code: debouncedUnitCode.trim() } : {}),
     },
     headers: authHeader,
     enabled: !!session,
@@ -544,7 +561,7 @@ export default function TestLogsPage() {
             />
             <input
               value={filterProtocol}
-              onChange={(e) => handleFilterChange(setFilterProtocol)(e.target.value)}
+              onChange={(e) => setFilterProtocol(e.target.value)}
               placeholder={t('searchPlaceholder')}
               className="w-full rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-[#F8F9FB] dark:bg-slate-700/50 pl-8 pr-4 py-2 text-[13px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
             />
@@ -573,7 +590,7 @@ export default function TestLogsPage() {
           <div className="relative">
             <input
               value={filterTestType}
-              onChange={(e) => handleFilterChange(setFilterTestType)(e.target.value)}
+              onChange={(e) => setFilterTestType(e.target.value)}
               placeholder={t('filterTestType')}
               className="h-8 w-44 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[12px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
             />
@@ -583,7 +600,7 @@ export default function TestLogsPage() {
           <div className="relative">
             <input
               value={filterUnitCode}
-              onChange={(e) => handleFilterChange(setFilterUnitCode)(e.target.value)}
+              onChange={(e) => setFilterUnitCode(e.target.value)}
               placeholder={t('filterUnitCode')}
               className="h-8 w-36 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[12px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
             />
