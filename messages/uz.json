@@ -25,7 +25,8 @@
     "barTitle": "Sinov natijalari",
     "barPassed": "Muvaffaqiyatli",
     "barFailed": "Muvaffaqiyatsiz",
-    "barNever": "Sinovsiz qurilmalar"
+    "barNever": "Sinovsiz qurilmalar",
+    "passRate": "o'tkazish darajasi"
   },
   "dashboard": {
     "title": "Tizim holati",
@@ -45,7 +46,7 @@
     "sectionExpiring": "Muddati yaqin qurilmalar",
     "sectionOverdue": "Muddati o'tgan qurilmalar",
     "daysLeft": "kun qoldi",
-    "daysOverdue": "kun o'tdi",
+    "daysOverdue": "kun o'tgan",
     "noExpiring": "Muddati yaqin qurilmalar yo'q",
     "noOverdue": "Muddati o'tgan qurilmalar yo'q",
     "noLocations": "Lokatsiyalar mavjud emas",

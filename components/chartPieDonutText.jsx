@@ -1,75 +1,67 @@
 'use client';
 
 import * as React from 'react';
-import { TrendingUp } from 'lucide-react';
-import { Label, Pie, PieChart } from 'recharts';
+import { Cell, Label, Pie, PieChart } from 'recharts';
 import { useTranslations } from 'next-intl';
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
-export const description = 'A donut chart with text';
-
-const chartData = [
-  { browser: 'chrome', visitors: 1089, fill: 'var(--color-chrome)' },
-  { browser: 'safari', visitors: 112, fill: 'var(--color-safari)' },
-  { browser: 'firefox', visitors: 47, fill: 'var(--color-firefox)' },
-  { browser: 'opera', visitors: 0, fill: 'var(--color-opera)' },
+const SLICES = [
+  { key: 'active',      labelKey: 'pieActive',      color: '#10B981' },
+  { key: 'inactive',    labelKey: 'pieInactive',     color: '#94a3b8' },
+  { key: 'neverTested', labelKey: 'pieNeverTested',  color: '#f59e0b' },
 ];
 
-export function ChartPieDonutText() {
-  const t = useTranslations('stats');
+export function ChartPieDonutText({ devices }) {
+  const t  = useTranslations('stats');
+  const td = useTranslations('dashboard');
+
+  const chartData = React.useMemo(() => {
+    if (!devices) return [];
+    return [
+      { name: t('pieActive'),      value: devices.active,       fill: '#10B981' },
+      { name: t('pieInactive'),    value: devices.inactive,     fill: '#94a3b8' },
+      { name: t('pieNeverTested'), value: devices.never_tested, fill: '#f59e0b' },
+    ].filter((d) => d.value > 0);
+  }, [devices, t]);
+
+  const total = devices?.total ?? 0;
+
+  const empty = [{ name: '—', value: 1, fill: '#e2e8f0' }];
 
   const chartConfig = {
-    visitors: { label: t('pieSafe') },
-    chrome: { label: t('pieOnTime'), color: '#10B981' },
-    safari: { label: t('pieApproaching'), color: '#FEA619' },
-    firefox: { label: t('pieUrgent'), color: '#F97316' },
-    opera: { label: t('pieExpired'), color: '#EF4444' },
+    value: { label: t('pieLabelTotal') },
   };
 
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-  }, []);
-
   return (
-    <Card className="w-[calc(50%-12px)] dark:bg-[#1D293D] md:max-w-80 flex flex-col rounded-[12px]">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>{t('pieTitle')}</CardTitle>
+    <Card className="flex-1 min-w-60 max-w-75 rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm">
+      <CardHeader className="pb-0">
+        <CardTitle className="text-[15px]">{t('pieTitle')}</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-62.5">
+      <CardContent className="flex flex-col items-center pb-4">
+        <ChartContainer config={chartConfig} className="mx-auto aspect-square h-50">
           <PieChart>
             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
             <Pie
-              data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
-              innerRadius={60}
-              strokeWidth={5}
+              data={chartData.length ? chartData : empty}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={58}
+              strokeWidth={4}
             >
+              {(chartData.length ? chartData : empty).map((entry, i) => (
+                <Cell key={i} fill={entry.fill} />
+              ))}
               <Label
                 content={({ viewBox }) => {
                   if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                     return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                      >
-                        <tspan
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          className="fill-foreground text-3xl font-bold"
-                        >
-                          {totalVisitors.toLocaleString()}
+                      <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                        <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-3xl font-bold">
+                          {total}
                         </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground"
-                        >
+                        <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 22} className="fill-muted-foreground text-xs">
                           {t('pieLabelTotal')}
                         </tspan>
                       </text>
@@ -80,12 +72,19 @@ export function ChartPieDonutText() {
             </Pie>
           </PieChart>
         </ChartContainer>
-      </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
-          {t('pieTrending')} <TrendingUp className="h-4 w-4" />
+
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-2">
+          {(chartData.length ? chartData : []).map((d) => (
+            <div key={d.name} className="flex items-center gap-1.5 text-[11px]">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.fill }} />
+              <span className="text-[#44474E] dark:text-slate-400">
+                {d.name}:{' '}
+                <strong className="text-[#031634] dark:text-slate-100">{d.value}</strong>
+              </span>
+            </div>
+          ))}
         </div>
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 }

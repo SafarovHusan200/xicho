@@ -182,7 +182,7 @@ function FileDropZone({ file, onChange, t }) {
             {t('fileDrop')}
           </p>
           <p className="text-[11px] text-[#7B8499]/70">
-            PDF, DOCX, XLSX, JPG, PNG, TXT · max 100 MB
+            PDF, DOCX, XLSX, JPG, PNG, TXT · max 10 MB
           </p>
         </>
       )}
