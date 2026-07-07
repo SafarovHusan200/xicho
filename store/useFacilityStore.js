@@ -7,6 +7,7 @@ const useFacilityStore = create((set) => ({
   setFacilities: (facilities) => set({ facilities }),
   setSelectedFacility: (facility) => set({ selectedFacility: facility }),
   clearSelectedFacility: () => set({ selectedFacility: null }),
+  reset: () => set({ facilities: [], selectedFacility: null }),
 }));
 
 export default useFacilityStore;

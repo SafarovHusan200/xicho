@@ -18,7 +18,7 @@ const useGetQuery = ({
 }) => {
   const router = useRouter();
 
-  const { isPending, isError, data, error, isFetching } = useQuery({
+  const { isLoading, isError, data, error, isFetching } = useQuery({
     queryKey: [key, params],
     queryFn: () =>
       apiClient.get(url, {
@@ -59,7 +59,7 @@ const useGetQuery = ({
   }
 
   return {
-    isLoading: isPending,
+    isLoading,
     isError,
     data,
     error,

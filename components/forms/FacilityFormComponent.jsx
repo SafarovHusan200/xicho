@@ -39,6 +39,7 @@ const schema = z
 
 export default function FacilityFormComponent({
   facilities = [],
+  allFacilities = [],
   onSubmit,
   onClose,
   initialData,
@@ -50,6 +51,7 @@ export default function FacilityFormComponent({
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -78,6 +80,16 @@ export default function FacilityFormComponent({
   const locale = useLocale();
   const unitCodes = getUnitCodes(locale);
   const isFacility = watch('is_facilities');
+  const parentIdWatch = watch('parent_id');
+
+  useEffect(() => {
+    if (isFacility || initialData?.unit_code || !parentIdWatch) return;
+    const parent = allFacilities.find((f) => f.id === parentIdWatch);
+    if (!parent) return;
+    const siblingCount = allFacilities.filter((f) => f.parent_id === parentIdWatch).length;
+    const suffix = String(siblingCount + 1).padStart(2, '0');
+    setValue('unit_code', `${parent.unit_code}-${suffix}`, { shouldValidate: true });
+  }, [parentIdWatch, isFacility, initialData, allFacilities, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className=" flex flex-col gap-4 pt-2">
@@ -100,32 +112,41 @@ export default function FacilityFormComponent({
         <Controller
           name="unit_code"
           control={control}
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('unitCodePlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {unitCodes.map((opt) => (
-                  <SelectItem key={opt.code} value={opt.code}>
-                    <div className="w-full  flex items-center gap-3">
-                      <span className="font-mono text-[14px] text-muted-foreground w-10 shrink-0">
-                        {opt.code}
-                      </span>
-                      <div className="flex items-center justify-between gap-10 ">
-                        <p className="text-[14px]">{opt.name}</p>
-                        <p>
-                          {opt.city && (
-                            <p className="text-[12px] text-muted-foreground">{opt.city}</p>
-                          )}
-                        </p>
+          render={({ field }) =>
+            isFacility ? (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('unitCodePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {unitCodes.map((opt) => (
+                    <SelectItem key={opt.code} value={opt.code}>
+                      <div className="w-full  flex items-center gap-3">
+                        <span className="font-mono text-[14px] text-muted-foreground w-10 shrink-0">
+                          {opt.code}
+                        </span>
+                        <div className="flex items-center justify-between gap-10 ">
+                          <p className="text-[14px]">{opt.name}</p>
+                          <p>
+                            {opt.city && (
+                              <p className="text-[12px] text-muted-foreground">{opt.city}</p>
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value={field.value ?? ''}
+                disabled
+                readOnly
+                className="text-[15px] font-mono bg-muted/40"
+              />
+            )
+          }
         />
         {errors.unit_code && <p className="text-sm text-destructive">{t('unitCodeError')}</p>}
       </div>

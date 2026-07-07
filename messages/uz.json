@@ -79,6 +79,8 @@
     "logoutConfirm": "Rostdan ham tizimdan chiqasizmi?",
     "logoutYes": "Ha, chiqish",
     "logoutNo": "Yo'q",
+    "logoutSuccess": "Siz muvaffaqiyatli tizimdan chiqdingiz",
+    "logoutError": "Chiqishda xato yuz berdi",
     "subtitle": "Sanoat nazorati"
   },
   "facility": {
@@ -207,7 +209,11 @@
     "errorUpdate": "Tahrirlashda xato yuz berdi",
     "errorDelete": "O'chirishda xato yuz berdi",
     "forbiddenTitle": "Kirish taqiqlangan",
-    "forbiddenDesc": "Sizning rolingiz ushbu sahifani ko'rish huquqiga ega emas. Murojaat uchun administratorga murojaat qiling."
+    "forbiddenDesc": "Sizning rolingiz ushbu sahifani ko'rish huquqiga ega emas. Murojaat uchun administratorga murojaat qiling.",
+    "filterAll": "Barchasi",
+    "filterYes": "Ha",
+    "filterNo": "Yo'q",
+    "clearFilters": "Filtrlarni tozalash"
   },
   "personForm": {
     "employeeId": "Xodim ID",
@@ -343,7 +349,8 @@
     "goToDashboard": "Dashboardga o'tish",
     "signOut": "Chiqish",
     "loading": "Yuklanmoqda...",
-    "errorCredentials": "Username yoki parol noto'g'ri"
+    "errorCredentials": "Username yoki parol noto'g'ri",
+    "successLogin": "Muvaffaqiyatli kirish"
   },
   "common": {
     "count": "ta",
@@ -451,7 +458,8 @@
     "personMain": "Asosiy",
     "personInspector": "Inspektor",
     "personActive": "Faol",
-    "orderNumber": "Buyruq"
+    "orderNumber": "Buyruq",
+    "fileOpenError": "Faylni ochishda xato yuz berdi"
   },
   "documents": {
     "title": "Hujjatlar",

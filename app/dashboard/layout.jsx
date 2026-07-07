@@ -33,6 +33,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTranslations } from 'next-intl';
 import LoadingComponent from '@/components/LoadingComponent';
+import { resetAllStores } from '@/store/resetAllStores';
 
 const menuKeys = [
   { labelKey: 'monitoring', href: '/dashboard', icon: MdDashboard, key: '' },
@@ -55,7 +56,12 @@ const menuKeys = [
       { labelKey: 'testLogs', href: '/dashboard/devices/test-logs' },
     ],
   },
-  { labelKey: 'documents', href: '/dashboard/documents', icon: IoDocumentOutline, key: 'documents' },
+  {
+    labelKey: 'documents',
+    href: '/dashboard/documents',
+    icon: IoDocumentOutline,
+    key: 'documents',
+  },
   { labelKey: 'reports', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
   { labelKey: 'settings', href: '/dashboard/settings', icon: IoSettingsOutline, key: 'settings' },
 ];
@@ -93,6 +99,7 @@ const DashboardLayout = ({ children }) => {
       session?.error === 'RefreshTokenExpired' ||
       session?.error === 'RefreshAccessTokenError'
     ) {
+      resetAllStores();
       signOut({ callbackUrl: '/' });
     } else {
       setIsLoading(false);
@@ -227,9 +234,10 @@ const DashboardLayout = ({ children }) => {
   const handleLogOut = async () => {
     try {
       await signOut({ redirect: false });
-      toast.success('Siz muvaffaqiyatli tizimdan chiqdingiz');
+      resetAllStores();
+      toast.success(t('logoutSuccess'));
     } catch (error) {
-      toast.error('Chiqishda xato yuz berdi');
+      toast.error(t('logoutError'));
     }
   };
 

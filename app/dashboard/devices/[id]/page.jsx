@@ -270,7 +270,7 @@ export default function DeviceDetailPage() {
         presignedUrl,
       });
     } catch {
-      toast.error('Faylni ochishda xato yuz berdi');
+      toast.error(t('fileOpenError'));
     } finally {
       setLoadingDocId(null);
     }
@@ -598,7 +598,7 @@ export default function DeviceDetailPage() {
               icon={FolderOpen}
               iconColor="#0ea5e9"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 py-3">
                 {device.documents.map((doc) => (
                   <DocCard key={doc.id} doc={doc} onView={handleDocView} loadingId={loadingDocId} />
                 ))}

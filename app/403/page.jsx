@@ -1,7 +1,7 @@
 import React from 'react';
 
-const ErrorPage = () => {
-  return <div>ErrorPage</div>;
+const ForbiddenPage = () => {
+  return <div>ForbiddenPage</div>;
 };
 
-export default ErrorPage;
+export default ForbiddenPage;

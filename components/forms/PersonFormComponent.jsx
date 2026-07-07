@@ -23,7 +23,7 @@ import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import useEmployeeStore from '@/store/useEmployeeStore';
 
-function EmployeeCombobox({ value, onChange, error }) {
+export function EmployeeCombobox({ value, onChange, error }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const { data: session } = useSession();

@@ -60,7 +60,7 @@ const LoginPage = () => {
     if (result?.error) {
       toast.error(t('errorCredentials'));
     } else if (result?.ok) {
-      toast.success('Muvaffaqiyatli kirish');
+      toast.success(t('successLogin'));
       saveLogin(username, password);
       router.push('/dashboard');
     }

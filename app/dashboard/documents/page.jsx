@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,6 +24,7 @@ import {
 import CountUp from 'react-countup';
 
 import useGetQuery from '@/hooks/all/useGetQuery';
+import usePersonStore from '@/store/usePersonStore';
 import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import { request } from '@/services/api';
@@ -42,6 +43,7 @@ import {
 import TableComponent from '@/components/tableComponent';
 import CustomModal from '@/components/modals/CustomModal';
 import PaginationComponent from '@/components/PaginationComponent';
+import useEmployeeStore from '@/store/useEmployeeStore';
 
 const LIMIT = 15;
 
@@ -196,6 +198,13 @@ function UploadForm({ onSubmit, onClose, isPending, t, devices, testLogs, person
   const [ownerId, setOwnerId] = useState('');
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const { employees } = useEmployeeStore();
+
+  const getEmployeeName = (employeeId) => {
+    const emp = employees?.find((e) => e.id === employeeId);
+    if (!emp) return '—';
+    return `${emp.last_name} ${emp.first_name}`;
+  };
 
   const handleOwnerTypeChange = (val) => {
     setOwnerType(val);
@@ -264,7 +273,7 @@ function UploadForm({ onSubmit, onClose, isPending, t, devices, testLogs, person
           <SelectContent>
             {(persons ?? []).map((p) => (
               <SelectItem key={p.id} value={p.id}>
-                {p.full_name ?? p.name ?? p.id.slice(0, 8)}
+                {p.employee_id ? getEmployeeName(p.employee_id) : p.id.slice(0, 8)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -383,13 +392,21 @@ export default function DocumentsPage() {
     enabled: !!session,
   });
 
-  const { data: personsData } = useGetQuery({
-    key: `${KEYS.person}-for-docs`,
+  const { persons: allPersons, setPersons } = usePersonStore();
+
+  const { data: getPersonsData } = useGetQuery({
+    key: KEYS.person,
     url: URLS.person,
-    params: { limit: 200 },
+    params: { limit: 10000 },
     headers: authHeader,
-    enabled: !!session,
+    enabled: !!session && allPersons.length === 0,
   });
+
+  const personsData = getPersonsData?.data?.data;
+
+  useEffect(() => {
+    if (personsData) setPersons(personsData);
+  }, [personsData]);
 
   const docs = (docsData?.data?.data ?? []).filter(Boolean);
   const totalCount = docsData?.data?.count ?? 0;
@@ -397,7 +414,7 @@ export default function DocumentsPage() {
 
   const devices = (devicesData?.data?.data ?? []).filter(Boolean);
   const testLogs = (testLogsData?.data?.data ?? []).filter(Boolean);
-  const persons = (personsData?.data?.data ?? []).filter(Boolean);
+  const persons = allPersons.filter(Boolean);
 
   /* ── local search filter ────────────────────────────────────────*/
   const filtered = search.trim()
@@ -566,7 +583,7 @@ export default function DocumentsPage() {
           >
             <MimeIcon size={16} style={{ color: getMimeColor(doc.file_type) }} />
           </div>
-          <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100 truncate max-w-[200px]">
+          <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100 truncate max-w-50">
             {doc.file_name ?? '—'}
           </span>
         </div>

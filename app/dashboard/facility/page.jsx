@@ -2,9 +2,10 @@
 
 import CustomModal from '@/components/modals/CustomModal';
 import FacilityFormComponent from '@/components/forms/FacilityFormComponent';
-import TableComponent from '@/components/tableComponent';
+import StatCard from '@/components/facility/StatCard';
+import FacilityRow from '@/components/facility/FacilityRow';
 import { Button } from '@/components/ui/button';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import toast from 'react-hot-toast';
 import useFacilityStore from '@/store/useFacilityStore';
@@ -14,39 +15,18 @@ import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { useSession } from 'next-auth/react';
-import { Building2, Plus, ShieldAlert, Loader2, LayoutGrid } from 'lucide-react';
-import CountUp from 'react-countup';
+import { Building2, Plus, Factory, Loader2, LayoutGrid } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
-import { getUnitCodeName } from '@/constants/unit_codes';
-
-const StatCard = ({ label, value, color, icon: Icon, iconColor }) => (
-  <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-5 py-4 shadow-sm">
-    <div className="flex items-center justify-between">
-      <span className="text-xs font-medium uppercase tracking-widest text-[#7B8499] dark:text-slate-400">
-        {label}
-      </span>
-      {Icon && (
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${iconColor}18` }}
-        >
-          <Icon size={20} style={{ color: iconColor }} />
-        </div>
-      )}
-    </div>
-    <span className={`text-3xl font-bold ${color ?? 'text-[#031634] dark:text-slate-100'}`}>
-      <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />
-    </span>
-  </div>
-);
 
 const HazardousFacilities = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [parentForNew, setParentForNew] = useState(null);
+  const [expanded, setExpanded] = useState(() => new Set());
 
-  const setFacilities = useFacilityStore((s) => s.setFacilities);
+  const { facilities, setFacilities } = useFacilityStore();
 
   const {
     isLoading: isPending,
@@ -59,14 +39,14 @@ const HazardousFacilities = () => {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: 'application/json',
     },
-    enabled: !!session?.accessToken,
+    enabled: !!session?.accessToken && facilities.length === 0,
   });
 
-  const facilities = getFacilityData?.data?.data;
+  const facilitiesData = getFacilityData?.data?.data;
 
   useEffect(() => {
-    if (facilities) setFacilities(facilities);
-  }, [facilities]);
+    if (facilitiesData) setFacilities(facilitiesData);
+  }, [facilitiesData]);
 
   const { mutate: createFacility, isPending: isCreating } = usePostQuery({
     listKeyId: KEYS.facilities,
@@ -90,7 +70,21 @@ const HazardousFacilities = () => {
   const locale = useLocale();
   const openCreate = () => {
     setSelectedItem(null);
+    setParentForNew(null);
     setIsOpen(true);
+  };
+  const handleAddChild = (facility) => {
+    setSelectedItem(null);
+    setParentForNew(facility);
+    setIsOpen(true);
+  };
+  const toggleExpand = (id) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
   const apiError = (err, fallback) => toast.error(err?.response?.data?.detail || fallback);
 
@@ -107,6 +101,8 @@ const HazardousFacilities = () => {
         {
           onSuccess: () => {
             setIsOpen(false);
+            setParentForNew(null);
+            setFacilities([]);
             toast.success(t('successUpdated'));
           },
           onError: (err) => apiError(err, t('errorUpdate')),
@@ -122,6 +118,8 @@ const HazardousFacilities = () => {
         {
           onSuccess: () => {
             setIsOpen(false);
+            setParentForNew(null);
+            setFacilities([]);
             toast.success(t('successCreated'));
           },
           onError: (err) => apiError(err, t('errorCreate')),
@@ -132,6 +130,7 @@ const HazardousFacilities = () => {
 
   function handleUpdate(data) {
     setSelectedItem(data);
+    setParentForNew(null);
     setIsOpen(true);
   }
   function handleDelete(data) {
@@ -150,6 +149,7 @@ const HazardousFacilities = () => {
         onSuccess: () => {
           setDeleteModal(false);
           setSelectedItem(null);
+          setFacilities([]);
           toast.success(t('successDeleted'));
         },
         onError: (err) => apiError(err, t('errorDelete')),
@@ -161,6 +161,29 @@ const HazardousFacilities = () => {
   const mainCount = facilities?.filter((f) => f.is_facilities).length ?? 0;
   const subCount = total - mainCount;
 
+  const rootFacilities = useMemo(() => facilities?.filter((f) => !f.parent_id) ?? [], [facilities]);
+  const childrenByParent = useMemo(() => {
+    const map = {};
+    facilities?.forEach((f) => {
+      if (!f.parent_id) return;
+      if (!map[f.parent_id]) map[f.parent_id] = [];
+      map[f.parent_id].push(f);
+    });
+    return map;
+  }, [facilities]);
+
+  const formInitialData = useMemo(() => {
+    if (selectedItem) return selectedItem;
+    if (!parentForNew) return null;
+    const siblingCount = (childrenByParent[parentForNew.id] ?? []).length;
+    const suffix = String(siblingCount + 1).padStart(2, '0');
+    return {
+      is_facilities: false,
+      parent_id: parentForNew.id,
+      unit_code: `${parentForNew.unit_code}-${suffix}`,
+    };
+  }, [selectedItem, parentForNew, childrenByParent]);
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -170,7 +193,7 @@ const HazardousFacilities = () => {
             className="flex h-11 w-11 items-center justify-center rounded-xl shadow-md"
             style={{ backgroundColor: '#3b82f6' }}
           >
-            <ShieldAlert size={22} className="text-white" />
+            <Factory size={22} className="text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[#031634] dark:text-slate-100 leading-tight">
@@ -195,8 +218,20 @@ const HazardousFacilities = () => {
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label={t('total')} value={total} icon={Building2} iconColor="#7B8499" />
-        <StatCard label={t('main')} value={mainCount} color="text-[#3b82f6]" icon={ShieldAlert} iconColor="#3b82f6" />
-        <StatCard label={t('sub')} value={subCount} color="text-amber-500" icon={LayoutGrid} iconColor="#f59e0b" />
+        <StatCard
+          label={t('main')}
+          value={mainCount}
+          color="text-[#3b82f6]"
+          icon={Factory}
+          iconColor="#3b82f6"
+        />
+        <StatCard
+          label={t('sub')}
+          value={subCount}
+          color="text-amber-500"
+          icon={LayoutGrid}
+          iconColor="#f59e0b"
+        />
       </div>
 
       {/* Table card */}
@@ -241,36 +276,45 @@ const HazardousFacilities = () => {
             </Button>
           </div>
         ) : (
-          <TableComponent
-            column={[
-              { key: 'name', label: t('colName'), align: 'left' },
-              { key: '_stationName', label: t('colCode'), align: 'left' },
-              { key: 'is_facilities', label: t('colIsObj'), align: 'left' },
-              { key: 'created_at', label: t('colDate'), align: 'left' },
-              { key: 'action', label: t('colActions'), align: 'right' },
-            ]}
-            data={facilities?.map((f) => ({
-              ...f,
-              _stationName: getUnitCodeName(f.unit_code, locale),
-            }))}
-            onEdit={handleUpdate}
-            handleDelete={handleDelete}
-          />
+          <div className="flex flex-col gap-2 p-4">
+            {rootFacilities.map((f) => (
+              <FacilityRow
+                key={f.id}
+                facility={f}
+                children={childrenByParent[f.id] ?? []}
+                expanded={expanded.has(f.id)}
+                onToggle={toggleExpand}
+                onEdit={handleUpdate}
+                onDelete={handleDelete}
+                onAddChild={handleAddChild}
+                locale={locale}
+              />
+            ))}
+          </div>
         )}
       </div>
 
       {/* Create / Edit Modal */}
       <CustomModal
         open={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={() => {
+          setIsOpen(false);
+          setSelectedItem(null);
+          setParentForNew(null);
+        }}
         title={selectedItem ? t('editTitle') : t('createTitle')}
         className="max-w-180! w-full"
       >
         <FacilityFormComponent
           facilities={facilities?.filter((f) => f.is_facilities)}
+          allFacilities={facilities}
           onSubmit={handleFormSubmit}
-          onClose={() => setIsOpen(false)}
-          initialData={selectedItem}
+          onClose={() => {
+            setIsOpen(false);
+            setSelectedItem(null);
+            setParentForNew(null);
+          }}
+          initialData={formInitialData}
           isPending={isCreating || isUpdating}
         />
       </CustomModal>
@@ -284,7 +328,7 @@ const HazardousFacilities = () => {
       >
         <div className="flex flex-col gap-5 pt-1">
           <div className="flex items-start gap-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 px-4 py-3">
-            <ShieldAlert size={20} className="text-red-500 mt-0.5 shrink-0" />
+            <Factory size={20} className="text-red-500 mt-0.5 shrink-0" />
             <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
               <strong className="font-semibold">{selectedItem?.name}</strong> {t('deleteWarning')}
             </p>

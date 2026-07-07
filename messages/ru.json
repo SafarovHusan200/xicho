@@ -79,6 +79,8 @@
     "logoutConfirm": "Вы действительно хотите выйти?",
     "logoutYes": "Да, выйти",
     "logoutNo": "Нет",
+    "logoutSuccess": "Вы успешно вышли из системы",
+    "logoutError": "Ошибка при выходе из системы",
     "subtitle": "Промышленный надзор"
   },
   "facility": {
@@ -207,7 +209,11 @@
     "errorUpdate": "Ошибка при обновлении",
     "errorDelete": "Ошибка при удалении",
     "forbiddenTitle": "Доступ запрещён",
-    "forbiddenDesc": "Ваша роль не имеет прав для просмотра этой страницы. Обратитесь к администратору."
+    "forbiddenDesc": "Ваша роль не имеет прав для просмотра этой страницы. Обратитесь к администратору.",
+    "filterAll": "Все",
+    "filterYes": "Да",
+    "filterNo": "Нет",
+    "clearFilters": "Очистить фильтры"
   },
   "personForm": {
     "employeeId": "ID сотрудника",
@@ -343,7 +349,8 @@
     "goToDashboard": "Перейти в дашборд",
     "signOut": "Выйти",
     "loading": "Загрузка...",
-    "errorCredentials": "Неверный логин или пароль"
+    "errorCredentials": "Неверный логин или пароль",
+    "successLogin": "Успешный вход"
   },
   "common": {
     "count": "шт",
@@ -451,7 +458,8 @@
     "personMain": "Основной",
     "personInspector": "Инспектор",
     "personActive": "Активный",
-    "orderNumber": "Приказ"
+    "orderNumber": "Приказ",
+    "fileOpenError": "Ошибка при открытии файла"
   },
   "documents": {
     "title": "Документы",

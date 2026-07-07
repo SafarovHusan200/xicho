@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import dynamic from 'next/dynamic';
 import CountUp from 'react-countup';
 import {
@@ -14,16 +14,7 @@ import {
   Building2,
   Activity,
 } from 'lucide-react';
-import {
-  Cell,
-  Pie,
-  PieChart,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  RadialBar,
-  RadialBarChart,
-  Label,
-} from 'recharts';
+import { Cell, Pie, PieChart, Label } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import useGetQuery from '@/hooks/all/useGetQuery';
@@ -42,59 +33,12 @@ const Skel = ({ w = 'w-14', h = 'h-10' }) => (
   />
 );
 
-/* ── Radial Gauge (recharts) ────────────────────────────── */
-function RadialGauge({ pct, label }) {
-  const color = pct >= 80 ? '#10B981' : pct >= 40 ? '#f59e0b' : '#ef4444';
-  const data = [{ name: 'passRate', value: pct, fill: color }];
-  const config = { value: { label } };
-
-  return (
-    <ChartContainer config={config} className="mx-auto aspect-square h-40">
-      <RadialBarChart
-        data={data}
-        startAngle={90}
-        endAngle={-270}
-        innerRadius="72%"
-        outerRadius="100%"
-      >
-        <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-        <RadialBar dataKey="value" background={{ fill: '#e2e8f0' }} cornerRadius={20} />
-        <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-          <Label
-            content={({ viewBox }) => {
-              if (viewBox && 'cx' in viewBox) {
-                return (
-                  <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                    <tspan
-                      x={viewBox.cx}
-                      y={viewBox.cy}
-                      className="fill-foreground text-2xl font-black"
-                    >
-                      {pct}%
-                    </tspan>
-                  </text>
-                );
-              }
-            }}
-          />
-        </PolarRadiusAxis>
-      </RadialBarChart>
-    </ChartContainer>
-  );
-}
-
 /* ── KPI Card (gradient bg) ──────────────────────────────── */
 function KpiCard({ icon: Icon, color, bg, label, value, sub, isLoading, alert }) {
   return (
     <div
-      className="relative flex flex-col gap-3 rounded-2xl px-5 py-4 overflow-hidden shadow-sm"
-      style={{ background: bg }}
+      className={`relative flex flex-col gap-3 rounded-2xl px-5 py-4 overflow-hidden shadow-sm ${bg}`}
     >
-      {/* decorative blob top-right */}
-      {/* <div
-        className="absolute -right-5 -top-5 w-24 h-24 rounded-full opacity-20"
-        style={{ backgroundColor: color }}
-      /> */}
       <div className="relative flex items-center justify-between">
         <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color }}>
           {label}
@@ -127,7 +71,7 @@ function KpiCard({ icon: Icon, color, bg, label, value, sub, isLoading, alert })
         </div>
       </div>
 
-      <span className="relative text-[38px] font-black leading-none text-[#031634] dark:text-slate-900">
+      <span className="relative text-[38px] font-black leading-none text-[#031634] dark:text-slate-100">
         {isLoading ? <Skel /> : <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />}
       </span>
       {sub && (
@@ -282,6 +226,7 @@ const DashboardPage = () => {
   const { data: session } = useSession();
   const t = useTranslations('dashboard');
   const ts = useTranslations('stats');
+  const locale = useLocale();
   const { employees, setEmployees } = useEmployeeStore();
 
   const { data: dashRes, isLoading } = useGetQuery({
@@ -300,7 +245,7 @@ const DashboardPage = () => {
     headers: { Authorization: `Bearer ${session?.accessToken}` },
     apiClient: staffio,
     enabled: !!session?.accessToken && employees.length === 0,
-    redirectOn403: false,
+    // redirectOn403: false,
   });
 
   useEffect(() => {
@@ -330,6 +275,27 @@ const DashboardPage = () => {
 
   const pieConfig = { value: { label: ts('pieLabelTotal') } };
 
+  const facilitiesData = useMemo(() => {
+    if (!dash) return [];
+    return [
+      { name: t('rootObjects'), value: dash.facilities.root_objects, fill: '#6366f1' },
+      { name: t('subdivisions'), value: dash.facilities.subdivisions, fill: '#06b6d4' },
+    ].filter((d) => d.value > 0);
+  }, [dash, t]);
+
+  const facilitiesConfig = { value: { label: t('facilitiesCard') } };
+
+  const testsData = useMemo(() => {
+    if (!dash) return [];
+    return [
+      { name: ts('barPassed'), value: dash.tests.passed_on_time, fill: '#10B981' },
+      { name: ts('barFailed'), value: dash.tests.overdue_or_failed, fill: '#ef4444' },
+      { name: ts('barNever'), value: dash.devices.never_tested, fill: '#f59e0b' },
+    ].filter((d) => d.value > 0);
+  }, [dash, ts]);
+
+  const testsConfig = { value: { label: ts('barTitle') } };
+
   /* ── Today date badge ── */
   const today = new Date().toLocaleDateString('ru-RU', {
     day: '2-digit',
@@ -353,12 +319,12 @@ const DashboardPage = () => {
         </span>
       </div>
 
-      {/* ─── KPI row ─── */}
+      {/* ─── KPI  1-row ─── */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiCard
           icon={Monitor}
           color="#3b82f6"
-          bg="linear-gradient(135deg,#eff6ff 0%)"
+          bg="bg-blue-50 dark:bg-blue-500/10"
           label={t('devicesCard')}
           value={dash?.devices.total}
           isLoading={isLoading}
@@ -367,7 +333,7 @@ const DashboardPage = () => {
         <KpiCard
           icon={CheckCircle2}
           color="#10B981"
-          bg="linear-gradient(135deg,#f0fdf4 0%)"
+          bg="bg-emerald-50 dark:bg-emerald-500/10"
           label={t('testsPassed')}
           value={dash?.tests.passed_on_time}
           isLoading={isLoading}
@@ -376,7 +342,7 @@ const DashboardPage = () => {
         <KpiCard
           icon={Clock}
           color="#f59e0b"
-          bg="linear-gradient(135deg,#fffbeb 0%)"
+          bg="bg-amber-50 dark:bg-amber-500/10"
           label={t('expiringCard')}
           value={dash?.expiring_soon.count}
           isLoading={isLoading}
@@ -385,7 +351,7 @@ const DashboardPage = () => {
         <KpiCard
           icon={ShieldAlert}
           color="#ef4444"
-          bg="linear-gradient(135deg,#fef2f2 0%)"
+          bg="bg-red-50 dark:bg-red-500/10"
           label={t('overdueCard')}
           value={dash?.overdue.count}
           isLoading={isLoading}
@@ -394,123 +360,167 @@ const DashboardPage = () => {
         />
       </div>
 
-      {/* ─── Charts 2-col ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+      {/* ─── Charts 2-row ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4  gap-5">
         {/* Donut — device status */}
-
-        <div className="flex flex-col gap-3">
-          <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
-            <CardHeader className="pb-0 mb-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-[15px] font-semibold">{ts('pieTitle')}</CardTitle>
-                  <CardDescription className="text-[12px] mt-0.5">
-                    {t('devicesCard')}: {dash?.devices.total ?? 0}
-                  </CardDescription>
-                </div>
+        <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
+          <CardHeader className="pb-0 mb-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-[15px] font-semibold">{ts('pieTitle')}</CardTitle>
+                <CardDescription className="text-[12px] mt-0.5">
+                  {t('devicesCard')}: {dash?.devices.total ?? 0}
+                </CardDescription>
               </div>
-            </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row items-center gap-6 pb-5 pt-2">
-              {/* chart */}
-              <ChartContainer config={pieConfig} className="aspect-square h-57.5 shrink-0">
-                <PieChart>
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                  <Pie
-                    data={pieData.length ? pieData : [{ name: '—', value: 1, fill: '#e2e8f0' }]}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={70}
-                    strokeWidth={6}
-                  >
-                    {(pieData.length ? pieData : [{ fill: '#e2e8f0' }]).map((e, i) => (
-                      <Cell key={i} fill={e.fill} />
-                    ))}
-                    <Label
-                      content={({ viewBox }) => {
-                        if (!viewBox || !('cx' in viewBox)) return null;
-                        return (
-                          <text
+            </div>
+          </CardHeader>
+          <CardContent className="flex  flex-col  items-center gap-1 pb-5 pt-2">
+            {/* chart */}
+            <ChartContainer config={pieConfig} className="aspect-square h-57.5 shrink-0">
+              <PieChart>
+                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                <Pie
+                  data={pieData.length ? pieData : [{ name: '—', value: 1, fill: '#e2e8f0' }]}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={60}
+                  cornerRadius={5}
+                  paddingAngle={1}
+                  stroke="var(--surface)"
+                  strokeWidth={2}
+                >
+                  {(pieData.length ? pieData : [{ fill: '#e2e8f0' }]).map((e, i) => (
+                    <Cell key={i} fill={e.fill} />
+                  ))}
+                  <Label
+                    content={({ viewBox }) => {
+                      if (!viewBox || !('cx' in viewBox)) return null;
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
                             x={viewBox.cx}
                             y={viewBox.cy}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
+                            className="fill-foreground text-[32px] font-black"
                           >
-                            <tspan
-                              x={viewBox.cx}
-                              y={viewBox.cy}
-                              className="fill-foreground text-[32px] font-black"
-                            >
-                              {dash?.devices.total ?? 0}
-                            </tspan>
-                            <tspan
-                              x={viewBox.cx}
-                              y={(viewBox.cy || 0) + 24}
-                              className="fill-muted-foreground text-[11px]"
-                            >
-                              {ts('pieLabelTotal')}
-                            </tspan>
-                          </text>
-                        );
-                      }}
-                    />
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-              {/* legend with bars */}
-              <div className="flex flex-col gap-4 flex-1 w-full">
-                {pieData.map((d) => (
-                  <Bar
-                    key={d.name}
-                    label={d.name}
-                    value={d.value}
-                    max={dash?.devices.total || 1}
-                    color={d.fill}
+                            {dash?.devices.total ?? 0}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className="fill-muted-foreground text-[11px]"
+                          >
+                            {ts('pieLabelTotal')}
+                          </tspan>
+                        </text>
+                      );
+                    }}
                   />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            {/* legend with bars */}
+            <div className="flex flex-col gap-4 flex-1 w-full">
+              {pieData.map((d) => (
+                <Bar
+                  key={d.name}
+                  label={d.name}
+                  value={d.value}
+                  max={dash?.devices.total || 1}
+                  color={d.fill}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Facilities */}
-          <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6366f115] shrink-0">
-                  <Building2 size={17} className="text-[#6366f1]" />
-                </div>
-                <div>
-                  <CardTitle className="text-[15px] font-semibold">{t('facilitiesCard')}</CardTitle>
-                  <CardDescription className="text-[12px]">
-                    {t('rootObjects')} + {t('subdivisions')}
-                  </CardDescription>
-                </div>
+        {/* Facilities */}
+        <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6366f115] shrink-0">
+                <Building2 size={17} className="text-[#6366f1]" />
               </div>
-            </CardHeader>
-            <CardContent className="flex items-end gap-6 pb-5">
-              <span className="text-[46px] font-black leading-none text-[#031634] dark:text-slate-100 shrink-0">
-                {isLoading ? (
-                  <Skel h="h-12" w="w-12" />
-                ) : (
-                  <CountUp start={0} end={dash?.facilities.total ?? 0} duration={1.4} />
-                )}
-              </span>
-              <div className="flex flex-col gap-3 flex-1 pb-1">
-                <Bar
-                  label={t('rootObjects')}
-                  value={dash?.facilities.root_objects ?? 0}
-                  max={dash?.facilities.total || 1}
-                  color="#6366f1"
-                />
-                <Bar
-                  label={t('subdivisions')}
-                  value={dash?.facilities.subdivisions ?? 0}
-                  max={dash?.facilities.total || 1}
-                  color="#8b5cf6"
-                />
+              <div>
+                <CardTitle className="text-[15px] font-semibold">{t('facilitiesCard')}</CardTitle>
+                <CardDescription className="text-[12px]">
+                  {t('rootObjects')} + {t('subdivisions')}
+                </CardDescription>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-1 pb-5 pt-2">
+            <ChartContainer config={facilitiesConfig} className="aspect-square h-57.5 shrink-0">
+              <PieChart>
+                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                <Pie
+                  data={
+                    facilitiesData.length
+                      ? facilitiesData
+                      : [{ name: '—', value: 1, fill: '#e2e8f0' }]
+                  }
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={60}
+                  cornerRadius={5}
+                  paddingAngle={1}
+                  stroke="var(--surface)"
+                  strokeWidth={2}
+                >
+                  {(facilitiesData.length ? facilitiesData : [{ fill: '#e2e8f0' }]).map((e, i) => (
+                    <Cell key={i} fill={e.fill} />
+                  ))}
+                  <Label
+                    content={({ viewBox }) => {
+                      if (!viewBox || !('cx' in viewBox)) return null;
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground text-[32px] font-black"
+                          >
+                            {dash?.facilities.total ?? 0}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className="fill-muted-foreground text-[11px]"
+                          >
+                            {ts('pieLabelTotal')}
+                          </tspan>
+                        </text>
+                      );
+                    }}
+                  />
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            <div className="flex flex-col gap-4 flex-1 w-full">
+              <Bar
+                label={t('rootObjects')}
+                value={dash?.facilities.root_objects ?? 0}
+                max={dash?.facilities.total || 1}
+                color="#6366f1"
+              />
+              <Bar
+                label={t('subdivisions')}
+                value={dash?.facilities.subdivisions ?? 0}
+                max={dash?.facilities.total || 1}
+                color="#06b6d4"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Gauge + test bars */}
         <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
@@ -520,9 +530,55 @@ const DashboardPage = () => {
               {dash?.tests.total_logged ?? 0} {t('testsTotal')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4 pt-2 pb-5">
-            <RadialGauge pct={passRate} label={ts('passRate')} />
-            <div className="w-full flex flex-col gap-3 px-1">
+          <CardContent className="flex flex-col items-center gap-1 pt-2 pb-3">
+            <ChartContainer config={testsConfig} className="aspect-square h-60 shrink-0 p-0">
+              <PieChart className="">
+                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                <Pie
+                  data={testsData.length ? testsData : [{ name: '—', value: 1, fill: '#e2e8f0' }]}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={67}
+                  cornerRadius={5}
+                  paddingAngle={1}
+                  stroke="var(--surface)"
+                  strokeWidth={2}
+                >
+                  {(testsData.length ? testsData : [{ fill: '#e2e8f0' }]).map((e, i) => (
+                    <Cell key={i} fill={e.fill} />
+                  ))}
+                  <Label
+                    content={({ viewBox }) => {
+                      if (!viewBox || !('cx' in viewBox)) return null;
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) - 5}
+                            className="fill-foreground text-[32px] font-black"
+                          >
+                            {passRate}%
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 20}
+                            className="fill-muted-foreground text-[11px]"
+                          >
+                            {ts('passRate')}
+                          </tspan>
+                        </text>
+                      );
+                    }}
+                  />
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            <div className="w-full flex flex-col gap-4 px-1">
               <Bar
                 label={ts('barPassed')}
                 value={dash?.tests.passed_on_time ?? 0}
@@ -544,8 +600,6 @@ const DashboardPage = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/*  Persons mini row ─── */}
 
         {/* Persons mini */}
         <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
@@ -579,13 +633,10 @@ const DashboardPage = () => {
             ))}
           </CardContent>
         </Card>
-      </div>
 
-      {/* ─── Alerts ─── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
         {/* Expiring soon */}
-        <Card className="rounded-2xl dark:bg-slate-800  border-l-amber-400 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm">
-          <CardHeader className="pb-3 border-b border-[rgba(197,198,207,0.15)] dark:border-slate-700/20">
+        <Card className="rounded-2xl dark:bg-slate-800  border-l-amber-400 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-1">
+          <CardHeader className="pb-3! border-b border-[rgba(197,198,207,0.15)] dark:border-slate-700/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-950/40">
@@ -600,7 +651,7 @@ const DashboardPage = () => {
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-1 pb-3">
+          <CardContent className="pt-0 pb-3">
             {!dash?.expiring_soon?.devices?.length ? (
               <Empty text={t('noExpiring')} />
             ) : (
@@ -622,8 +673,8 @@ const DashboardPage = () => {
         </Card>
 
         {/* Overdue */}
-        <Card className="rounded-2xl dark:bg-slate-800  border-l-red-500 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm">
-          <CardHeader className="pb-3 border-b border-[rgba(197,198,207,0.15)] dark:border-slate-700/20">
+        <Card className="rounded-2xl dark:bg-slate-800  border-l-red-500 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-1">
+          <CardHeader className="pb-3! border-b border-[rgba(197,198,207,0.15)] dark:border-slate-700/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100 dark:bg-red-950/40">
@@ -661,8 +712,8 @@ const DashboardPage = () => {
         </Card>
 
         {/* ─── Map full-width ─── */}
-        <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <CardHeader className="pb-3">
+        <Card className=" xl:col-span-2 rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm overflow-hidden gap-3">
+          <CardHeader className="pb-0!">
             <div className="flex items-center gap-2">
               <MapPin size={15} className="text-blue-500" />
               <CardTitle className="text-[15px] font-semibold">{t('locationsTitle')}</CardTitle>
@@ -673,7 +724,7 @@ const DashboardPage = () => {
               )}
             </div>
           </CardHeader>
-          <div className="h-80 px-4 pb-4">
+          <div className="min-h-65 h-full px-4 ">
             {dash?.locations?.count > 0 ? (
               <LeafletMap locations={dash.locations.items} />
             ) : (

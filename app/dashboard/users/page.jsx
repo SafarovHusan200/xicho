@@ -1,9 +1,16 @@
 'use client';
 
 import CustomModal from '@/components/modals/CustomModal';
-import PersonFormComponent from '@/components/forms/PersonFormComponent';
+import PersonFormComponent, { EmployeeCombobox } from '@/components/forms/PersonFormComponent';
 import TableComponent from '@/components/tableComponent';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import React, { useEffect, useState } from 'react';
 import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import toast from 'react-hot-toast';
@@ -21,12 +28,22 @@ import {
   UserCheck,
   AlertTriangle,
   ShieldBan,
+  X,
 } from 'lucide-react';
 import PaginationComponent from '@/components/PaginationComponent';
 import { useTranslations } from 'next-intl';
 import useEmployeeStore from '@/store/useEmployeeStore';
 import { staffio } from '@/services/staffio';
 import CountUp from 'react-countup';
+
+function useDebounce(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
 
 const StatCard = ({ label, value, sub, color, icon: Icon, iconColor }) => (
   <div className="flex flex-col gap-2 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-5 py-3 shadow-sm">
@@ -47,6 +64,15 @@ const StatCard = ({ label, value, sub, color, icon: Icon, iconColor }) => (
       <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />
     </span>
     {/* {sub && <span className="text-xs text-[#7B8499] dark:text-slate-500">{sub}</span>} */}
+  </div>
+);
+
+const FilterField = ({ label, children }) => (
+  <div className="flex flex-col gap-1">
+    <label className="px-0.5 text-[11px] font-semibold text-[#7B8499] dark:text-slate-400">
+      {label}
+    </label>
+    {children}
   </div>
 );
 
@@ -77,15 +103,57 @@ const ResponsiblePersonsPage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [page, setPage] = useState(1);
 
+  const [filterEmployeeId, setFilterEmployeeId] = useState('');
+  const [filterFacilityId, setFilterFacilityId] = useState('');
+  const [filterOrderNumber, setFilterOrderNumber] = useState('');
+  const [filterUnitCode, setFilterUnitCode] = useState('');
+  const [filterInspector, setFilterInspector] = useState('');
+  const [filterMain, setFilterMain] = useState('');
+  const [filterActive, setFilterActive] = useState('');
+
   const t = useTranslations('persons');
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
 
+  const debouncedOrderNumber = useDebounce(filterOrderNumber, 500);
+  const debouncedUnitCode = useDebounce(filterUnitCode, 500);
+
+  const hasFilters = !!(
+    filterEmployeeId ||
+    filterFacilityId ||
+    filterOrderNumber ||
+    filterUnitCode ||
+    filterInspector ||
+    filterMain ||
+    filterActive
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [
+    filterEmployeeId,
+    filterFacilityId,
+    debouncedOrderNumber,
+    debouncedUnitCode,
+    filterInspector,
+    filterMain,
+    filterActive,
+  ]);
+
+  const clearFilters = () => {
+    setFilterEmployeeId('');
+    setFilterFacilityId('');
+    setFilterOrderNumber('');
+    setFilterUnitCode('');
+    setFilterInspector('');
+    setFilterMain('');
+    setFilterActive('');
+  };
+
   const {
     data: employeesData,
     isLoading: isEmployeesLoading,
-    error: personsError,
   } = useGetQuery({
     key: KEYS.employees,
     url: URLS.employee,
@@ -105,14 +173,31 @@ const ResponsiblePersonsPage = () => {
     isLoading: isPending,
     data: getPersonsData,
     isFetching,
+    error: personsError,
   } = useGetQuery({
     key: KEYS.person,
     url: URLS.person,
-    params: { limit: LIMIT, offset },
+    params: {
+      limit: LIMIT,
+      offset,
+      ...(filterEmployeeId ? { employee_id: filterEmployeeId } : {}),
+      ...(filterFacilityId ? { facility_id: filterFacilityId } : {}),
+      ...(debouncedOrderNumber.trim()
+        ? { appointment_order_number: debouncedOrderNumber.trim() }
+        : {}),
+      ...(debouncedUnitCode.trim() ? { unit_code: debouncedUnitCode.trim() } : {}),
+      ...(filterInspector ? { is_inspector: filterInspector === 'true' } : {}),
+      ...(filterMain ? { is_main: filterMain === 'true' } : {}),
+      ...(filterActive ? { is_active: filterActive === 'true' } : {}),
+    },
     headers: { ...authHeader, Accept: 'application/json' },
     enabled: !!session?.accessToken,
     redirectOn403: false,
   });
+
+  const persons = (getPersonsData?.data?.data ?? []).filter(Boolean);
+  const totalCount = getPersonsData?.data?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / LIMIT);
 
   const { data: getFacilityData } = useGetQuery({
     key: KEYS.facilities,
@@ -122,10 +207,32 @@ const ResponsiblePersonsPage = () => {
     redirectOn403: false,
   });
 
-  const persons = getPersonsData?.data?.data ?? [];
-  const totalCount = getPersonsData?.data?.count ?? 0;
-  const totalPages = Math.ceil(totalCount / LIMIT);
   const facilities = getFacilityData?.data?.data ?? [];
+
+  const { data: totalStatData } = useGetQuery({
+    key: KEYS.person,
+    url: URLS.person,
+    params: { limit: 1 },
+    headers: authHeader,
+    enabled: !!session?.accessToken,
+    redirectOn403: false,
+  });
+  const { data: inspectorStatData } = useGetQuery({
+    key: KEYS.person,
+    url: URLS.person,
+    params: { limit: 1, is_inspector: true },
+    headers: authHeader,
+    enabled: !!session?.accessToken,
+    redirectOn403: false,
+  });
+  const { data: activeStatData } = useGetQuery({
+    key: KEYS.person,
+    url: URLS.person,
+    params: { limit: 1, is_active: true },
+    headers: authHeader,
+    enabled: !!session?.accessToken,
+    redirectOn403: false,
+  });
 
   const { mutate: createPerson, isPending: isCreating } = usePostQuery({
     listKeyId: KEYS.person,
@@ -225,9 +332,9 @@ const ResponsiblePersonsPage = () => {
     );
   }
 
-  const total = totalCount;
-  const inspectorCount = persons?.filter((p) => p.is_inspector).length ?? 0;
-  const activeCount = persons?.filter((p) => p.is_active).length ?? 0;
+  const total = totalStatData?.data?.count ?? 0;
+  const inspectorCount = inspectorStatData?.data?.count ?? 0;
+  const activeCount = activeStatData?.data?.count ?? 0;
 
   const getEmployeeName = (employeeId) => {
     const emp = employees?.find((e) => e.id === employeeId);
@@ -360,8 +467,114 @@ const ResponsiblePersonsPage = () => {
               borderColor: 'var(--badge-blue-border)',
             }}
           >
-            {total} ta
+            {totalCount} ta
           </span>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col gap-3 px-6 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60">
+          <FilterField label={t('colEmployee')}>
+            <div className="sm:w-72">
+              <EmployeeCombobox value={filterEmployeeId} onChange={setFilterEmployeeId} />
+            </div>
+          </FilterField>
+
+          <div className="flex flex-wrap items-end gap-2">
+            <FilterField label={t('colFacility')}>
+              <Select
+                value={filterFacilityId || 'all'}
+                onValueChange={(v) => setFilterFacilityId(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="h-9 w-48 text-[13px]">
+                  <SelectValue placeholder={t('filterAll')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filterAll')}</SelectItem>
+                  {facilities.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterField>
+
+            <FilterField label={t('colOrder')}>
+              <input
+                value={filterOrderNumber}
+                onChange={(e) => setFilterOrderNumber(e.target.value)}
+                placeholder={t('colOrder')}
+                className="h-9 w-40 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[13px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+              />
+            </FilterField>
+
+            <FilterField label={t('colUnit')}>
+              <input
+                value={filterUnitCode}
+                onChange={(e) => setFilterUnitCode(e.target.value)}
+                placeholder={t('colUnit')}
+                className="h-9 w-32 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[13px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+              />
+            </FilterField>
+
+            <FilterField label={t('colInspector')}>
+              <Select
+                value={filterInspector || 'all'}
+                onValueChange={(v) => setFilterInspector(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="h-9 w-32 text-[13px]">
+                  <SelectValue placeholder={t('filterAll')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filterAll')}</SelectItem>
+                  <SelectItem value="true">{t('filterYes')}</SelectItem>
+                  <SelectItem value="false">{t('filterNo')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FilterField>
+
+            <FilterField label={t('colMain')}>
+              <Select
+                value={filterMain || 'all'}
+                onValueChange={(v) => setFilterMain(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="h-9 w-32 text-[13px]">
+                  <SelectValue placeholder={t('filterAll')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filterAll')}</SelectItem>
+                  <SelectItem value="true">{t('filterYes')}</SelectItem>
+                  <SelectItem value="false">{t('filterNo')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FilterField>
+
+            <FilterField label={t('colActive')}>
+              <Select
+                value={filterActive || 'all'}
+                onValueChange={(v) => setFilterActive(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="h-9 w-32 text-[13px]">
+                  <SelectValue placeholder={t('filterAll')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filterAll')}</SelectItem>
+                  <SelectItem value="true">{t('filterYes')}</SelectItem>
+                  <SelectItem value="false">{t('filterNo')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FilterField>
+
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex h-9 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 text-[12px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
+              >
+                <X size={12} />
+                {t('clearFilters')}
+              </button>
+            )}
+          </div>
         </div>
 
         {isPending || isEmployeesLoading ? (
@@ -369,19 +582,29 @@ const ResponsiblePersonsPage = () => {
             <Loader2 size={22} className="animate-spin" style={{ color: '#3b82f6' }} />
             <span className="text-sm">{t('loading')}</span>
           </div>
-        ) : total === 0 ? (
+        ) : totalCount === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#7B8499] dark:text-slate-400">
             <Users size={40} className="text-slate-200 dark:text-slate-600" />
             <p className="text-sm">{t('empty')}</p>
-            <Button
-              onClick={openCreate}
-              variant="outline"
-              className="mt-1 gap-2 rounded-xl border hover:opacity-90"
-              style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
-            >
-              <Plus size={14} />
-              {t('addFirst')}
-            </Button>
+            {hasFilters ? (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1.5 rounded-xl border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-[13px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
+              >
+                <X size={13} />
+                {t('clearFilters')}
+              </button>
+            ) : (
+              <Button
+                onClick={openCreate}
+                variant="outline"
+                className="mt-1 gap-2 rounded-xl border hover:opacity-90"
+                style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
+              >
+                <Plus size={14} />
+                {t('addFirst')}
+              </Button>
+            )}
           </div>
         ) : (
           <TableComponent
