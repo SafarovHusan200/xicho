@@ -1,7 +1,12 @@
+import DashboardLayout from '@/components/DashboardLayout';
 import React from 'react';
 
-const ServerError = () => {
-  return <div>ServerError</div>;
+const UnAuthorization = () => {
+  return (
+    <DashboardLayout>
+      <h1>500</h1>
+    </DashboardLayout>
+  );
 };
 
-export default ServerError;
+export default UnAuthorization;

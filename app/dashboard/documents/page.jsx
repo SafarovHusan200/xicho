@@ -48,6 +48,19 @@ import useEmployeeStore from '@/store/useEmployeeStore';
 const LIMIT = 15;
 
 const ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt';
+const ACCEPT_EXTENSIONS = ACCEPT.split(',');
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+
+const getFileExtension = (name) => {
+  const idx = name.lastIndexOf('.');
+  return idx === -1 ? '' : name.slice(idx).toLowerCase();
+};
+
+const validateFile = (file, t) => {
+  if (!ACCEPT_EXTENSIONS.includes(getFileExtension(file.name))) return t('fileTypeError');
+  if (file.size > MAX_FILE_SIZE) return t('fileSizeError');
+  return null;
+};
 
 /* ── file type helpers ──────────────────────────────────────────── */
 const getMimeLabel = (mime) => {
@@ -128,11 +141,24 @@ function FileDropZone({ file, onChange, t }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
 
+  const acceptFile = (f) => {
+    if (!f) {
+      onChange(null);
+      return;
+    }
+    const error = validateFile(f, t);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    onChange(f);
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
     const f = e.dataTransfer.files?.[0];
-    if (f) onChange(f);
+    if (f) acceptFile(f);
   };
 
   return (
@@ -157,7 +183,7 @@ function FileDropZone({ file, onChange, t }) {
         type="file"
         accept={ACCEPT}
         className="hidden"
-        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+        onChange={(e) => acceptFile(e.target.files?.[0] ?? null)}
       />
       {file ? (
         <>
@@ -184,7 +210,7 @@ function FileDropZone({ file, onChange, t }) {
             {t('fileDrop')}
           </p>
           <p className="text-[11px] text-[#7B8499]/70">
-            PDF, DOCX, XLSX, JPG, PNG, TXT · max 10 MB
+            JPEG, PNG, WebP, PDF, DOC/DOCX, XLS/XLSX, TXT · max 100 MB
           </p>
         </>
       )}
@@ -217,6 +243,10 @@ function UploadForm({ onSubmit, onClose, isPending, t, devices, testLogs, person
     if (!ownerType) errs.ownerType = t('ownerTypeError');
     if (!ownerId.trim()) errs.ownerId = t('ownerIdError');
     if (!file) errs.file = t('fileError');
+    else {
+      const fileError = validateFile(file, t);
+      if (fileError) errs.file = fileError;
+    }
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -448,7 +478,12 @@ export default function DocumentsPage() {
       setUploadOpen(false);
     },
     onError: (err) => {
-      const msg = err?.response?.data?.detail || err?.response?.data?.message || t('errorUpload');
+      const detail = err?.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map((d) => (typeof d === 'string' ? d : (d.msg ?? JSON.stringify(d)))).join('; ')
+        : typeof detail === 'string'
+          ? detail
+          : err?.response?.data?.message || t('errorUpload');
       toast.error(msg);
     },
   });
@@ -754,7 +789,7 @@ export default function DocumentsPage() {
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
         title={t('uploadTitle')}
-        className="max-w-lg"
+        className="max-w-150! w-full"
       >
         <UploadForm
           onSubmit={uploadDoc}
@@ -772,7 +807,7 @@ export default function DocumentsPage() {
         open={!!renameTarget}
         onClose={() => setRenameTarget(null)}
         title={t('renameTitle')}
-        className="max-w-sm"
+        className="max-w-150! w-full"
       >
         <div className="flex flex-col gap-4 pt-2">
           <div className="flex flex-col gap-1.5">
@@ -813,7 +848,7 @@ export default function DocumentsPage() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         title={t('deleteTitle')}
-        className="max-w-sm"
+        className="max-w-150! w-full"
       >
         <div className="flex flex-col gap-5 pt-1">
           <p className="text-[14px] text-[#3C4043] dark:text-slate-300">

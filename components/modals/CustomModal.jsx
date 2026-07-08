@@ -10,14 +10,14 @@ import {
 const CustomModal = ({ open, onClose, title, description, children, className }) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className={className}>
+      <DialogContent
+        className={className}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        // onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className={'text-2xl'}>{title}</DialogTitle>
-          {description ? (
-            <DialogDescription>{description}</DialogDescription>
-          ) : (
-            <DialogDescription className="sr-only">{title}</DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         {children}
       </DialogContent>

@@ -504,6 +504,8 @@
     "ownerTypeError": "Необходимо выбрать тип объекта",
     "ownerIdError": "Необходимо выбрать объект",
     "fileError": "Файл не выбран",
+    "fileTypeError": "Недопустимый тип файла. Разрешено: JPEG, PNG, WebP, PDF, DOC/DOCX, XLS/XLSX, TXT",
+    "fileSizeError": "Размер файла не должен превышать 100 МБ",
     "successUploaded": "Файл успешно загружен",
     "successRenamed": "Имя файла успешно изменено",
     "successDeleted": "Файл успешно удалён",

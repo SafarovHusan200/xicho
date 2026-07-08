@@ -652,7 +652,7 @@ export default function TestLogsPage() {
         open={modalOpen}
         onClose={closeModal}
         title={editData ? t('editTitle') : t('createTitle')}
-        className="max-w-lg"
+        className="max-w-200! w-full"
       >
         <TestLogForm
           initialData={editData}

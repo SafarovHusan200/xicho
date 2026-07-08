@@ -3,6 +3,9 @@
 import CustomModal from '@/components/modals/CustomModal';
 import PersonFormComponent, { EmployeeCombobox } from '@/components/forms/PersonFormComponent';
 import TableComponent from '@/components/tableComponent';
+import StatCard from '@/components/users/StatCard';
+import FilterField from '@/components/users/FilterField';
+import BadgeCell from '@/components/users/BadgeCell';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -34,7 +37,6 @@ import PaginationComponent from '@/components/PaginationComponent';
 import { useTranslations } from 'next-intl';
 import useEmployeeStore from '@/store/useEmployeeStore';
 import { staffio } from '@/services/staffio';
-import CountUp from 'react-countup';
 
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -44,54 +46,6 @@ function useDebounce(value, delay) {
   }, [value, delay]);
   return debounced;
 }
-
-const StatCard = ({ label, value, sub, color, icon: Icon, iconColor }) => (
-  <div className="flex flex-col gap-2 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-5 py-3 shadow-sm">
-    <div className="flex items-center justify-between">
-      <span className="text-md font-medium uppercase tracking-widest text-[#7B8499] dark:text-slate-400">
-        {label}
-      </span>
-      {Icon && (
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${iconColor}18` }}
-        >
-          <Icon size={20} style={{ color: iconColor }} />
-        </div>
-      )}
-    </div>
-    <span className={`text-3xl font-bold ${color ?? 'text-[#031634] dark:text-slate-100'}`}>
-      <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />
-    </span>
-    {/* {sub && <span className="text-xs text-[#7B8499] dark:text-slate-500">{sub}</span>} */}
-  </div>
-);
-
-const FilterField = ({ label, children }) => (
-  <div className="flex flex-col gap-1">
-    <label className="px-0.5 text-[11px] font-semibold text-[#7B8499] dark:text-slate-400">
-      {label}
-    </label>
-    {children}
-  </div>
-);
-
-const BadgeCell = ({ value, trueColor = '#10B981', falseColor = '#94a3b8' }) => (
-  <span
-    className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border"
-    style={
-      value
-        ? { backgroundColor: `${trueColor}18`, color: trueColor, borderColor: `${trueColor}30` }
-        : { backgroundColor: `${falseColor}12`, color: falseColor, borderColor: `${falseColor}25` }
-    }
-  >
-    <span
-      className="w-1.5 h-1.5 rounded-full"
-      style={{ backgroundColor: value ? trueColor : falseColor }}
-    />
-    {value ? 'Ha' : "Yo'q"}
-  </span>
-);
 
 const LIMIT = 15;
 
@@ -151,10 +105,7 @@ const ResponsiblePersonsPage = () => {
     setFilterActive('');
   };
 
-  const {
-    data: employeesData,
-    isLoading: isEmployeesLoading,
-  } = useGetQuery({
+  const { data: employeesData, isLoading: isEmployeesLoading } = useGetQuery({
     key: KEYS.employees,
     url: URLS.employee,
     params: { limit: 10000 },

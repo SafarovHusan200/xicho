@@ -504,6 +504,8 @@
     "ownerTypeError": "Ob'ekt turini tanlash shart",
     "ownerIdError": "Ob'ektni tanlash shart",
     "fileError": "Fayl tanlanmagan",
+    "fileTypeError": "Fayl turi qo'llab-quvvatlanmaydi. Ruxsat etilgan: JPEG, PNG, WebP, PDF, DOC/DOCX, XLS/XLSX, TXT",
+    "fileSizeError": "Fayl hajmi 100 MB dan oshmasligi kerak",
     "successUploaded": "Fayl muvaffaqiyatli yuklandi",
     "successRenamed": "Fayl nomi muvaffaqiyatli o'zgartirildi",
     "successDeleted": "Fayl muvaffaqiyatli o'chirildi",

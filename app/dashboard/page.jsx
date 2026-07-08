@@ -37,10 +37,10 @@ const Skel = ({ w = 'w-14', h = 'h-10' }) => (
 function KpiCard({ icon: Icon, color, bg, label, value, sub, isLoading, alert }) {
   return (
     <div
-      className={`relative flex flex-col gap-3 rounded-2xl px-5 py-4 overflow-hidden shadow-sm ${bg}`}
+      className={`relative flex flex-col gap-1 rounded-2xl px-5 py-4 overflow-hidden shadow-sm ${bg}`}
     >
       <div className="relative flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color }}>
+        <span className="text-[14px] font-bold uppercase tracking-widest" style={{ color }}>
           {label}
         </span>
 
@@ -75,7 +75,7 @@ function KpiCard({ icon: Icon, color, bg, label, value, sub, isLoading, alert })
         {isLoading ? <Skel /> : <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />}
       </span>
       {sub && (
-        <p className="relative text-[12px] font-medium" style={{ color: `${color}cc` }}>
+        <p className="relative text-[12px]  font-medium" style={{ color: `${color}cc` }}>
           {sub}
         </p>
       )}
@@ -180,15 +180,15 @@ function PersonCard({
   const color = colors[name.charCodeAt(0) % colors.length] ?? '#3b82f6';
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl border border-[rgba(197,198,207,0.18)] dark:border-slate-700/30 bg-[rgba(255,255,255,0.6)] dark:bg-slate-700/20">
+    <div className="flex flex-wrap  items-center gap-3 p-3 rounded-xl border border-[rgba(197,198,207,0.18)] dark:border-slate-700/30 bg-[rgba(255,255,255,0.6)] dark:bg-slate-700/20">
       {/* avatar */}
       <div
-        className="flex h-9 w-9 items-center justify-center rounded-full shrink-0 text-white text-[13px] font-bold"
+        className=" h-9 w-9 hidden 2xl:flex items-center justify-center rounded-full shrink-0 text-white text-[13px] font-bold"
         style={{ backgroundColor: color }}
       >
         {initials}
       </div>
-      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+      <div className="flex flex-col gap-0.5  flex-1">
         <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100 leading-tight truncate">
           {name}
         </span>
@@ -320,7 +320,7 @@ const DashboardPage = () => {
       </div>
 
       {/* ─── KPI  1-row ─── */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-5">
         <KpiCard
           icon={Monitor}
           color="#3b82f6"
@@ -351,7 +351,7 @@ const DashboardPage = () => {
         <KpiCard
           icon={ShieldAlert}
           color="#ef4444"
-          bg="bg-red-50 dark:bg-red-500/10"
+          bg="bg-red-50 dark:bg-red-500/25"
           label={t('overdueCard')}
           value={dash?.overdue.count}
           isLoading={isLoading}
@@ -361,7 +361,7 @@ const DashboardPage = () => {
       </div>
 
       {/* ─── Charts 2-row ─── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4  gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4  gap-5">
         {/* Donut — device status */}
         <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
           <CardHeader className="pb-0 mb-0">

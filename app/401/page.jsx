@@ -1,7 +1,12 @@
+import DashboardLayout from '@/components/DashboardLayout';
 import React from 'react';
 
 const UnAuthorization = () => {
-  return <div>UnAuthorization</div>;
+  return (
+    <DashboardLayout>
+      <h1>401</h1>
+    </DashboardLayout>
+  );
 };
 
 export default UnAuthorization;

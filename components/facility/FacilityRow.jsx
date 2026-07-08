@@ -25,7 +25,7 @@ const FacilityRow = ({
     <div className="flex flex-col gap-2">
       <div
         onClick={() => onToggle(facility?.id)}
-        className={`flex items-center justify-between gap-3 rounded-xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm ${isChild ? 'ml-8' : ''}`}
+        className={`flex items-center justify-between gap-3 rounded-xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm ${hasChildren && 'cursor-pointer'} ${isChild ? 'ml-8' : ''}`}
       >
         <div className="flex items-center gap-3 min-w-0">
           <div
@@ -75,7 +75,7 @@ const FacilityRow = ({
           </button>
           {!isChild && hasChildren && (
             <button
-              onClick={() => onToggle(facility.id)}
+              // onClick={() => onToggle(facility.id)}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(197,198,207,0.40)] dark:border-slate-700/60 text-[#7B8499] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all duration-150"
               title={expanded ? "Yig'ish" : 'Yoyish'}
             >

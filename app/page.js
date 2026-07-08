@@ -173,7 +173,7 @@ const LoginPage = () => {
                 {/* Buttons */}
                 <motion.div {...fadeUp(0.4)} className="flex gap-3 w-full">
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ y: '-4px' }}
                     whileTap={{ scale: 0.97 }}
                     className="flex-1"
                   >
@@ -186,7 +186,7 @@ const LoginPage = () => {
                     </Button>
                   </motion.div>
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ y: '-4px' }}
                     whileTap={{ scale: 0.97 }}
                     className="flex-1"
                   >
@@ -237,6 +237,7 @@ const LoginPage = () => {
                           <span className="text-xs sm:text-sm truncate max-w-25 sm:max-w-none">
                             {login.username}
                           </span>
+
                           <button
                             type="button"
                             onClick={(e) => {
@@ -298,13 +299,13 @@ const LoginPage = () => {
 
                     <motion.div
                       {...fadeUp(0.46)}
-                      whileHover={{ scale: 1.02 }}
+                      whileHover={{ y: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="w-full pt-2"
                     >
                       <Button
                         type="submit"
-                        className="bg-[#3525CD] hover:bg-[#2a1eb8] dark:bg-[#3b82f6] dark:hover:bg-[#2563eb] w-full text-[16px] py-5"
+                        className="bg-[#3525CD] hover:bg-[#2a1eb8] dark:bg-[#3b82f6] dark:hover:bg-[#2563eb] w-full text-[16px] text-white py-5"
                         disabled={isLoading}
                       >
                         {isLoading ? t('submitting') : t('submit')}
