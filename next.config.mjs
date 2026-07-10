@@ -10,6 +10,9 @@ const nextConfig = {
   // reused by another instance" on Fast Refresh. Dev-only setting; no effect
   // on production builds.
   reactStrictMode: false,
+  // Lets other machines on the LAN reach this dev server (e.g. testing from
+  // a phone or another PC). Dev-only setting; no effect on production builds.
+  allowedDevOrigins: ['10.40.9.49'],
 };
 
 export default withNextIntl(nextConfig);

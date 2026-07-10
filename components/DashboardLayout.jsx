@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut as LogOutIcon, Settings, Bell } from 'lucide-react';
+import { User, LogOut as LogOutIcon, Settings, Bell, ArrowLeft } from 'lucide-react';
 
 import '@/styles/dashboard/style.css';
 import { signOut, useSession } from 'next-auth/react';
@@ -276,7 +276,14 @@ const DashboardLayout = ({ children }) => {
         <header className="flex items-center justify-between px-4 sm:px-6 py-4 bg-white/85 dark:bg-[#1D293D] shadow-sm dark:shadow-slate-900/50 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200/60 dark:border-slate-800/60">
           <div className="flex items-center gap-3">
             <button
-              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition text-gray-600 dark:text-slate-300"
+              onClick={() => router.back()}
+              className="flex h-9 w-9 shrink-0 items-center justify-center cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm mt-0.5"
+            >
+              <ArrowLeft size={16} className="text-[#7B8499]" />
+            </button>
+
+            <button
+              className="lg:hidden w-9 h-9 flex items-center justify-center  cursor-pointer rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition text-gray-600 dark:text-slate-300"
               onClick={() => {
                 setSidebarOpen(true);
                 setSidebarSmall(true);
@@ -287,7 +294,7 @@ const DashboardLayout = ({ children }) => {
             </button>
 
             <button
-              className="hidden lg:flex w-9 h-9 items-center justify-center rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition text-gray-600 dark:text-slate-300"
+              className="hidden lg:flex w-9 h-9 items-center justify-center  cursor-pointer rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition text-gray-600 dark:text-slate-300"
               onClick={() => setSidebarSmall((prev) => !prev)}
             >
               <HiMenu
@@ -307,7 +314,7 @@ const DashboardLayout = ({ children }) => {
             {/* Notification button */}
             <button
               onClick={() => setIsNotification((prev) => !prev)}
-              className={`relative flex h-8 w-8 items-center justify-center rounded-lg border transition-all ${
+              className={`relative flex h-8 w-8 items-center justify-center  cursor-pointer rounded-lg border transition-all ${
                 isNotification
                   ? 'border-[#3b82f6] bg-[#3b82f6]/10 dark:bg-[#3b82f6]/20 text-[#3b82f6]'
                   : 'border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'

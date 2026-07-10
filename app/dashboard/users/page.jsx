@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import toast from 'react-hot-toast';
 import useGetQuery from '@/hooks/all/useGetQuery';
@@ -51,6 +52,9 @@ const LIMIT = 15;
 
 const ResponsiblePersonsPage = () => {
   const { data: session } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const { employees, setEmployees } = useEmployeeStore();
   const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -159,6 +163,22 @@ const ResponsiblePersonsPage = () => {
   });
 
   const facilities = getFacilityData?.data?.data ?? [];
+
+  /* ── edit by URL param (?edit=id) ────────────────────────── */
+  const { data: editPersonData } = useGetQuery({
+    key: ['person-edit', editId],
+    url: `${URLS.person}/${editId}`,
+    headers: authHeader,
+    enabled: !!editId && !!session?.accessToken,
+  });
+
+  useEffect(() => {
+    const person = editPersonData?.data;
+    if (editId && person && !isOpen) {
+      setSelectedItem(person);
+      setIsOpen(true);
+    }
+  }, [editId, editPersonData?.data]);
 
   const { data: totalStatData } = useGetQuery({
     key: KEYS.person,
@@ -423,109 +443,107 @@ const ResponsiblePersonsPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col gap-3 px-6 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60">
+        <div className="flex flex-wrap items-end gap-3 px-6 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60">
           <FilterField label={t('colEmployee')}>
-            <div className="sm:w-72">
+            <div className="sm:w-100">
               <EmployeeCombobox value={filterEmployeeId} onChange={setFilterEmployeeId} />
             </div>
           </FilterField>
 
-          <div className="flex flex-wrap items-end gap-2">
-            <FilterField label={t('colFacility')}>
-              <Select
-                value={filterFacilityId || 'all'}
-                onValueChange={(v) => setFilterFacilityId(v === 'all' ? '' : v)}
-              >
-                <SelectTrigger className="h-9 w-48 text-[13px]">
-                  <SelectValue placeholder={t('filterAll')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('filterAll')}</SelectItem>
-                  {facilities.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      {f.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FilterField>
+          <FilterField label={t('colFacility')}>
+            <Select
+              value={filterFacilityId || 'all'}
+              onValueChange={(v) => setFilterFacilityId(v === 'all' ? '' : v)}
+            >
+              <SelectTrigger className="h-9 w-48 text-[14px]">
+                <SelectValue placeholder={t('filterAll')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filterAll')}</SelectItem>
+                {facilities.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FilterField>
 
-            <FilterField label={t('colOrder')}>
-              <input
-                value={filterOrderNumber}
-                onChange={(e) => setFilterOrderNumber(e.target.value)}
-                placeholder={t('colOrder')}
-                className="h-9 w-40 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[13px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
-              />
-            </FilterField>
+          <FilterField label={t('colOrder')}>
+            <input
+              value={filterOrderNumber}
+              onChange={(e) => setFilterOrderNumber(e.target.value)}
+              placeholder={t('colOrder')}
+              className="h-9 w-40 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+            />
+          </FilterField>
 
-            <FilterField label={t('colUnit')}>
-              <input
-                value={filterUnitCode}
-                onChange={(e) => setFilterUnitCode(e.target.value)}
-                placeholder={t('colUnit')}
-                className="h-9 w-32 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[13px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
-              />
-            </FilterField>
+          <FilterField label={t('colUnit')}>
+            <input
+              value={filterUnitCode}
+              onChange={(e) => setFilterUnitCode(e.target.value)}
+              placeholder={t('colUnit')}
+              className="h-9 w-32 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+            />
+          </FilterField>
 
-            <FilterField label={t('colInspector')}>
-              <Select
-                value={filterInspector || 'all'}
-                onValueChange={(v) => setFilterInspector(v === 'all' ? '' : v)}
-              >
-                <SelectTrigger className="h-9 w-32 text-[13px]">
-                  <SelectValue placeholder={t('filterAll')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('filterAll')}</SelectItem>
-                  <SelectItem value="true">{t('filterYes')}</SelectItem>
-                  <SelectItem value="false">{t('filterNo')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </FilterField>
+          <FilterField label={t('colInspector')}>
+            <Select
+              value={filterInspector || 'all'}
+              onValueChange={(v) => setFilterInspector(v === 'all' ? '' : v)}
+            >
+              <SelectTrigger className="h-9 w-32 text-[14px]">
+                <SelectValue placeholder={t('filterAll')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filterAll')}</SelectItem>
+                <SelectItem value="true">{t('filterYes')}</SelectItem>
+                <SelectItem value="false">{t('filterNo')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </FilterField>
 
-            <FilterField label={t('colMain')}>
-              <Select
-                value={filterMain || 'all'}
-                onValueChange={(v) => setFilterMain(v === 'all' ? '' : v)}
-              >
-                <SelectTrigger className="h-9 w-32 text-[13px]">
-                  <SelectValue placeholder={t('filterAll')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('filterAll')}</SelectItem>
-                  <SelectItem value="true">{t('filterYes')}</SelectItem>
-                  <SelectItem value="false">{t('filterNo')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </FilterField>
+          <FilterField label={t('colMain')}>
+            <Select
+              value={filterMain || 'all'}
+              onValueChange={(v) => setFilterMain(v === 'all' ? '' : v)}
+            >
+              <SelectTrigger className="h-9 w-32 text-[14px]">
+                <SelectValue placeholder={t('filterAll')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filterAll')}</SelectItem>
+                <SelectItem value="true">{t('filterYes')}</SelectItem>
+                <SelectItem value="false">{t('filterNo')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </FilterField>
 
-            <FilterField label={t('colActive')}>
-              <Select
-                value={filterActive || 'all'}
-                onValueChange={(v) => setFilterActive(v === 'all' ? '' : v)}
-              >
-                <SelectTrigger className="h-9 w-32 text-[13px]">
-                  <SelectValue placeholder={t('filterAll')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('filterAll')}</SelectItem>
-                  <SelectItem value="true">{t('filterYes')}</SelectItem>
-                  <SelectItem value="false">{t('filterNo')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </FilterField>
+          <FilterField label={t('colActive')}>
+            <Select
+              value={filterActive || 'all'}
+              onValueChange={(v) => setFilterActive(v === 'all' ? '' : v)}
+            >
+              <SelectTrigger className="h-9 w-32 text-[14px]">
+                <SelectValue placeholder={t('filterAll')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filterAll')}</SelectItem>
+                <SelectItem value="true">{t('filterYes')}</SelectItem>
+                <SelectItem value="false">{t('filterNo')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </FilterField>
 
-            {hasFilters && (
-              <button
-                onClick={clearFilters}
-                className="flex h-9 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 text-[12px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
-              >
-                <X size={12} />
-                {t('clearFilters')}
-              </button>
-            )}
-          </div>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 text-[12px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
+            >
+              <X size={12} />
+              {t('clearFilters')}
+            </button>
+          )}
         </div>
 
         {isPending || isEmployeesLoading ? (
@@ -540,7 +558,7 @@ const ResponsiblePersonsPage = () => {
             {hasFilters ? (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1.5 rounded-xl border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-[13px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
+                className="flex items-center gap-1.5 rounded-xl border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-[14px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
               >
                 <X size={13} />
                 {t('clearFilters')}
@@ -572,6 +590,7 @@ const ResponsiblePersonsPage = () => {
               { key: 'action', label: t('colActions'), align: 'right' },
             ]}
             data={tableData}
+            viewHref={(row) => `/dashboard/users/${row.id}`}
             onEdit={handleUpdate}
             handleDelete={handleDelete}
           />
@@ -589,14 +608,20 @@ const ResponsiblePersonsPage = () => {
       {/* Create / Edit Modal */}
       <CustomModal
         open={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={() => {
+          setIsOpen(false);
+          if (editId) router.replace('/dashboard/users');
+        }}
         title={selectedItem ? t('editTitle') : t('createTitle')}
         className="max-w-180! w-full"
       >
         <PersonFormComponent
           facilities={facilities}
           onSubmit={handleFormSubmit}
-          onClose={() => setIsOpen(false)}
+          onClose={() => {
+            setIsOpen(false);
+            if (editId) router.replace('/dashboard/users');
+          }}
           initialData={selectedItem}
           isPending={isCreating || isUpdating}
         />

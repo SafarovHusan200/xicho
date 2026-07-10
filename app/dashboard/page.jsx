@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import dynamic from 'next/dynamic';
@@ -17,6 +17,13 @@ import {
 import { Cell, Pie, PieChart, Label } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import useGetQuery from '@/hooks/all/useGetQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
@@ -228,12 +235,13 @@ const DashboardPage = () => {
   const ts = useTranslations('stats');
   const locale = useLocale();
   const { employees, setEmployees } = useEmployeeStore();
+  const [expiresInDays, setExpiresInDays] = useState(60);
 
   const { data: dashRes, isLoading } = useGetQuery({
     key: KEYS.dashboard,
     url: `/${URLS.dashboard}/`,
     headers: { Authorization: `Bearer ${session?.accessToken}` },
-    params: { expires_in_days: 60 },
+    params: { expires_in_days: expiresInDays },
     enabled: !!session?.accessToken,
   });
   const dash = dashRes?.data;
@@ -618,18 +626,20 @@ const DashboardPage = () => {
           </CardHeader>
           <CardContent className="flex flex-col gap-2.5 pb-4">
             {dash?.responsible_persons.items.map((p) => (
-              <PersonCard
-                key={p.id}
-                name={getEmployeeName(p.employee_id)}
-                facility={p.facility_name}
-                orderNo={p.appointment_order_number}
-                endDate={p.end_date}
-                isInspector={p.is_inspector}
-                isMain={p.is_main}
-                inspectorLabel={t('inspector')}
-                mainLabel={t('main')}
-                untilLabel={t('until')}
-              />
+              <Link href={`/dashboard/users/${p.id}`} key={p.id}>
+                <PersonCard
+                  key={p.id}
+                  name={getEmployeeName(p.employee_id)}
+                  facility={p.facility_name}
+                  orderNo={p.appointment_order_number}
+                  endDate={p.end_date}
+                  isInspector={p.is_inspector}
+                  isMain={p.is_main}
+                  inspectorLabel={t('inspector')}
+                  mainLabel={t('main')}
+                  untilLabel={t('until')}
+                />
+              </Link>
             ))}
           </CardContent>
         </Card>
@@ -644,11 +654,31 @@ const DashboardPage = () => {
                 </div>
                 <CardTitle className="text-[14px] font-semibold">{t('sectionExpiring')}</CardTitle>
               </div>
-              {(dash?.expiring_soon.count ?? 0) > 0 && (
-                <span className="text-[11px] font-black rounded-full px-2.5 py-0.5 bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-                  {dash.expiring_soon.count}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                <Select
+                  value={String(expiresInDays)}
+                  onValueChange={(v) => setExpiresInDays(Number(v))}
+                >
+                  <SelectTrigger
+                    className="h-7 w-auto gap-1 rounded-full border-none bg-amber-100/70 dark:bg-amber-950/40 px-2.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400 shadow-none"
+                    title={t('expiresInDaysLabel')}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    {[1, 7, 15, 30, 60, 90, 180].map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n} {t('daysUnit')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {(dash?.expiring_soon.count ?? 0) > 0 && (
+                  <span className="text-[11px] font-black rounded-full px-2.5 py-0.5 bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
+                    {dash.expiring_soon.count}
+                  </span>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-0 pb-3">

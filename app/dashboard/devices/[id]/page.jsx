@@ -347,12 +347,6 @@ export default function DeviceDetailPage() {
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <button
-            onClick={() => router.back()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm mt-0.5"
-          >
-            <ArrowLeft size={18} className="text-[#7B8499]" />
-          </button>
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <h1 className="text-2xl font-bold text-[#031634] dark:text-slate-100">

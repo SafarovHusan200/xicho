@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Pencil, Trash2, Eye } from 'lucide-react';
+import { Pencil, Trash2, Eye, SquareArrowOutUpRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 const BooleanBadge = ({ value }) => {
   const t = useTranslations('common');
@@ -35,7 +36,14 @@ const formatValue = (value) => {
   return value;
 };
 
-const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView, rowClassName }) => {
+const TableComponent = ({
+  column = [],
+  data = [],
+  onEdit,
+  handleDelete,
+  viewHref,
+  rowClassName,
+}) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -65,14 +73,14 @@ const TableComponent = ({ column = [], data = [], onEdit, handleDelete, onView, 
                   return (
                     <td key="action" className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1.5">
-                        {onView && (
-                          <button
-                            onClick={() => onView(row)}
+                        {viewHref && (
+                          <Link
+                            href={viewHref(row)}
                             className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400  hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
                             title="Ko'rish"
                           >
-                            <Eye size={15} />
-                          </button>
+                            <SquareArrowOutUpRight size={15} />
+                          </Link>
                         )}
                         <button
                           onClick={() => onEdit?.(row)}

@@ -747,7 +747,7 @@ const DevicePage = () => {
               { key: 'action', label: t('colActions'), align: 'right' },
             ]}
             data={tableData}
-            onView={(row) => router.push(`/dashboard/devices/${row.id}`)}
+            viewHref={(row) => `/dashboard/devices/${row.id}`}
             onEdit={(row) => {
               setSelectedItem(row);
               setIsOpen(true);

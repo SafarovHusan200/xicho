@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
 import { signIn, signOut, useSession } from 'next-auth/react';
@@ -284,9 +285,8 @@ const LoginPage = () => {
                         >
                           {t('password')}
                         </FieldLabel>
-                        <Input
+                        <PasswordInput
                           id="fieldgroup-email"
-                          type="password"
                           className="text-[16px]! py-5 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                           required
                           name="password"
