@@ -19,8 +19,6 @@ import {
   FlaskConical,
   X,
 } from 'lucide-react';
-import CountUp from 'react-countup';
-
 import useGetQuery from '@/hooks/all/useGetQuery';
 import usePostQuery from '@/hooks/all/usePostQuery';
 import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
@@ -43,6 +41,7 @@ import { cn } from '@/lib/utils';
 import TableComponent from '@/components/tableComponent';
 import CustomModal from '@/components/modals/CustomModal';
 import PaginationComponent from '@/components/PaginationComponent';
+import StatCard from '@/components/StatCard';
 
 const LIMIT = 15;
 const WARNING_DAYS = 60;
@@ -96,27 +95,6 @@ function StatusBadge({ status, t }) {
   );
 }
 
-function StatCard({ label, value, icon: Icon, iconColor }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-5 py-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-widest text-[#7B8499] dark:text-slate-400">
-          {label}
-        </span>
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${iconColor}18` }}
-        >
-          <Icon size={20} style={{ color: iconColor }} />
-        </div>
-      </div>
-      <span className="text-3xl font-bold text-[#031634] dark:text-slate-100">
-        <CountUp start={0} end={value ?? 0} duration={1.2} />
-      </span>
-    </div>
-  );
-}
-
 function DatePickerField({ value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
   const date = value ? new Date(value) : undefined;
@@ -144,6 +122,7 @@ function DatePickerField({ value, onChange, placeholder }) {
           selected={date}
           defaultMonth={date}
           captionLayout="dropdown"
+          endMonth={new Date(new Date().getFullYear() + 20, 11, 31)}
           onSelect={(d) => {
             onChange(d ? d.toISOString() : '');
             setOpen(false);

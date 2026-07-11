@@ -2,10 +2,19 @@
 
 import CustomModal from '@/components/modals/CustomModal';
 import FacilityFormComponent from '@/components/forms/FacilityFormComponent';
-import StatCard from '@/components/facility/StatCard';
+import StatCard from '@/components/StatCard';
 import FacilityRow from '@/components/facility/FacilityRow';
 import { Button } from '@/components/ui/button';
-import React, { useState, useEffect, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import toast from 'react-hot-toast';
 import useFacilityStore from '@/store/useFacilityStore';
@@ -15,19 +24,33 @@ import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { useSession } from 'next-auth/react';
-import { Building2, Plus, Factory, Loader2, LayoutGrid } from 'lucide-react';
+import { Building2, Plus, Factory, Loader2, LayoutGrid, Search, X } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 
 const HazardousFacilities = () => {
   const { data: session } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [parentForNew, setParentForNew] = useState(null);
   const [expanded, setExpanded] = useState(() => new Set());
+  const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState('all');
 
   const { facilities, setFacilities } = useFacilityStore();
 
+  useEffect(() => {
+    if (!editId || isOpen || !facilities.length) return;
+    const target = facilities.find((f) => f.id === editId);
+    if (target) {
+      setSelectedItem(target);
+      setParentForNew(null);
+      setIsOpen(true);
+    }
+  }, [editId, facilities, isOpen]);
   const {
     isLoading: isPending,
     data: getFacilityData,
@@ -35,6 +58,7 @@ const HazardousFacilities = () => {
   } = useGetQuery({
     key: KEYS.facilities,
     url: URLS.facilities,
+    params: { limit: 1000 },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: 'application/json',
@@ -78,6 +102,12 @@ const HazardousFacilities = () => {
     setParentForNew(facility);
     setIsOpen(true);
   };
+  const closeModal = () => {
+    setIsOpen(false);
+    setSelectedItem(null);
+    setParentForNew(null);
+    if (editId) router.replace('/dashboard/facility');
+  };
   const toggleExpand = (id) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -100,8 +130,7 @@ const HazardousFacilities = () => {
         },
         {
           onSuccess: () => {
-            setIsOpen(false);
-            setParentForNew(null);
+            closeModal();
             setFacilities([]);
             toast.success(t('successUpdated'));
           },
@@ -117,8 +146,7 @@ const HazardousFacilities = () => {
         },
         {
           onSuccess: () => {
-            setIsOpen(false);
-            setParentForNew(null);
+            closeModal();
             setFacilities([]);
             toast.success(t('successCreated'));
           },
@@ -172,6 +200,69 @@ const HazardousFacilities = () => {
     return map;
   }, [facilities]);
 
+  const normalizedSearch = search.trim().toLowerCase();
+  const hasActiveFilter = !!normalizedSearch || filterType !== 'all';
+
+  const matchesFilters = useCallback(
+    (f) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        f.name?.toLowerCase().includes(normalizedSearch) ||
+        f.unit_code?.toLowerCase().includes(normalizedSearch);
+      const matchesType =
+        filterType === 'all' || (filterType === 'main' ? f.is_facilities : !f.is_facilities);
+      return matchesSearch && matchesType;
+    },
+    [normalizedSearch, filterType]
+  );
+
+  // Matched nodes plus their parents (so a matching sub-division still shows under its facility).
+  const visibleIds = useMemo(() => {
+    if (!hasActiveFilter) return null;
+    const ids = new Set();
+    facilities?.forEach((f) => {
+      if (matchesFilters(f)) {
+        ids.add(f.id);
+        if (f.parent_id) ids.add(f.parent_id);
+      }
+    });
+    return ids;
+  }, [facilities, hasActiveFilter, matchesFilters]);
+
+  const visibleRootFacilities = useMemo(
+    () => (visibleIds ? rootFacilities.filter((f) => visibleIds.has(f.id)) : rootFacilities),
+    [rootFacilities, visibleIds]
+  );
+
+  const visibleChildrenByParent = useMemo(() => {
+    if (!visibleIds) return childrenByParent;
+    const map = {};
+    Object.entries(childrenByParent).forEach(([parentId, children]) => {
+      map[parentId] = children.filter((c) => visibleIds.has(c.id));
+    });
+    return map;
+  }, [childrenByParent, visibleIds]);
+
+  // Auto-expand facilities whose sub-divisions matched the active search/filter.
+  const effectiveExpanded = useMemo(() => {
+    if (!hasActiveFilter) return expanded;
+    const next = new Set(expanded);
+    visibleRootFacilities.forEach((f) => {
+      if ((visibleChildrenByParent[f.id] ?? []).length > 0) next.add(f.id);
+    });
+    return next;
+  }, [hasActiveFilter, expanded, visibleRootFacilities, visibleChildrenByParent]);
+
+  const matchCount = useMemo(() => {
+    if (!hasActiveFilter) return total;
+    return facilities?.filter(matchesFilters).length ?? 0;
+  }, [facilities, hasActiveFilter, matchesFilters, total]);
+
+  const clearFilters = () => {
+    setSearch('');
+    setFilterType('all');
+  };
+
   const formInitialData = useMemo(() => {
     if (selectedItem) return selectedItem;
     if (!parentForNew) return null;
@@ -185,7 +276,7 @@ const HazardousFacilities = () => {
   }, [selectedItem, parentForNew, childrenByParent]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -234,6 +325,43 @@ const HazardousFacilities = () => {
         />
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('searchPlaceholder')}
+            className="pl-9 text-[14px]"
+          />
+        </div>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="sm:w-52 text-[14px]">
+            <SelectValue placeholder={t('filterType')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('filterAll')}</SelectItem>
+            <SelectItem value="main">{t('filterMain')}</SelectItem>
+            <SelectItem value="sub">{t('filterSub')}</SelectItem>
+          </SelectContent>
+        </Select>
+        {hasActiveFilter && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={clearFilters}
+            className="gap-2 rounded-md text-[14px]"
+          >
+            <X size={14} />
+            {t('clearFilters')}
+          </Button>
+        )}
+      </div>
+
       {/* Table card */}
       <div className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/80">
@@ -252,7 +380,7 @@ const HazardousFacilities = () => {
               borderColor: 'var(--badge-blue-border)',
             }}
           >
-            {total} ta
+            {matchCount} ta
           </span>
         </div>
 
@@ -275,14 +403,28 @@ const HazardousFacilities = () => {
               {t('addFirst')}
             </Button>
           </div>
+        ) : visibleRootFacilities.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#7B8499] dark:text-slate-400">
+            <Search size={40} className="text-slate-200 dark:text-slate-600" />
+            <p className="text-sm">{t('noResults')}</p>
+            <Button
+              onClick={clearFilters}
+              variant="outline"
+              className="mt-1 gap-2 rounded-xl border hover:opacity-90"
+              style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
+            >
+              <X size={14} />
+              {t('clearFilters')}
+            </Button>
+          </div>
         ) : (
           <div className="flex flex-col gap-2 p-4">
-            {rootFacilities.map((f) => (
+            {visibleRootFacilities.map((f) => (
               <FacilityRow
                 key={f.id}
                 facility={f}
-                children={childrenByParent[f.id] ?? []}
-                expanded={expanded.has(f.id)}
+                children={visibleChildrenByParent[f.id] ?? []}
+                expanded={effectiveExpanded.has(f.id)}
                 onToggle={toggleExpand}
                 onEdit={handleUpdate}
                 onDelete={handleDelete}
@@ -297,11 +439,7 @@ const HazardousFacilities = () => {
       {/* Create / Edit Modal */}
       <CustomModal
         open={isOpen}
-        onClose={() => {
-          setIsOpen(false);
-          setSelectedItem(null);
-          setParentForNew(null);
-        }}
+        onClose={closeModal}
         title={selectedItem ? t('editTitle') : t('createTitle')}
         className="max-w-180! w-full"
       >
@@ -309,11 +447,7 @@ const HazardousFacilities = () => {
           facilities={facilities?.filter((f) => f.is_facilities)}
           allFacilities={facilities}
           onSubmit={handleFormSubmit}
-          onClose={() => {
-            setIsOpen(false);
-            setSelectedItem(null);
-            setParentForNew(null);
-          }}
+          onClose={closeModal}
           initialData={formInitialData}
           isPending={isCreating || isUpdating}
         />

@@ -78,7 +78,7 @@ function KpiCard({ icon: Icon, color, bg, label, value, sub, isLoading, alert })
         </div>
       </div>
 
-      <span className="relative text-[38px] font-black leading-none text-[#031634] dark:text-slate-100">
+      <span className="relative text-[36px] font-bold leading-none text-[#031634] dark:text-slate-100">
         {isLoading ? <Skel /> : <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />}
       </span>
       {sub && (

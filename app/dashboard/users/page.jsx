@@ -3,7 +3,7 @@
 import CustomModal from '@/components/modals/CustomModal';
 import PersonFormComponent, { EmployeeCombobox } from '@/components/forms/PersonFormComponent';
 import TableComponent from '@/components/tableComponent';
-import StatCard from '@/components/users/StatCard';
+import StatCard from '@/components/StatCard';
 import FilterField from '@/components/users/FilterField';
 import BadgeCell from '@/components/users/BadgeCell';
 import { Button } from '@/components/ui/button';

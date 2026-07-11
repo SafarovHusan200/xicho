@@ -17,7 +17,11 @@ const CustomModal = ({ open, onClose, title, description, children, className })
       >
         <DialogHeader>
           <DialogTitle className={'text-2xl'}>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : (
+            <DialogDescription className="sr-only">{title}</DialogDescription>
+          )}
         </DialogHeader>
         {children}
       </DialogContent>

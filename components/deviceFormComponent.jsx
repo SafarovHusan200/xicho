@@ -260,6 +260,7 @@ export default function DeviceFormComponent({ onSubmit: onSubmitProp, onCancel }
                     selected={date}
                     defaultMonth={date}
                     captionLayout="dropdown"
+                    endMonth={new Date(new Date().getFullYear() + 10, 11, 31)}
                     onSelect={(date) => {
                       setDate(date);
                       setOpen(false);

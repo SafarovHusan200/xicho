@@ -127,11 +127,9 @@ export default function FacilityFormComponent({
                         </span>
                         <div className="flex items-center justify-between gap-10 ">
                           <p className="text-[14px]">{opt.name}</p>
-                          <p>
-                            {opt.city && (
-                              <p className="text-[12px] text-muted-foreground">{opt.city}</p>
-                            )}
-                          </p>
+                          {opt.city && (
+                            <p className="text-[12px] text-muted-foreground">{opt.city}</p>
+                          )}
                         </div>
                       </div>
                     </SelectItem>

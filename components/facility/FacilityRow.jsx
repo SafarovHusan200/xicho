@@ -2,8 +2,17 @@
 
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Building2, LayoutGrid, Plus, Pencil, Trash2, ChevronDown } from 'lucide-react';
+import {
+  Building2,
+  LayoutGrid,
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronDown,
+  SquareArrowOutUpRight,
+} from 'lucide-react';
 import { getUnitCodeName } from '@/constants/unit_codes';
+import Link from 'next/link';
 
 const FacilityRow = ({
   facility,
@@ -24,7 +33,7 @@ const FacilityRow = ({
   return (
     <div className="flex flex-col gap-2">
       <div
-        onClick={() => onToggle(facility?.id)}
+        onClick={() => onToggle?.(facility?.id)}
         className={`flex items-center justify-between gap-3 rounded-xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm ${hasChildren && 'cursor-pointer'} ${isChild ? 'ml-8' : ''}`}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -33,16 +42,16 @@ const FacilityRow = ({
             style={{ backgroundColor: `${color}18` }}
           >
             {isChild ? (
-              <LayoutGrid size={16} style={{ color }} />
+              <LayoutGrid size={18} style={{ color }} />
             ) : (
-              <Building2 size={16} style={{ color }} />
+              <Building2 size={18} style={{ color }} />
             )}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[14px] font-semibold text-[#031634] dark:text-slate-100 truncate">
+            <span className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 truncate">
               {facility.name}
             </span>
-            <span className="text-[11px] text-[#94a3b8] truncate">
+            <span className="text-[13px] text-[#94a3b8] truncate">
               <span className="font-mono">{facility.unit_code}</span>
               {showOfficialName && ` · ${officialName}`}
             </span>
@@ -59,6 +68,13 @@ const FacilityRow = ({
               <Plus size={15} />
             </button>
           )}
+          <Link
+            href={`/dashboard/facility/${facility.id}`}
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400  hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
+            title="Ko'rish"
+          >
+            <SquareArrowOutUpRight size={15} />
+          </Link>
           <button
             onClick={() => onEdit(facility)}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"

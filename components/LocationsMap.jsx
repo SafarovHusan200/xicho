@@ -67,7 +67,7 @@ export default function LocationsMap({ locations, facilityMap, activeLocationId,
               eventHandlers={{ click: () => onMarkerClick(location.id) }}
             >
               <Popup>
-                <div className="min-w-[160px]">
+                <div className="min-w-40">
                   <p className="font-semibold text-sm text-gray-800">
                     {facility?.name ?? "Noma'lum ob'ekt"}
                   </p>
@@ -82,7 +82,7 @@ export default function LocationsMap({ locations, facilityMap, activeLocationId,
         })}
       </MapContainer>
 
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[1000] bg-black/60 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full pointer-events-none">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 bg-black/60 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full pointer-events-none">
         LAT: {center[0].toFixed(4)} &nbsp;|&nbsp; LNG: {center[1].toFixed(4)}
       </div>
     </div>

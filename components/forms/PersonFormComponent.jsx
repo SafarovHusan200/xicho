@@ -66,8 +66,8 @@ export function EmployeeCombobox({ value, onChange, error }) {
         <button
           type="button"
           className={cn(
-            'flex w-full items-center justify-between rounded-md border px-3 py-2 text-[14px] bg-background transition-colors',
-            'hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+            'flex w-full items-center justify-between rounded-md border px-3 py-2 text-[14px]  transition-colors',
+            'hover:bg-accent/30 ',
             error ? 'border-destructive' : 'border-input',
             !selectedLabel && 'text-muted-foreground'
           )}
@@ -80,7 +80,11 @@ export function EmployeeCombobox({ value, onChange, error }) {
         </button>
       </PopoverTrigger>
 
-      <PopoverContent className="p-0 w-(--radix-popover-trigger-width) min-w-72" align="start" sideOffset={4}>
+      <PopoverContent
+        className="p-0 w-(--radix-popover-trigger-width) min-w-72"
+        align="start"
+        sideOffset={4}
+      >
         <div className="flex items-center gap-2 border-b px-3 py-2">
           <Search size={14} className="shrink-0 text-muted-foreground" />
           {isLoading ? (
@@ -111,14 +115,19 @@ export function EmployeeCombobox({ value, onChange, error }) {
                 <button
                   key={emp.id}
                   type="button"
-                  onClick={() => { onChange(emp.id); setOpen(false); setSearch(''); }}
+                  onClick={() => {
+                    onChange(emp.id);
+                    setOpen(false);
+                    setSearch('');
+                  }}
                   className={cn(
                     'flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-accent transition-colors',
                     isSelected && 'bg-accent'
                   )}
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#3b82f6]/10 text-[#3b82f6] text-[12px] font-semibold">
-                    {emp.first_name?.charAt(0)}{emp.last_name?.charAt(0)}
+                    {emp.first_name?.charAt(0)}
+                    {emp.last_name?.charAt(0)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[13px] font-medium text-foreground truncate">
@@ -131,7 +140,9 @@ export function EmployeeCombobox({ value, onChange, error }) {
                     )}
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
-                    <span className="text-[11px] font-mono text-muted-foreground">{emp.tabel_number}</span>
+                    <span className="text-[11px] font-mono text-muted-foreground">
+                      {emp.tabel_number}
+                    </span>
                     {isSelected && <Check size={12} className="text-[#3b82f6]" />}
                   </div>
                 </button>
@@ -181,6 +192,7 @@ function DatePickerField({ value, onChange, error, placeholder = 'Sanani tanlang
           selected={date}
           defaultMonth={date}
           captionLayout="dropdown"
+          endMonth={new Date(new Date().getFullYear() + 10, 11, 31)}
           onSelect={(d) => {
             onChange(d ? d.toISOString() : '');
             setOpen(false);
@@ -196,7 +208,13 @@ const toISOString = (val) => {
   return new Date(val).toISOString();
 };
 
-export default function PersonFormComponent({ facilities = [], onSubmit, onClose, initialData, isPending }) {
+export default function PersonFormComponent({
+  facilities = [],
+  onSubmit,
+  onClose,
+  initialData,
+  isPending,
+}) {
   const t = useTranslations('personForm');
 
   const [form, setForm] = useState({
@@ -252,7 +270,10 @@ export default function PersonFormComponent({ facilities = [], onSubmit, onClose
   const handleSubmit = (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
     const payload = {
       employee_id: form.employee_id,
       appointment_order_number: form.appointment_order_number,
@@ -303,7 +324,9 @@ export default function PersonFormComponent({ facilities = [], onSubmit, onClose
             </SelectTrigger>
             <SelectContent>
               {facilities.map((f) => (
-                <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                <SelectItem key={f.id} value={f.id}>
+                  {f.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -330,9 +353,7 @@ export default function PersonFormComponent({ facilities = [], onSubmit, onClose
             onChange={(val) => set('end_date', val)}
             error={errors.end_date}
           />
-          {errors.end_date && (
-            <p className="text-xs text-destructive">{errors.end_date}</p>
-          )}
+          {errors.end_date && <p className="text-xs text-destructive">{errors.end_date}</p>}
         </div>
       </div>
 
@@ -344,12 +365,10 @@ export default function PersonFormComponent({ facilities = [], onSubmit, onClose
           { key: 'is_active', label: t('isActive') },
         ].map(({ key, label }) => (
           <div key={key} className="flex items-center gap-2.5">
-            <Checkbox
-              id={key}
-              checked={form[key]}
-              onCheckedChange={(val) => set(key, val)}
-            />
-            <Label htmlFor={key} className="cursor-pointer font-normal text-[14px]">{label}</Label>
+            <Checkbox id={key} checked={form[key]} onCheckedChange={(val) => set(key, val)} />
+            <Label htmlFor={key} className="cursor-pointer font-normal text-[14px]">
+              {label}
+            </Label>
           </div>
         ))}
       </div>

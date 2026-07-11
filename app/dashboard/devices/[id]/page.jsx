@@ -30,6 +30,7 @@ import {
   FileSpreadsheet,
   File,
   FolderOpen,
+  FlaskConical,
 } from 'lucide-react';
 import useGetQuery from '@/hooks/all/useGetQuery';
 import { KEYS } from '@/constants/key';
@@ -560,19 +561,62 @@ export default function DeviceDetailPage() {
         </Section>
 
         <div className="grid grid-cols-1  gap-6">
+          {/* ── Last test ──────────────────────────────────────── */}
+          {device.last_test && (
+            <Section title={t('sectionLastTest')} icon={FlaskConical} iconColor="#f97316">
+              <InfoRow
+                icon={FlaskConical}
+                label={t('lastTestType')}
+                value={device.last_test.test_type}
+                iconColor="#f97316"
+              />
+              <InfoRow
+                icon={Hash}
+                label={t('lastTestProtocol')}
+                value={device.last_test.test_protocol_number}
+                iconColor="#f97316"
+              />
+              <InfoRow
+                icon={Calendar}
+                label={t('lastTestDate')}
+                value={fmt(device.last_test.test_date, locale)}
+                iconColor="#f97316"
+              />
+              <InfoRow
+                icon={Calendar}
+                label={t('lastTestNextDate')}
+                value={fmt(device.last_test.next_test_date, locale)}
+                iconColor="#f97316"
+              />
+              {device.last_test.description && (
+                <InfoRow
+                  icon={FileText}
+                  label={t('lastTestDescription')}
+                  value={device.last_test.description}
+                  iconColor="#f97316"
+                />
+              )}
+              {device.last_test.documents?.length > 0 && (
+                <div className="grid grid-cols-1 gap-2 py-3">
+                  {device.last_test.documents.map((doc) => (
+                    <DocCard
+                      key={doc.id}
+                      doc={doc}
+                      onView={handleDocView}
+                      loadingId={loadingDocId}
+                    />
+                  ))}
+                </div>
+              )}
+            </Section>
+          )}
+
           {/* ── Passport specs ─────────────────────────────────── */}
           {specEntries.length > 0 && (
             <Section title={t('sectionPassport')} icon={ClipboardList} iconColor="#6366f1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 divide-y divide-slate-100 dark:divide-slate-700/40 sm:divide-y-0">
+              <div className="grid grid-cols-1  gap-0  divide-slate-100 dark:divide-slate-700/40 sm:divide-y-0">
                 {specEntries.map(([key, val], i) => (
-                  <div
-                    key={key}
-                    className={`flex flex-col gap-0.5 px-0 py-3 sm:px-4 sm:border-b sm:border-slate-100 sm:dark:border-slate-700/40 ${
-                      i % 2 === 0
-                        ? 'sm:border-r sm:border-slate-100 sm:dark:border-slate-700/40'
-                        : ''
-                    }`}
-                  >
+                  <div key={key} className={`flex flex-col gap-0.5 px-0 py-3 sm:px-4 `}>
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-[#7B8499] dark:text-slate-500">
                       {key}
                     </span>
