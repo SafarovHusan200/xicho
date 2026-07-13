@@ -77,9 +77,7 @@ function FileDropZone({ file, onChange, t }) {
           <p className="text-[13px] text-[#7B8499] dark:text-slate-400 text-center px-3">
             {t('fileDrop')}
           </p>
-          <p className="text-[11px] text-[#7B8499]/70">
-            JPEG, PNG, WebP, PDF, DOC/DOCX, XLS/XLSX, TXT · max 100 MB
-          </p>
+          <p className="text-[11px] text-[#7B8499]/70">{t('fileHint')}</p>
         </>
       )}
     </div>

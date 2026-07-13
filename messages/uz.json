@@ -66,6 +66,8 @@
     "locations": "Lokatsiyalar",
     "users": "Foydalanuvchilar",
     "reports": "Hisobotlar",
+    "notifications": "Xabarnomalar",
+    "analytics": "Analitika",
     "devices": "Qurilmalar",
     "devicesList": "Barcha qurilmalar",
     "deviceTypes": "Qurilma turlari",
@@ -83,7 +85,8 @@
     "logoutNo": "Yo'q",
     "logoutSuccess": "Siz muvaffaqiyatli tizimdan chiqdingiz",
     "logoutError": "Chiqishda xato yuz berdi",
-    "subtitle": "Sanoat nazorati"
+    "subtitle": "Sanoat nazorati",
+    "openMenu": "Menyuni ochish"
   },
   "facility": {
     "title": "Xavfli ishlab chiqarish ob'ektlari",
@@ -111,6 +114,9 @@
     "colIsObj": "Ob'ektmi",
     "colDate": "Sana",
     "colActions": "Amallar",
+    "addChildTitle": "Bo'linma qo'shish",
+    "collapseTitle": "Yig'ish",
+    "expandTitle": "Yoyish",
     "editTitle": "Ob'ektni tahrirlash",
     "createTitle": "Yangi ob'ekt qo'shish",
     "deleteTitle": "O'chirishni tasdiqlang",
@@ -194,6 +200,7 @@
     "empty": "Joylashuvlar topilmadi",
     "total": "ta joylashuv",
     "editTitle": "Joylashuvni tahrirlash",
+    "editDescription": "Ob'ekt ma'lumotlarini o'zgartirish",
     "createTitle": "Yangi joylashuv qo'shish",
     "deleteTitle": "O'chirishni tasdiqlang",
     "deleteWarning": "joylashuvi o'chiriladi. Bu amalni qaytarib bo'lmaydi.",
@@ -258,6 +265,7 @@
     "errorDelete": "O'chirishda xato yuz berdi",
     "forbiddenTitle": "Kirish taqiqlangan",
     "forbiddenDesc": "Sizning rolingiz ushbu sahifani ko'rish huquqiga ega emas. Murojaat uchun administratorga murojaat qiling.",
+    "forbiddenBadge": "Sizning rolingiz uchun kirish taqiqlangan",
     "filterAll": "Barchasi",
     "filterYes": "Ha",
     "filterNo": "Yo'q",
@@ -266,6 +274,10 @@
   "personForm": {
     "employeeId": "Xodim ID",
     "employeeIdPlaceholder": "UUID kiriting...",
+    "employeePlaceholder": "Xodimni tanlang...",
+    "employeeSearchPlaceholder": "Ism yoki tabel raqami...",
+    "employeeTotalCount": "{count} ta xodim",
+    "employeeShowingCount": "{count} ta ko'rsatilmoqda",
     "orderNumber": "Tayinlov buyruq raqami",
     "orderNumberPlaceholder": "Masalan: 12-son",
     "facilityLabel": "Ob'ekt",
@@ -443,6 +455,7 @@
   },
   "common": {
     "count": "ta",
+    "view": "Ko'rish",
     "edit": "Tahrirlash",
     "delete": "O'chirish",
     "cancel": "Bekor qilish",
@@ -450,7 +463,11 @@
     "yes": "Ha",
     "no": "Yo'q",
     "loading": "Yuklanmoqda...",
-    "search": "Qidirish"
+    "search": "Qidirish",
+    "selectDate": "Sanani tanlang...",
+    "notFound": "Topilmadi",
+    "back": "Ortga",
+    "pageNotFound": "Sahifa topilmadi"
   },
   "testLogs": {
     "title": "Sinov jurnali",
@@ -554,7 +571,10 @@
     "personInspector": "Inspektor",
     "personActive": "Faol",
     "orderNumber": "Buyruq",
-    "fileOpenError": "Faylni ochishda xato yuz berdi"
+    "fileOpenError": "Faylni ochishda xato yuz berdi",
+    "viewTitle": "Ko'rish",
+    "downloadTitle": "Yuklab olish",
+    "previewUnsupported": "Bu fayl turini ko'rib bo'lmaydi"
   },
   "documents": {
     "title": "Hujjatlar",
@@ -610,6 +630,11 @@
     "errorDownload": "Faylni yuklab olishda xato yuz berdi",
     "viewTitle": "Ko'rish",
     "downloadTitle": "Yuklab olish",
-    "previewUnsupported": "Bu fayl turini ko'rib bo'lmaydi. Yuklab oling."
+    "previewUnsupported": "Bu fayl turini ko'rib bo'lmaydi. Yuklab oling.",
+    "fileHint": "JPEG, PNG, WebP, PDF, DOC/DOCX, XLS/XLSX, TXT · maks. 100 MB"
+  },
+  "notificationsPanel": {
+    "title": "Xabarnomalar ({count} ta yangi)",
+    "viewAll": "Barcha xabarnomalarni ko'rish →"
   }
 }

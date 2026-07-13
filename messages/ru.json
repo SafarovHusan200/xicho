@@ -66,6 +66,8 @@
     "facilities": "Предприятия",
     "locations": "Локации",
     "reports": "Отчёты",
+    "notifications": "Уведомления",
+    "analytics": "Аналитика",
     "devices": "Устройства",
     "devicesList": "Все устройства",
     "deviceTypes": "Типы устройств",
@@ -83,7 +85,8 @@
     "logoutNo": "Нет",
     "logoutSuccess": "Вы успешно вышли из системы",
     "logoutError": "Ошибка при выходе из системы",
-    "subtitle": "Промышленный надзор"
+    "subtitle": "Промышленный надзор",
+    "openMenu": "Открыть меню"
   },
   "facility": {
     "title": "Опасные производственные объекты",
@@ -111,6 +114,9 @@
     "colIsObj": "Объект",
     "colDate": "Дата",
     "colActions": "Действия",
+    "addChildTitle": "Добавить подразделение",
+    "collapseTitle": "Свернуть",
+    "expandTitle": "Развернуть",
     "editTitle": "Редактировать объект",
     "createTitle": "Добавить новый объект",
     "deleteTitle": "Подтвердите удаление",
@@ -194,6 +200,7 @@
     "empty": "Локации не найдены",
     "total": "локаций",
     "editTitle": "Редактировать локацию",
+    "editDescription": "Изменить данные объекта",
     "createTitle": "Добавить новую локацию",
     "deleteTitle": "Подтвердите удаление",
     "deleteWarning": "локация будет удалена безвозвратно.",
@@ -258,6 +265,7 @@
     "errorDelete": "Ошибка при удалении",
     "forbiddenTitle": "Доступ запрещён",
     "forbiddenDesc": "Ваша роль не имеет прав для просмотра этой страницы. Обратитесь к администратору.",
+    "forbiddenBadge": "Доступ запрещён для вашей роли",
     "filterAll": "Все",
     "filterYes": "Да",
     "filterNo": "Нет",
@@ -266,6 +274,10 @@
   "personForm": {
     "employeeId": "ID сотрудника",
     "employeeIdPlaceholder": "Введите UUID...",
+    "employeePlaceholder": "Выберите сотрудника...",
+    "employeeSearchPlaceholder": "Имя или табельный номер...",
+    "employeeTotalCount": "Сотрудников: {count}",
+    "employeeShowingCount": "показано {count}",
     "orderNumber": "Номер приказа о назначении",
     "orderNumberPlaceholder": "Например: Приказ №12",
     "facilityLabel": "Объект",
@@ -443,6 +455,7 @@
   },
   "common": {
     "count": "шт",
+    "view": "Просмотр",
     "edit": "Редактировать",
     "delete": "Удалить",
     "cancel": "Отмена",
@@ -450,7 +463,11 @@
     "yes": "Да",
     "no": "Нет",
     "loading": "Загрузка...",
-    "search": "Поиск"
+    "search": "Поиск",
+    "selectDate": "Выберите дату...",
+    "notFound": "Не найдено",
+    "back": "Назад",
+    "pageNotFound": "Страница не найдена"
   },
   "testLogs": {
     "title": "Журнал испытаний",
@@ -554,7 +571,10 @@
     "personInspector": "Инспектор",
     "personActive": "Активный",
     "orderNumber": "Приказ",
-    "fileOpenError": "Ошибка при открытии файла"
+    "fileOpenError": "Ошибка при открытии файла",
+    "viewTitle": "Просмотр",
+    "downloadTitle": "Скачать",
+    "previewUnsupported": "Этот тип файла нельзя просмотреть"
   },
   "documents": {
     "title": "Документы",
@@ -610,6 +630,11 @@
     "errorDownload": "Ошибка при скачивании файла",
     "viewTitle": "Просмотр",
     "downloadTitle": "Скачать",
-    "previewUnsupported": "Этот тип файла нельзя просмотреть. Скачайте файл."
+    "previewUnsupported": "Этот тип файла нельзя просмотреть. Скачайте файл.",
+    "fileHint": "JPEG, PNG, WebP, PDF, DOC/DOCX, XLS/XLSX, TXT · макс. 100 МБ"
+  },
+  "notificationsPanel": {
+    "title": "Уведомления ({count} новых)",
+    "viewAll": "Смотреть все уведомления →"
   }
 }

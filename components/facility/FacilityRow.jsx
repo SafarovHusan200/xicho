@@ -24,6 +24,8 @@ const FacilityRow = ({
   onAddChild,
   locale,
   isChild = false,
+  t,
+  tc,
 }) => {
   const hasChildren = children.length > 0;
   const color = isChild ? '#f59e0b' : '#3b82f6';
@@ -63,7 +65,7 @@ const FacilityRow = ({
             <button
               onClick={() => onAddChild(facility)}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
-              title="Bo'linma qo'shish"
+              title={t('addChildTitle')}
             >
               <Plus size={15} />
             </button>
@@ -71,21 +73,21 @@ const FacilityRow = ({
           <Link
             href={`/dashboard/facility/${facility.id}`}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400  hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
-            title="Ko'rish"
+            title={tc('view')}
           >
             <SquareArrowOutUpRight size={15} />
           </Link>
           <button
             onClick={() => onEdit(facility)}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
-            title="Tahrirlash"
+            title={tc('edit')}
           >
             <Pencil size={15} />
           </button>
           <button
             onClick={() => onDelete(facility)}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
-            title="O'chirish"
+            title={tc('delete')}
           >
             <Trash2 size={15} />
           </button>
@@ -93,7 +95,7 @@ const FacilityRow = ({
             <button
               // onClick={() => onToggle(facility.id)}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(197,198,207,0.40)] dark:border-slate-700/60 text-[#7B8499] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all duration-150"
-              title={expanded ? "Yig'ish" : 'Yoyish'}
+              title={expanded ? t('collapseTitle') : t('expandTitle')}
             >
               <ChevronDown
                 size={15}
@@ -124,6 +126,8 @@ const FacilityRow = ({
                     locale={locale}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    t={t}
+                    tc={tc}
                   />
                 ))}
               </div>

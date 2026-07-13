@@ -88,6 +88,7 @@ const LocationsPage = () => {
   }, [locations, selectedFacilityId]);
 
   const t = useTranslations('locations');
+  const tc = useTranslations('common');
   const handleLocationClick = (id) => setActiveLocationId((prev) => (prev === id ? null : id));
 
   const { mutate: createMutate, isPending: createPending } = usePostQuery({
@@ -279,7 +280,7 @@ const LocationsPage = () => {
                           setEditOpen(true);
                         }}
                         className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400  hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
-                        title="Tahrirlash"
+                        title={tc('edit')}
                       >
                         <Pencil size={14} />
                       </button>
@@ -289,7 +290,7 @@ const LocationsPage = () => {
                           setDeleteOpen(true);
                         }}
                         className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400  hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
-                        title="O'chirish"
+                        title={tc('delete')}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -331,7 +332,7 @@ const LocationsPage = () => {
         open={editOpen}
         onClose={() => setEditOpen(false)}
         title={t('editTitle')}
-        description="Ob'ekt ma'lumotlarini o'zgartirish"
+        description={t('editDescription')}
         className="max-w-200! w-full"
       >
         <LocationFormComponent

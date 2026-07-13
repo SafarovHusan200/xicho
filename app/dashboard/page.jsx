@@ -305,7 +305,7 @@ const DashboardPage = () => {
   const testsConfig = { value: { label: ts('barTitle') } };
 
   /* ── Today date badge ── */
-  const today = new Date().toLocaleDateString('ru-RU', {
+  const today = new Date().toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',

@@ -2,15 +2,22 @@
 
 import React, { useState } from 'react';
 import { CalendarIcon } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 
-function DatePickerField({ value, onChange, placeholder = 'Sanani tanlang...' }) {
+function DatePickerField({ value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
+  const tc = useTranslations('common');
+  const locale = useLocale();
   const date = value ? new Date(value) : undefined;
   const formatted = date
-    ? date.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    ? date.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
     : null;
 
   return (
@@ -24,7 +31,7 @@ function DatePickerField({ value, onChange, placeholder = 'Sanani tanlang...' })
             !formatted && 'text-muted-foreground'
           )}
         >
-          <span>{formatted ?? placeholder}</span>
+          <span>{formatted ?? placeholder ?? tc('selectDate')}</span>
           <CalendarIcon size={15} className="text-muted-foreground" />
         </button>
       </PopoverTrigger>

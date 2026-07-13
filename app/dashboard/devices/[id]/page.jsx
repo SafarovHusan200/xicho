@@ -106,7 +106,7 @@ const fmtSize = (bytes) => {
 };
 
 /* ── DocCard ─────────────────────────────────────────────────── */
-function DocCard({ doc, onView, loadingId }) {
+function DocCard({ doc, onView, loadingId, t }) {
   const MimeIcon = getMimeIcon(doc.file_type);
   const color = getMimeColor(doc.file_type);
   const label = getMimeLabel(doc.file_type);
@@ -137,7 +137,7 @@ function DocCard({ doc, onView, loadingId }) {
         onClick={() => onView(doc)}
         disabled={isLoading}
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 transition-all disabled:opacity-50"
-        title="Ko'rish"
+        title={t('viewTitle')}
       >
         {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Eye size={15} />}
       </button>
@@ -301,7 +301,6 @@ export default function DeviceDetailPage() {
     headers: { Authorization: `Bearer ${session?.accessToken}` },
     apiClient: staffio,
     enabled: !!session?.accessToken && employees.length === 0,
-    redirectOn403: false,
   });
 
   useEffect(() => {
@@ -604,6 +603,7 @@ export default function DeviceDetailPage() {
                       doc={doc}
                       onView={handleDocView}
                       loadingId={loadingDocId}
+                      t={t}
                     />
                   ))}
                 </div>
@@ -638,7 +638,13 @@ export default function DeviceDetailPage() {
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 py-3">
                 {device.documents.map((doc) => (
-                  <DocCard key={doc.id} doc={doc} onView={handleDocView} loadingId={loadingDocId} />
+                  <DocCard
+                    key={doc.id}
+                    doc={doc}
+                    onView={handleDocView}
+                    loadingId={loadingDocId}
+                    t={t}
+                  />
                 ))}
               </div>
             </Section>
@@ -672,7 +678,7 @@ export default function DeviceDetailPage() {
                   href={docPreview.presignedUrl ?? docPreview.url}
                   download={docPreview.file_name}
                   className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 hover:bg-emerald-100 transition-all"
-                  title="Yuklab olish"
+                  title={t('downloadTitle')}
                 >
                   <Download size={15} />
                 </a>
@@ -705,7 +711,7 @@ export default function DeviceDetailPage() {
                 <div className="flex flex-col items-center justify-center gap-4 py-16">
                   <FileText size={44} className="text-slate-300 dark:text-slate-600" />
                   <p className="text-[14px] text-[#7B8499] dark:text-slate-400">
-                    Bu fayl turini ko'rib bo'lmaydi
+                    {t('previewUnsupported')}
                   </p>
                   <a
                     href={docPreview.presignedUrl ?? docPreview.url}
@@ -713,7 +719,7 @@ export default function DeviceDetailPage() {
                     className="flex items-center gap-2 rounded-xl px-4 h-9 text-[13px] font-semibold text-white bg-[#3b82f6] hover:bg-[#2563eb] transition-colors"
                   >
                     <Download size={14} />
-                    Yuklab olish
+                    {t('downloadTitle')}
                   </a>
                 </div>
               )}

@@ -95,11 +95,15 @@ function StatusBadge({ status, t }) {
   );
 }
 
-function DatePickerField({ value, onChange, placeholder }) {
+function DatePickerField({ value, onChange, placeholder, locale }) {
   const [open, setOpen] = useState(false);
   const date = value ? new Date(value) : undefined;
   const formatted = date
-    ? date.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    ? date.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
     : null;
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -134,7 +138,7 @@ function DatePickerField({ value, onChange, placeholder }) {
 }
 
 /* ── TestLogForm ─────────────────────────────────────────────── */
-function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices }) {
+function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices, locale }) {
   const [form, setForm] = useState({
     device_id: initialData?.device_id ?? '',
     test_type: initialData?.test_type ?? '',
@@ -222,6 +226,7 @@ function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices }) 
             value={form.test_date}
             onChange={(v) => set('test_date', v)}
             placeholder={t('datePlaceholder')}
+            locale={locale}
           />
           {errors.test_date && <p className="text-xs text-destructive">{errors.test_date}</p>}
         </div>
@@ -231,6 +236,7 @@ function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices }) 
             value={form.next_test_date}
             onChange={(v) => set('next_test_date', v)}
             placeholder={t('datePlaceholder')}
+            locale={locale}
           />
           {errors.next_test_date && (
             <p className="text-xs text-destructive">{errors.next_test_date}</p>
@@ -257,7 +263,7 @@ function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices }) 
         <Button
           type="submit"
           disabled={isPending}
-          className="text-[13px] bg-[#3b82f6] hover:bg-[#2563eb]"
+          className="text-[13px] dark:text-white bg-[#3b82f6] hover:bg-[#2563eb]"
         >
           {isPending ? (
             <span className="flex items-center gap-1.5">
@@ -640,6 +646,7 @@ export default function TestLogsPage() {
           isPending={creating || updating}
           t={t}
           devices={devices}
+          locale={locale}
         />
       </CustomModal>
 

@@ -6,8 +6,10 @@ import { AlertTriangle, AlertCircle, Info, Clock, CheckCircle } from 'lucide-rea
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { IoCloseOutline } from 'react-icons/io5';
+import { useTranslations } from 'next-intl';
 
 const NotificationComponent = ({ onClose }) => {
+  const t = useTranslations('notificationsPanel');
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -96,7 +98,9 @@ const NotificationComponent = ({ onClose }) => {
     >
       {/* Header */}
       <div className="flex items-center justify-between bg-[#031634] p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold  text-white">Xabarnomalar (5 ta yangi)</h2>
+        <h2 className="text-lg font-semibold  text-white">
+          {t('title', { count: notifications.length })}
+        </h2>
         <button className="p-1 bg-gray-100 rounded-full transition" onClick={onClose}>
           <IoCloseOutline />
         </button>
@@ -143,7 +147,7 @@ const NotificationComponent = ({ onClose }) => {
       <div className="p-4 border-t border-gray-200 bg-gray-50">
         <Link href="/dashboard/notifications" onClick={onClose}>
           <Button variant="outline" className="w-full text-center text-sm font-medium">
-            BARCHA XABARNOMALARNI KO'RISH →
+            {t('viewAll')}
           </Button>
         </Link>
       </div>

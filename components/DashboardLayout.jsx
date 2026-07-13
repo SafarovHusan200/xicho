@@ -288,7 +288,7 @@ const DashboardLayout = ({ children }) => {
                 setSidebarOpen(true);
                 setSidebarSmall(true);
               }}
-              aria-label="Открыть меню"
+              aria-label={t('openMenu')}
             >
               <FaBars size={16} />
             </button>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {
@@ -42,6 +42,7 @@ const LIMIT = 15;
 export default function DocumentsPage() {
   const { data: session } = useSession();
   const t = useTranslations('documents');
+  const locale = useLocale();
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
@@ -295,7 +296,7 @@ export default function DocumentsPage() {
         </span>
       ),
       _date: doc.created_at
-        ? new Date(doc.created_at).toLocaleDateString('uz-UZ', {
+        ? new Date(doc.created_at).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',

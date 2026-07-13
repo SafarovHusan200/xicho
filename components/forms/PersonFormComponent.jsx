@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { Loader2, Search, ChevronsUpDown, Check, User, CalendarIcon } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,8 @@ export function EmployeeCombobox({ value, onChange, error }) {
   const [search, setSearch] = useState('');
   const { data: session } = useSession();
   const { employees, setEmployees } = useEmployeeStore();
+  const t = useTranslations('personForm');
+  const tc = useTranslations('common');
 
   const { data: employeesData, isLoading } = useGetQuery({
     key: 'staffio-employees',
@@ -74,7 +76,7 @@ export function EmployeeCombobox({ value, onChange, error }) {
         >
           <div className="flex items-center gap-2 min-w-0">
             <User size={14} className="shrink-0 text-muted-foreground" />
-            <span className="truncate">{selectedLabel ?? 'Xodimni tanlang...'}</span>
+            <span className="truncate">{selectedLabel ?? t('employeePlaceholder')}</span>
           </div>
           <ChevronsUpDown size={14} className="shrink-0 text-muted-foreground ml-2" />
         </button>
@@ -94,7 +96,7 @@ export function EmployeeCombobox({ value, onChange, error }) {
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Ism yoki tabel raqami..."
+              placeholder={t('employeeSearchPlaceholder')}
               className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
             />
           )}
@@ -104,10 +106,10 @@ export function EmployeeCombobox({ value, onChange, error }) {
           {isLoading ? (
             <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground text-sm">
               <Loader2 size={16} className="animate-spin" />
-              Yuklanmoqda...
+              {tc('loading')}
             </div>
           ) : filtered.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Topilmadi</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">{tc('notFound')}</p>
           ) : (
             filtered.map((emp) => {
               const isSelected = emp.id === value;
@@ -153,8 +155,9 @@ export function EmployeeCombobox({ value, onChange, error }) {
 
         {!isLoading && employees.length > 0 && (
           <div className="border-t px-3 py-1.5 text-[11px] text-muted-foreground">
-            {employees.length} ta xodim
-            {filtered.length < employees.length && ` • ${filtered.length} ta ko'rsatilmoqda`}
+            {t('employeeTotalCount', { count: employees.length })}
+            {filtered.length < employees.length &&
+              ` • ${t('employeeShowingCount', { count: filtered.length })}`}
           </div>
         )}
       </PopoverContent>
@@ -162,12 +165,18 @@ export function EmployeeCombobox({ value, onChange, error }) {
   );
 }
 
-function DatePickerField({ value, onChange, error, placeholder = 'Sanani tanlang...' }) {
+function DatePickerField({ value, onChange, error, placeholder }) {
   const [open, setOpen] = React.useState(false);
+  const tc = useTranslations('common');
+  const locale = useLocale();
   const date = value ? new Date(value) : undefined;
 
   const formatted = date
-    ? date.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    ? date.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
     : null;
 
   return (
@@ -182,7 +191,7 @@ function DatePickerField({ value, onChange, error, placeholder = 'Sanani tanlang
             !formatted && 'text-muted-foreground'
           )}
         >
-          <span>{formatted ?? placeholder}</span>
+          <span>{formatted ?? placeholder ?? tc('selectDate')}</span>
           <CalendarIcon size={15} className="text-muted-foreground" />
         </button>
       </PopoverTrigger>

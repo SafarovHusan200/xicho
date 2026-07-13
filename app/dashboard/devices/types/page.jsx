@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Cpu, Plus, Loader2, AlertTriangle } from 'lucide-react';
 import CountUp from 'react-countup';
@@ -92,6 +92,8 @@ function DeviceTypeForm({ initialData, onSubmit, onClose, isPending, t }) {
 const DeviceTypePage = () => {
   const { data: session } = useSession();
   const t = useTranslations('deviceTypes');
+  const tc = useTranslations('common');
+  const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -194,7 +196,7 @@ const DeviceTypePage = () => {
     _rowNumber: offset + i + 1,
     _description: item.description || '—',
     _date: item.created_at
-      ? new Date(item.created_at).toLocaleDateString('uz-UZ', {
+      ? new Date(item.created_at).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
@@ -268,7 +270,7 @@ const DeviceTypePage = () => {
             className="rounded-full px-3 py-0.5 text-xs font-semibold border"
             style={{ backgroundColor: '#3b82f618', color: '#3b82f6', borderColor: '#3b82f630' }}
           >
-            {totalCount} ta
+            {totalCount} {tc('count')}
           </span>
         </div>
 

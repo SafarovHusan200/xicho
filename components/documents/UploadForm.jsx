@@ -37,7 +37,6 @@ function UploadForm({ onSubmit, onClose, isPending, t, devices, testLogs, person
     headers: { Authorization: `Bearer ${session?.accessToken}` },
     apiClient: staffio,
     enabled: !!session?.accessToken && employees.length === 0,
-    redirectOn403: false,
   });
 
   useEffect(() => {

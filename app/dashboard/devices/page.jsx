@@ -5,7 +5,15 @@ import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { MonitorSpeaker, Plus, Loader2, AlertTriangle, Search, XCircle, Activity } from 'lucide-react';
+import {
+  MonitorSpeaker,
+  Plus,
+  Loader2,
+  AlertTriangle,
+  Search,
+  XCircle,
+  Activity,
+} from 'lucide-react';
 
 import useGetQuery from '@/hooks/all/useGetQuery';
 import usePostQuery from '@/hooks/all/usePostQuery';
@@ -38,6 +46,7 @@ const LIMIT = 15;
 const DevicePage = () => {
   const { data: session } = useSession();
   const t = useTranslations('devices');
+  const tc = useTranslations('common');
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
@@ -330,7 +339,7 @@ const DevicePage = () => {
               borderColor: 'var(--badge-blue-border)',
             }}
           >
-            {totalCount} ta
+            {totalCount} {tc('count')}
           </span>
         </div>
 
@@ -363,7 +372,7 @@ const DevicePage = () => {
               { key: '_nameSerial', label: `${t('colName')}`, align: 'left' },
               { key: '_typeName', label: t('colType'), align: 'left' },
               { key: '_facilityName', label: t('colFacility'), align: 'left' },
-              { key: '_statusBadge', label: t('colStatus'), align: 'center' },
+              // { key: '_statusBadge', label: t('colStatus'), align: 'center' },
               { key: '_activeBadge', label: t('colActive'), align: 'center' },
               { key: 'action', label: t('colActions'), align: 'right' },
             ]}

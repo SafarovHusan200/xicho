@@ -269,7 +269,6 @@ export default function FacilityDetailPage() {
     headers: authHeader,
     apiClient: staffio,
     enabled: !!session?.accessToken && employees.length === 0,
-    redirectOn403: false,
   });
 
   useEffect(() => {

@@ -233,7 +233,6 @@ export default function PersonDetailPage() {
     url: `${URLS.person}/${id}`,
     headers: { ...authHeader, Accept: 'application/json' },
     enabled: !!session?.accessToken && !!id,
-    redirectOn403: false,
   });
 
   const { data: employeesData } = useGetQuery({
@@ -243,7 +242,6 @@ export default function PersonDetailPage() {
     headers: { Authorization: `Bearer ${session?.accessToken}` },
     apiClient: staffio,
     enabled: !!session?.accessToken && employees.length === 0,
-    redirectOn403: false,
   });
 
   useEffect(() => {

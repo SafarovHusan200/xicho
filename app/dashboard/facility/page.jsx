@@ -91,6 +91,7 @@ const HazardousFacilities = () => {
   });
 
   const t = useTranslations('facility');
+  const tc = useTranslations('common');
   const locale = useLocale();
   const openCreate = () => {
     setSelectedItem(null);
@@ -380,7 +381,7 @@ const HazardousFacilities = () => {
               borderColor: 'var(--badge-blue-border)',
             }}
           >
-            {matchCount} ta
+            {matchCount} {tc('count')}
           </span>
         </div>
 
@@ -430,6 +431,8 @@ const HazardousFacilities = () => {
                 onDelete={handleDelete}
                 onAddChild={handleAddChild}
                 locale={locale}
+                t={t}
+                tc={tc}
               />
             ))}
           </div>

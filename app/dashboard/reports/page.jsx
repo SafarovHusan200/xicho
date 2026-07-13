@@ -1,7 +1,11 @@
+'use client';
+
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 const ReportsPage = () => {
-  return <div>ReportsPage</div>;
+  const t = useTranslations('nav');
+  return <div>{t('reports')}</div>;
 };
 
 export default ReportsPage;

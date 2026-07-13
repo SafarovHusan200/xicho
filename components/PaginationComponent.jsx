@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
@@ -13,6 +14,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
  *   className   – qo'shimcha class (ixtiyoriy)
  */
 const PaginationComponent = ({ page, totalPages, totalCount, limit, onChange, className = '' }) => {
+  const tc = useTranslations('common');
   if (!totalPages || totalPages <= 1) return null;
 
   const offset = (page - 1) * limit;
@@ -35,7 +37,7 @@ const PaginationComponent = ({ page, totalPages, totalCount, limit, onChange, cl
     <div className={`flex items-center justify-between px-6 py-4 border-t border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 ${className}`}>
       {/* Info */}
       <span className="text-[13px] text-[#7B8499] dark:text-slate-400 select-none">
-        {from}–{to} / {totalCount} ta
+        {from}–{to} / {totalCount} {tc('count')}
       </span>
 
       {/* Controls */}

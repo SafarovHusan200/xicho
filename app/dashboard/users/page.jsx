@@ -35,7 +35,7 @@ import {
   X,
 } from 'lucide-react';
 import PaginationComponent from '@/components/PaginationComponent';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import useEmployeeStore from '@/store/useEmployeeStore';
 import { staffio } from '@/services/staffio';
 
@@ -70,6 +70,8 @@ const ResponsiblePersonsPage = () => {
   const [filterActive, setFilterActive] = useState('');
 
   const t = useTranslations('persons');
+  const tc = useTranslations('common');
+  const locale = useLocale();
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
@@ -116,7 +118,6 @@ const ResponsiblePersonsPage = () => {
     headers: { Authorization: `Bearer ${session?.accessToken}` },
     apiClient: staffio,
     enabled: !!session?.accessToken && employees.length === 0,
-    redirectOn403: false,
   });
 
   useEffect(() => {
@@ -147,7 +148,6 @@ const ResponsiblePersonsPage = () => {
     },
     headers: { ...authHeader, Accept: 'application/json' },
     enabled: !!session?.accessToken,
-    redirectOn403: false,
   });
 
   const persons = (getPersonsData?.data?.data ?? []).filter(Boolean);
@@ -159,7 +159,6 @@ const ResponsiblePersonsPage = () => {
     url: URLS.facilities,
     headers: { ...authHeader, Accept: 'application/json' },
     enabled: !!session?.accessToken,
-    redirectOn403: false,
   });
 
   const facilities = getFacilityData?.data?.data ?? [];
@@ -186,7 +185,6 @@ const ResponsiblePersonsPage = () => {
     params: { limit: 1 },
     headers: authHeader,
     enabled: !!session?.accessToken,
-    redirectOn403: false,
   });
   const { data: inspectorStatData } = useGetQuery({
     key: KEYS.person,
@@ -194,7 +192,6 @@ const ResponsiblePersonsPage = () => {
     params: { limit: 1, is_inspector: true },
     headers: authHeader,
     enabled: !!session?.accessToken,
-    redirectOn403: false,
   });
   const { data: activeStatData } = useGetQuery({
     key: KEYS.person,
@@ -322,7 +319,11 @@ const ResponsiblePersonsPage = () => {
   const formatDate = (iso) => {
     if (!iso) return '—';
     const d = new Date(iso);
-    return d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   };
 
   const tableData = persons?.map((p, i) => ({
@@ -355,7 +356,7 @@ const ResponsiblePersonsPage = () => {
           <div className="flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-4 py-2.5 text-[12px] font-mono text-red-600 dark:text-red-400">
             <span className="font-semibold">403</span>
             <span className="text-red-300 dark:text-red-700">·</span>
-            <span>Access denied for your role</span>
+            <span>{t('forbiddenBadge')}</span>
           </div>
         </div>
       </div>
@@ -438,7 +439,7 @@ const ResponsiblePersonsPage = () => {
               borderColor: 'var(--badge-blue-border)',
             }}
           >
-            {totalCount} ta
+            {totalCount} {tc('count')}
           </span>
         </div>
 
