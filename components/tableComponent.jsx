@@ -1,9 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Pencil, Trash2, Eye, SquareArrowOutUpRight } from 'lucide-react';
+import {
+  Pencil,
+  Trash2,
+  Eye,
+  SquareArrowOutUpRight,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const BooleanBadge = ({ value }) => {
   const t = useTranslations('common');
@@ -43,6 +51,9 @@ const TableComponent = ({
   handleDelete,
   viewHref,
   rowClassName,
+  expandedRowId,
+  onToggleExpand,
+  renderExpanded,
 }) => {
   const t = useTranslations('common');
   return (
@@ -53,7 +64,7 @@ const TableComponent = ({
             {column.map((col, i) => (
               <th
                 key={col.key}
-                className={`py-3.5 px-5 text-[11px] font-semibold uppercase tracking-widest text-[#7B8499] dark:text-slate-500 whitespace-nowrap ${
+                className={`py-3.5 px-3 text-[11px] font-semibold uppercase tracking-widest text-[#7B8499] dark:text-slate-500 whitespace-nowrap ${
                   col.align === 'right' ? 'text-right' : 'text-left'
                 } ${i === 0 ? 'pl-6' : ''}`}
               >
@@ -64,57 +75,96 @@ const TableComponent = ({
         </thead>
 
         <tbody className="divide-y divide-[#F0F1F5] dark:divide-slate-700/30">
-          {data.map((row, index) => (
-            <tr
-              key={row.id ?? index}
-              className={`group hover:bg-[#F8FAFF] dark:hover:bg-slate-700/20 transition-colors duration-150 ${rowClassName?.(row) ?? ''}`}
-            >
-              {column.map((col, i) => {
-                if (col.key === 'action') {
-                  return (
-                    <td key="action" className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {viewHref && (
-                          <Link
-                            href={viewHref(row)}
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400  hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
-                            title={t('view')}
+          {data.map((row, index) => {
+            const rowId = row.id ?? index;
+            const isExpanded = renderExpanded && expandedRowId === rowId;
+            return (
+              <React.Fragment key={rowId}>
+                <tr
+                  className={`group hover:bg-[#F8FAFF] dark:hover:bg-slate-700/20 transition-colors duration-150 ${rowClassName?.(row) ?? ''}`}
+                >
+                  {column.map((col, i) => {
+                    if (col.key === 'expand') {
+                      return (
+                        <td key="expand" className={`px-5 py-4 ${i === 0 ? 'pl-6' : ''}`}>
+                          <button
+                            type="button"
+                            onClick={() => onToggleExpand?.(row)}
+                            className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E2E8F0] dark:border-slate-700 text-[#7B8499] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all duration-150"
                           >
-                            <SquareArrowOutUpRight size={15} />
-                          </Link>
-                        )}
-                        <button
-                          onClick={() => onEdit?.(row)}
-                          className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400  hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
-                          title={t('edit')}
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete?.(row)}
-                          className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400  hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
-                          title={t('delete')}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  );
-                }
+                            {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                          </button>
+                        </td>
+                      );
+                    }
 
-                return (
-                  <td
-                    key={col.key}
-                    className={`py-4 px-5 text-[14px] font-medium text-[#3C4043] dark:text-slate-300 whitespace-nowrap ${
-                      col.align === 'right' ? 'text-right' : 'text-left'
-                    } ${i === 0 ? 'pl-6 text-[#031634] dark:text-slate-100 font-semibold' : ''}`}
-                  >
-                    {formatValue(row[col.key])}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+                    if (col.key === 'action') {
+                      return (
+                        <td key="action" className="px-5 py-4">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {viewHref && (
+                              <Link
+                                href={viewHref(row)}
+                                className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400  hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
+                                title={t('view')}
+                              >
+                                <SquareArrowOutUpRight size={15} />
+                              </Link>
+                            )}
+                            <button
+                              onClick={() => onEdit?.(row)}
+                              className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400  hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
+                              title={t('edit')}
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete?.(row)}
+                              className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400  hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
+                              title={t('delete')}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    return (
+                      <td
+                        key={col.key}
+                        className={`py-4 px-5 text-[14px] font-medium text-[#3C4043] dark:text-slate-300 whitespace-nowrap ${
+                          col.align === 'right' ? 'text-right' : 'text-left'
+                        } ${i === 0 ? 'pl-6 text-[#031634] dark:text-slate-100 font-semibold' : ''}`}
+                      >
+                        {formatValue(row[col.key])}
+                      </td>
+                    );
+                  })}
+                </tr>
+                {renderExpanded && (
+                  <tr>
+                    <td colSpan={column.length} className="p-0 border-0">
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            key="expanded"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                            className="overflow-hidden  dark:bg-slate-800/40"
+                          >
+                            <div className="px-5">{renderExpanded(row)}</div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>

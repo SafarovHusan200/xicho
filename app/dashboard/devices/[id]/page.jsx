@@ -40,6 +40,8 @@ import useEmployeeStore from '@/store/useEmployeeStore';
 import { staffio } from '@/services/staffio';
 import { request } from '@/services/api';
 import toast from 'react-hot-toast';
+import TestLogCards from '@/components/devices/TestLogCards';
+import { TestResultBadge } from '@/components/devices/testLogStatus';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
@@ -239,6 +241,7 @@ export default function DeviceDetailPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const t = useTranslations('deviceDetail');
+  const tt = useTranslations('testLogs');
   const locale = useLocale();
   const { employees, setEmployees } = useEmployeeStore();
   const [docPreview, setDocPreview] = React.useState(null);
@@ -286,6 +289,14 @@ export default function DeviceDetailPage() {
     key: [KEYS.device, id],
     url: `${URLS.device}/${id}`,
     params: { expires_in_days: 15 },
+    headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: 'application/json' },
+    enabled: !!session?.accessToken && !!id,
+  });
+
+  const { isLoading: loading, data: testsData } = useGetQuery({
+    key: [KEYS.testLogs, id],
+    url: `${URLS.testLogs}`,
+    params: { device_id: id },
     headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: 'application/json' },
     enabled: !!session?.accessToken && !!id,
   });
@@ -534,6 +545,74 @@ export default function DeviceDetailPage() {
           )}
         </div>
 
+        {/* ── All test logs ────────────────────────────────────── */}
+        <Section
+          title={`${t('sectionAllTests')}${testsData?.data?.count ? ` (${testsData.data.count})` : ''}`}
+          icon={FlaskConical}
+          iconColor="#3b82f6"
+        >
+          <TestLogCards logs={testsData?.data?.data} locale={locale} t={tt} isLoading={loading} />
+        </Section>
+
+        {/* ── Last test ──────────────────────────────────────── */}
+        {device.last_test && (
+          <Section title={t('sectionLastTest')} icon={FlaskConical} iconColor="#f97316">
+            <InfoRow
+              icon={FlaskConical}
+              label={t('lastTestType')}
+              value={device.last_test.test_type}
+              iconColor="#f97316"
+            />
+            <InfoRow
+              icon={Hash}
+              label={t('lastTestProtocol')}
+              value={device.last_test.test_protocol_number}
+              iconColor="#f97316"
+            />
+            <InfoRow
+              icon={Calendar}
+              label={t('lastTestDate')}
+              value={fmt(device.last_test.test_date, locale)}
+              iconColor="#f97316"
+            />
+            <InfoRow
+              icon={Calendar}
+              label={t('lastTestNextDate')}
+              value={fmt(device.last_test.next_test_date, locale)}
+              iconColor="#f97316"
+            />
+            {device.last_test.is_passed != null && (
+              <InfoRow
+                icon={device.last_test.is_passed ? CheckCircle2 : XCircle}
+                label={t('lastTestResult')}
+                value={<TestResultBadge isPassed={device.last_test.is_passed} t={tt} />}
+                iconColor={device.last_test.is_passed ? '#10B981' : '#ef4444'}
+              />
+            )}
+            {device.last_test.description && (
+              <InfoRow
+                icon={FileText}
+                label={t('lastTestDescription')}
+                value={device.last_test.description}
+                iconColor="#f97316"
+              />
+            )}
+            {device.last_test.documents?.length > 0 && (
+              <div className="grid grid-cols-1 gap-2 py-3">
+                {device.last_test.documents.map((doc) => (
+                  <DocCard
+                    key={doc.id}
+                    doc={doc}
+                    onView={handleDocView}
+                    loadingId={loadingDocId}
+                    t={t}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+        )}
+
         {/* ── Responsible persons ────────────────────────────── */}
         <Section
           title={`${t('sectionPersons')} (${device.responsible_persons?.length ?? 0})`}
@@ -559,174 +638,121 @@ export default function DeviceDetailPage() {
           )}
         </Section>
 
-        <div className="grid grid-cols-1  gap-6">
-          {/* ── Last test ──────────────────────────────────────── */}
-          {device.last_test && (
-            <Section title={t('sectionLastTest')} icon={FlaskConical} iconColor="#f97316">
-              <InfoRow
-                icon={FlaskConical}
-                label={t('lastTestType')}
-                value={device.last_test.test_type}
-                iconColor="#f97316"
-              />
-              <InfoRow
-                icon={Hash}
-                label={t('lastTestProtocol')}
-                value={device.last_test.test_protocol_number}
-                iconColor="#f97316"
-              />
-              <InfoRow
-                icon={Calendar}
-                label={t('lastTestDate')}
-                value={fmt(device.last_test.test_date, locale)}
-                iconColor="#f97316"
-              />
-              <InfoRow
-                icon={Calendar}
-                label={t('lastTestNextDate')}
-                value={fmt(device.last_test.next_test_date, locale)}
-                iconColor="#f97316"
-              />
-              {device.last_test.description && (
-                <InfoRow
-                  icon={FileText}
-                  label={t('lastTestDescription')}
-                  value={device.last_test.description}
-                  iconColor="#f97316"
-                />
-              )}
-              {device.last_test.documents?.length > 0 && (
-                <div className="grid grid-cols-1 gap-2 py-3">
-                  {device.last_test.documents.map((doc) => (
-                    <DocCard
-                      key={doc.id}
-                      doc={doc}
-                      onView={handleDocView}
-                      loadingId={loadingDocId}
-                      t={t}
-                    />
-                  ))}
+        {/* ── Passport specs ─────────────────────────────────── */}
+        {specEntries.length > 0 && (
+          <Section title={t('sectionPassport')} icon={ClipboardList} iconColor="#6366f1">
+            <div className="grid grid-cols-1  gap-0  divide-slate-100 dark:divide-slate-700/40 sm:divide-y-0">
+              {specEntries.map(([key, val], i) => (
+                <div key={key} className={`flex flex-col gap-0.5 px-0 py-3 sm:px-4 `}>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-[#7B8499] dark:text-slate-500">
+                    {key}
+                  </span>
+                  <span className="text-[13px] font-medium text-[#031634] dark:text-slate-100 break-all">
+                    {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
+                  </span>
                 </div>
-              )}
-            </Section>
-          )}
-
-          {/* ── Passport specs ─────────────────────────────────── */}
-          {specEntries.length > 0 && (
-            <Section title={t('sectionPassport')} icon={ClipboardList} iconColor="#6366f1">
-              <div className="grid grid-cols-1  gap-0  divide-slate-100 dark:divide-slate-700/40 sm:divide-y-0">
-                {specEntries.map(([key, val], i) => (
-                  <div key={key} className={`flex flex-col gap-0.5 px-0 py-3 sm:px-4 `}>
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-[#7B8499] dark:text-slate-500">
-                      {key}
-                    </span>
-                    <span className="text-[13px] font-medium text-[#031634] dark:text-slate-100 break-all">
-                      {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          {/* ── Documents ──────────────────────────────────────── */}
-          {device.documents?.length > 0 && (
-            <Section
-              title={`${t('sectionDocuments')} (${device.documents.length})`}
-              icon={FolderOpen}
-              iconColor="#0ea5e9"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 py-3">
-                {device.documents.map((doc) => (
-                  <DocCard
-                    key={doc.id}
-                    doc={doc}
-                    onView={handleDocView}
-                    loadingId={loadingDocId}
-                    t={t}
-                  />
-                ))}
-              </div>
-            </Section>
-          )}
-        </div>
-      </div>
-
-      {/* ── Doc preview modal ──────────────────────────────── */}
-      {docPreview && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={closeDocPreview}
-        >
-          <div
-            className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* modal header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-[#FAFBFC] dark:bg-slate-800/80 shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                {React.createElement(getMimeIcon(docPreview.file_type), {
-                  size: 16,
-                  style: { color: getMimeColor(docPreview.file_type), flexShrink: 0 },
-                })}
-                <span className="text-[14px] font-semibold text-[#031634] dark:text-slate-100 truncate">
-                  {docPreview.file_name}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-3">
-                <a
-                  href={docPreview.presignedUrl ?? docPreview.url}
-                  download={docPreview.file_name}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 hover:bg-emerald-100 transition-all"
-                  title={t('downloadTitle')}
-                >
-                  <Download size={15} />
-                </a>
-                <button
-                  onClick={closeDocPreview}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
+              ))}
             </div>
+          </Section>
+        )}
 
-            {/* modal body */}
-            <div className="flex-1 overflow-auto bg-[#F8FAFC] dark:bg-slate-900/50 min-h-0">
-              {docPreview.file_type?.startsWith('image/') ? (
-                <div className="flex items-center justify-center p-4 min-h-[400px]">
-                  <img
-                    src={docPreview.url}
-                    alt={docPreview.file_name}
-                    className="max-w-full max-h-[75vh] object-contain rounded-xl shadow-md"
-                  />
-                </div>
-              ) : docPreview.file_type === 'application/pdf' ? (
-                <iframe
-                  src={docPreview.url}
-                  title={docPreview.file_name}
-                  className="w-full h-[75vh] border-0"
+        {/* ── Documents ──────────────────────────────────────── */}
+        {device.documents?.length > 0 && (
+          <Section
+            title={`${t('sectionDocuments')} (${device.documents.length})`}
+            icon={FolderOpen}
+            iconColor="#0ea5e9"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 py-3">
+              {device.documents.map((doc) => (
+                <DocCard
+                  key={doc.id}
+                  doc={doc}
+                  onView={handleDocView}
+                  loadingId={loadingDocId}
+                  t={t}
                 />
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-4 py-16">
-                  <FileText size={44} className="text-slate-300 dark:text-slate-600" />
-                  <p className="text-[14px] text-[#7B8499] dark:text-slate-400">
-                    {t('previewUnsupported')}
-                  </p>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* ── Doc preview modal ──────────────────────────────── */}
+        {docPreview && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={closeDocPreview}
+          >
+            <div
+              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* modal header */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-[#FAFBFC] dark:bg-slate-800/80 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {React.createElement(getMimeIcon(docPreview.file_type), {
+                    size: 16,
+                    style: { color: getMimeColor(docPreview.file_type), flexShrink: 0 },
+                  })}
+                  <span className="text-[14px] font-semibold text-[#031634] dark:text-slate-100 truncate">
+                    {docPreview.file_name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-3">
                   <a
                     href={docPreview.presignedUrl ?? docPreview.url}
                     download={docPreview.file_name}
-                    className="flex items-center gap-2 rounded-xl px-4 h-9 text-[13px] font-semibold text-white bg-[#3b82f6] hover:bg-[#2563eb] transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 hover:bg-emerald-100 transition-all"
+                    title={t('downloadTitle')}
                   >
-                    <Download size={14} />
-                    {t('downloadTitle')}
+                    <Download size={15} />
                   </a>
+                  <button
+                    onClick={closeDocPreview}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+                  >
+                    ✕
+                  </button>
                 </div>
-              )}
+              </div>
+
+              {/* modal body */}
+              <div className="flex-1 overflow-auto bg-[#F8FAFC] dark:bg-slate-900/50 min-h-0">
+                {docPreview.file_type?.startsWith('image/') ? (
+                  <div className="flex items-center justify-center p-4 min-h-100">
+                    <img
+                      src={docPreview.url}
+                      alt={docPreview.file_name}
+                      className="max-w-full max-h-[75vh] object-contain rounded-xl shadow-md"
+                    />
+                  </div>
+                ) : docPreview.file_type === 'application/pdf' ? (
+                  <iframe
+                    src={docPreview.url}
+                    title={docPreview.file_name}
+                    className="w-full h-[75vh] border-0"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-4 py-16">
+                    <FileText size={44} className="text-slate-300 dark:text-slate-600" />
+                    <p className="text-[14px] text-[#7B8499] dark:text-slate-400">
+                      {t('previewUnsupported')}
+                    </p>
+                    <a
+                      href={docPreview.presignedUrl ?? docPreview.url}
+                      download={docPreview.file_name}
+                      className="flex items-center gap-2 rounded-xl px-4 h-9 text-[13px] font-semibold text-white bg-[#3b82f6] hover:bg-[#2563eb] transition-colors"
+                    >
+                      <Download size={14} />
+                      {t('downloadTitle')}
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

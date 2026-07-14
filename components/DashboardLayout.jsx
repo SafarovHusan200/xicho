@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut as LogOutIcon, Settings, Bell, ArrowLeft } from 'lucide-react';
+import { User, LogOut as LogOutIcon, Settings, Bell, ArrowLeft, Loader2 } from 'lucide-react';
 
 import '@/styles/dashboard/style.css';
 import { signOut, useSession } from 'next-auth/react';
@@ -34,6 +34,8 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { useTranslations } from 'next-intl';
 import LoadingComponent from '@/components/LoadingComponent';
 import { resetAllStores } from '@/store/resetAllStores';
+import CustomModal from './modals/CustomModal';
+import { Button } from './ui/button';
 
 const menuKeys = [
   { labelKey: 'monitoring', href: '/dashboard', icon: MdDashboard, key: '' },
@@ -74,6 +76,8 @@ const DashboardLayout = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
   const [isNotification, setIsNotification] = useState(false);
+  const [isLogout, setIsLogout] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const t = useTranslations('nav');
 
@@ -231,12 +235,20 @@ const DashboardLayout = ({ children }) => {
   );
 
   const handleLogOut = async () => {
+    setIsLogout(true);
+  };
+
+  const onLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await signOut({ redirect: false });
       resetAllStores();
       toast.success(t('logoutSuccess'));
     } catch (error) {
       toast.error(t('logoutError'));
+    } finally {
+      setIsLoggingOut(false);
+      setIsLogout(false);
     }
   };
 
@@ -310,7 +322,6 @@ const DashboardLayout = ({ children }) => {
             </p>
             <LanguageSwitcher />
             <ThemeToggle />
-
             {/* Notification button */}
             <button
               onClick={() => setIsNotification((prev) => !prev)}
@@ -326,11 +337,9 @@ const DashboardLayout = ({ children }) => {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[#3b82f6]"></span>
               </span>
             </button>
-
             <AnimatePresence>
               {isNotification && <NotificationComponent onClose={() => setIsNotification(false)} />}
             </AnimatePresence>
-
             {/* User dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -371,6 +380,46 @@ const DashboardLayout = ({ children }) => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            {/* Logout modal */}
+
+            <CustomModal
+              open={isLogout}
+              onClose={() => !isLoggingOut && setIsLogout(false)}
+              title={t('logoutConfirm')}
+              className="max-w-sm"
+            >
+              <div className="flex flex-col gap-5 pt-2">
+                {/* <div className="flex justify-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#3b82f6]/10 dark:bg-[#3b82f6]/20">
+                    <LogOutIcon size={24} className="text-[#3b82f6]" />
+                  </div>
+                </div> */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => setIsLogout(false)}
+                    disabled={isLoggingOut}
+                  >
+                    {t('logoutNo')}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="rounded-xl gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold"
+                    onClick={onLogout}
+                    disabled={isLoggingOut}
+                  >
+                    {isLoggingOut ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <LogOutIcon size={14} />
+                    )}
+                    {t('logoutYes')}
+                  </Button>
+                </div>
+              </div>
+            </CustomModal>
           </div>
         </header>
 

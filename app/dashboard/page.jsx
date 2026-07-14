@@ -666,7 +666,7 @@ const DashboardPage = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent align="end">
-                    {[1, 7, 15, 30, 60, 90, 180].map((n) => (
+                    {[1, 7, 15, 30, 60, 90, 180, 360].map((n) => (
                       <SelectItem key={n} value={String(n)}>
                         {n} {t('daysUnit')}
                       </SelectItem>

@@ -9,10 +9,8 @@ import {
   Plus,
   Loader2,
   Search,
-  CheckCircle2,
   Clock,
   XCircle,
-  HelpCircle,
   AlertTriangle,
   CalendarIcon,
   FileText,
@@ -42,24 +40,14 @@ import TableComponent from '@/components/tableComponent';
 import CustomModal from '@/components/modals/CustomModal';
 import PaginationComponent from '@/components/PaginationComponent';
 import StatCard from '@/components/StatCard';
+import {
+  getTestLogStatus,
+  TEST_LOG_ROW_BG,
+  TestLogStatusBadge,
+  TestResultBadge,
+} from '@/components/devices/testLogStatus';
 
 const LIMIT = 15;
-const WARNING_DAYS = 60;
-const EXPIRING_DAYS = 15;
-
-const STATUS_CFG = {
-  ok: { labelKey: 'statusOk', color: '#10B981', icon: CheckCircle2 },
-  warning: { labelKey: 'statusWarning', color: '#eab308', icon: AlertTriangle },
-  expiring_soon: { labelKey: 'statusExpiring', color: '#f97316', icon: Clock },
-  overdue: { labelKey: 'statusOverdue', color: '#ef4444', icon: XCircle },
-  never_tested: { labelKey: 'statusNever', color: '#94a3b8', icon: HelpCircle },
-};
-
-const ROW_BG = {
-  warning: 'bg-yellow-50 dark:bg-yellow-950/20',
-  expiring_soon: 'bg-orange-50 dark:bg-orange-950/20',
-  overdue: 'bg-red-50 dark:bg-red-950/20',
-};
 
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -68,31 +56,6 @@ function useDebounce(value, delay) {
     return () => clearTimeout(t);
   }, [value, delay]);
   return debounced;
-}
-
-/* ── helpers ─────────────────────────────────────────────────── */
-const getStatus = (next_test_date) => {
-  if (!next_test_date) return 'never_tested';
-  const diff = (new Date(next_test_date) - Date.now()) / 86400000;
-  if (diff < 0) return 'overdue';
-  if (diff <= EXPIRING_DAYS) return 'expiring_soon';
-  if (diff <= WARNING_DAYS) return 'warning';
-  return 'ok';
-};
-
-function StatusBadge({ status, t }) {
-  const cfg = STATUS_CFG[status];
-  if (!cfg) return <span className="text-muted-foreground text-[12px]">—</span>;
-  const Icon = cfg.icon;
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border whitespace-nowrap"
-      style={{ backgroundColor: `${cfg.color}18`, color: cfg.color, borderColor: `${cfg.color}30` }}
-    >
-      <Icon size={11} />
-      {t(cfg.labelKey)}
-    </span>
-  );
 }
 
 function DatePickerField({ value, onChange, placeholder, locale }) {
@@ -146,6 +109,12 @@ function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices, lo
     description: initialData?.description ?? '',
     test_date: initialData?.test_date ?? '',
     next_test_date: initialData?.next_test_date ?? '',
+    is_passed:
+      initialData?.is_passed === true
+        ? 'passed'
+        : initialData?.is_passed === false
+          ? 'failed'
+          : 'unknown',
   });
   const [errors, setErrors] = useState({});
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
@@ -167,6 +136,7 @@ function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices, lo
       test_type: form.test_type.trim(),
       test_date: form.test_date,
       next_test_date: form.next_test_date,
+      is_passed: form.is_passed === 'passed' ? true : form.is_passed === 'failed' ? false : null,
     };
     if (form.test_protocol_number.trim())
       payload.test_protocol_number = form.test_protocol_number.trim();
@@ -244,6 +214,21 @@ function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices, lo
         </div>
       </div>
 
+      {/* Result */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-[14px] font-medium">{t('resultLabel')}</Label>
+        <Select value={form.is_passed} onValueChange={(v) => set('is_passed', v)}>
+          <SelectTrigger className="w-full text-[14px]">
+            <SelectValue placeholder={t('resultPlaceholder')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="unknown">{t('resultUnknown')}</SelectItem>
+            <SelectItem value="passed">{t('resultPassed')}</SelectItem>
+            <SelectItem value="failed">{t('resultFailed')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Description */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-[14px] font-medium">{t('descriptionLabel')}</Label>
@@ -290,6 +275,7 @@ export default function TestLogsPage() {
   const [filterDeviceId, setFilterDeviceId] = useState('');
   const [filterTestType, setFilterTestType] = useState('');
   const [filterUnitCode, setFilterUnitCode] = useState('');
+  const [filterIsPassed, setFilterIsPassed] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -306,13 +292,15 @@ export default function TestLogsPage() {
 
   const offset = (page - 1) * LIMIT;
 
-  const hasFilters = filterProtocol || filterDeviceId || filterTestType || filterUnitCode;
+  const hasFilters =
+    filterProtocol || filterDeviceId || filterTestType || filterUnitCode || filterIsPassed;
 
   const clearFilters = () => {
     setFilterProtocol('');
     setFilterDeviceId('');
     setFilterTestType('');
     setFilterUnitCode('');
+    setFilterIsPassed('');
     setPage(1);
   };
 
@@ -332,6 +320,7 @@ export default function TestLogsPage() {
       ...(filterDeviceId && filterDeviceId.trim() ? { device_id: filterDeviceId.trim() } : {}),
       ...(debouncedTestType.trim() ? { test_type: debouncedTestType.trim() } : {}),
       ...(debouncedUnitCode.trim() ? { unit_code: debouncedUnitCode.trim() } : {}),
+      ...(filterIsPassed.trim() ? { is_passed: filterIsPassed.trim() === 'true' } : {}),
     },
     headers: authHeader,
     enabled: !!session,
@@ -371,7 +360,7 @@ export default function TestLogsPage() {
   const statusCounts = useMemo(() => {
     const c = { ok: 0, warning: 0, expiring_soon: 0, overdue: 0, never_tested: 0 };
     logs.forEach((l) => {
-      const s = getStatus(l.next_test_date);
+      const s = getTestLogStatus(l.next_test_date);
       c[s]++;
     });
     return c;
@@ -449,12 +438,13 @@ export default function TestLogsPage() {
   };
 
   /* ── table data ──────────────────────────────────────────── */
-  const tableData = logs.map((log) => {
+  const tableData = logs.map((log, i) => {
     const dev = deviceMap[log.device_id] ?? {};
-    const status = getStatus(log.next_test_date);
+    const status = getTestLogStatus(log.next_test_date);
     return {
+      _tr: i + 1,
       ...log,
-      _rowStatus: status,
+      _rowStatus: log.is_passed === true ? 'passed' : status,
       _device: (
         <div className="flex flex-col gap-0.5">
           <span className="font-semibold text-[#031634] dark:text-slate-100 text-[13px]">
@@ -469,11 +459,16 @@ export default function TestLogsPage() {
       ),
       _testDate: fmtDate(log.test_date),
       _nextDate: fmtDate(log.next_test_date),
-      _status: <StatusBadge status={status} t={t} />,
+      _status: log.is_passed ? (
+        <TestResultBadge isPassed={log.is_passed} t={t} />
+      ) : (
+        <TestLogStatusBadge status={status} t={t} />
+      ),
     };
   });
 
   const columns = [
+    { key: '_tr', label: '#' },
     { key: '_device', label: t('colDevice') },
     { key: 'test_type', label: t('colTestType') },
     { key: 'test_protocol_number', label: t('colProtocol') },
@@ -591,6 +586,18 @@ export default function TestLogsPage() {
             />
           </div>
 
+          {/* Result filter */}
+          <Select value={filterIsPassed} onValueChange={handleFilterChange(setFilterIsPassed)}>
+            <SelectTrigger className="h-8 w-40 text-[12px] rounded-lg border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800">
+              <SelectValue placeholder={t('filterResult')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value=" ">{t('filterAll')}</SelectItem>
+              <SelectItem value="true">{t('resultPassed')}</SelectItem>
+              <SelectItem value="false">{t('resultFailed')}</SelectItem>
+            </SelectContent>
+          </Select>
+
           {/* Clear filters */}
           {hasFilters && (
             <button
@@ -619,7 +626,7 @@ export default function TestLogsPage() {
             data={tableData}
             onEdit={openEdit}
             handleDelete={(row) => setDeleteTarget(row)}
-            rowClassName={(row) => ROW_BG[row._rowStatus] ?? ''}
+            rowClassName={(row) => TEST_LOG_ROW_BG[row._rowStatus] ?? ''}
           />
         )}
 

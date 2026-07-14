@@ -16,7 +16,7 @@ const CustomModal = ({ open, onClose, title, description, children, className })
         // onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className={'text-2xl'}>{title}</DialogTitle>
+          <DialogTitle className={'text-xl'}>{title}</DialogTitle>
           {description ? (
             <DialogDescription>{description}</DialogDescription>
           ) : (

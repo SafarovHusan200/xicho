@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
@@ -38,15 +38,34 @@ import ActiveBadge from '@/components/devices/ActiveBadge';
 import StatCard from '@/components/StatCard';
 import DeviceForm from '@/components/devices/DeviceForm';
 import { TEST_STATUS_CONFIG } from '@/components/devices/statusConfig';
+import TestLogCards from '@/components/devices/TestLogCards';
 
 /* ── constants ─────────────────────────────────────────────── */
 const LIMIT = 15;
+
+/* ── DeviceTestLogsPanel ───────────────────────────────────── */
+function DeviceTestLogsPanel({ deviceId, authHeader, locale }) {
+  const t = useTranslations('testLogs');
+
+  const { data, isLoading } = useGetQuery({
+    key: [KEYS.testLogs, deviceId],
+    url: URLS.testLogs,
+    params: { device_id: deviceId, limit: 50, offset: 0 },
+    headers: authHeader,
+    enabled: !!deviceId,
+  });
+
+  const logs = (data?.data?.data ?? []).filter(Boolean);
+
+  return <TestLogCards logs={logs} locale={locale} t={t} isLoading={isLoading} />;
+}
 
 /* ── Page ───────────────────────────────────────────────────── */
 const DevicePage = () => {
   const { data: session } = useSession();
   const t = useTranslations('devices');
   const tc = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
@@ -58,6 +77,7 @@ const DevicePage = () => {
   const [search, setSearch] = useState('');
   const [filterTypeId, setFilterTypeId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [expandedDeviceId, setExpandedDeviceId] = useState(null);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
@@ -215,7 +235,7 @@ const DevicePage = () => {
     ),
     _typeName: getTypeName(item.device_type_id),
     _facilityName: getFacilityName(item.facility_id),
-    _statusBadge: <StatusBadge status={item.test_status} t={t} />,
+
     _activeBadge: <ActiveBadge value={item.is_active} />,
   }));
 
@@ -368,11 +388,12 @@ const DevicePage = () => {
         ) : (
           <TableComponent
             column={[
+              { key: 'expand', label: '', align: 'left' },
               { key: '_rowNumber', label: '№', align: 'left' },
               { key: '_nameSerial', label: `${t('colName')}`, align: 'left' },
               { key: '_typeName', label: t('colType'), align: 'left' },
               { key: '_facilityName', label: t('colFacility'), align: 'left' },
-              // { key: '_statusBadge', label: t('colStatus'), align: 'center' },
+
               { key: '_activeBadge', label: t('colActive'), align: 'center' },
               { key: 'action', label: t('colActions'), align: 'right' },
             ]}
@@ -386,6 +407,13 @@ const DevicePage = () => {
               setSelectedItem(row);
               setDeleteModal(true);
             }}
+            expandedRowId={expandedDeviceId}
+            onToggleExpand={(row) =>
+              setExpandedDeviceId((prev) => (prev === row.id ? null : row.id))
+            }
+            renderExpanded={(row) => (
+              <DeviceTestLogsPanel deviceId={row.id} authHeader={authHeader} locale={locale} />
+            )}
           />
         )}
 
