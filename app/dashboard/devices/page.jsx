@@ -77,7 +77,7 @@ const DevicePage = () => {
   const [search, setSearch] = useState('');
   const [filterTypeId, setFilterTypeId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [expandedDeviceId, setExpandedDeviceId] = useState(null);
+  const [expandedDeviceIds, setExpandedDeviceIds] = useState(() => new Set());
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
@@ -407,9 +407,14 @@ const DevicePage = () => {
               setSelectedItem(row);
               setDeleteModal(true);
             }}
-            expandedRowId={expandedDeviceId}
+            expandedRowIds={expandedDeviceIds}
             onToggleExpand={(row) =>
-              setExpandedDeviceId((prev) => (prev === row.id ? null : row.id))
+              setExpandedDeviceIds((prev) => {
+                const next = new Set(prev);
+                if (next.has(row.id)) next.delete(row.id);
+                else next.add(row.id);
+                return next;
+              })
             }
             renderExpanded={(row) => (
               <DeviceTestLogsPanel deviceId={row.id} authHeader={authHeader} locale={locale} />

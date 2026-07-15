@@ -8,4 +8,5 @@ export const URLS = {
   testLogs: 'test-logs',
   documents: 'documents',
   employee: 'staffio/employee/',
+  reports: 'reports/tests',
 };

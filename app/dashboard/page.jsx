@@ -321,10 +321,15 @@ const DashboardPage = () => {
           </h2>
           <p className="text-[#44474E] dark:text-slate-400 text-[14px] mt-0.5">{t('subtitle')}</p>
         </div>
-        <span className="shrink-0 mt-1 inline-flex items-center gap-1.5 rounded-full border border-[rgba(197,198,207,0.40)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-3 py-1 text-[12px] font-medium text-[#7B8499] shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          {today}
-        </span>
+        <div className="flex gap-3 items-center ">
+          <Link href={'/dashboard/calendar'} className=" text-[#3B82F6] transition hover:underline">
+            Calendar
+          </Link>
+          <span className="shrink-0 mt-1 inline-flex items-center gap-1.5 rounded-full border border-[rgba(197,198,207,0.40)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-3 py-1 text-[12px] font-medium text-[#7B8499] shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            {today}
+          </span>
+        </div>
       </div>
 
       {/* ─── KPI  1-row ─── */}

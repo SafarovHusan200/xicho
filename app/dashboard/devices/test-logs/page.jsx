@@ -46,6 +46,7 @@ import {
   TestLogStatusBadge,
   TestResultBadge,
 } from '@/components/devices/testLogStatus';
+import DeviceCombobox from '@/components/devices/DeviceCombobox';
 
 const LIMIT = 15;
 
@@ -360,7 +361,7 @@ export default function TestLogsPage() {
   const statusCounts = useMemo(() => {
     const c = { ok: 0, warning: 0, expiring_soon: 0, overdue: 0, never_tested: 0 };
     logs.forEach((l) => {
-      const s = getTestLogStatus(l.next_test_date);
+      const s = getTestLogStatus(l.next_test_date, l.is_passed);
       c[s]++;
     });
     return c;
@@ -440,7 +441,7 @@ export default function TestLogsPage() {
   /* ── table data ──────────────────────────────────────────── */
   const tableData = logs.map((log, i) => {
     const dev = deviceMap[log.device_id] ?? {};
-    const status = getTestLogStatus(log.next_test_date);
+    const status = getTestLogStatus(log.next_test_date, log.is_passed);
     return {
       _tr: i + 1,
       ...log,
@@ -543,66 +544,76 @@ export default function TestLogsPage() {
               value={filterProtocol}
               onChange={(e) => setFilterProtocol(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="w-full rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-[#F8F9FB] dark:bg-slate-700/50 pl-8 pr-4 py-2 text-[13px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+              className="w-full rounded-md border border-[#E2E8F0] dark:border-slate-700 bg-[#F8F9FB] dark:bg-slate-700/50 pl-8 pr-4 py-2 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
             />
           </div>
         </div>
 
         {/* ── Filter row ── */}
-        <div className="flex flex-wrap items-center gap-2 px-5 py-3 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60">
+        <div className="flex flex-wrap items-end gap-3 px-5 py-3 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60">
           {/* Device filter */}
-          <Select value={filterDeviceId} onValueChange={handleFilterChange(setFilterDeviceId)}>
-            <SelectTrigger className="h-8 w-52 text-[12px] rounded-lg border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800">
-              <SelectValue placeholder={t('filterDevice')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value=" ">{t('filterAll')}</SelectItem>
-              {devices.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.name}
-                  {d.serial_number ? ` · ${d.serial_number}` : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col gap-1" style={{ maxWidth: '400px', width: '100%' }}>
+            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
+              {t('filterDeviceLabel')}
+            </Label>
+            <DeviceCombobox
+              value={filterDeviceId.trim()}
+              onChange={handleFilterChange(setFilterDeviceId)}
+              devices={devices}
+              placeholder={t('filterDevice')}
+              allLabel={t('filterAll')}
+              triggerClassName="h-8 py-0 text-[14px] rounded-md border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800"
+            />
+          </div>
 
           {/* Test type filter */}
-          <div className="relative">
+          <div className="flex flex-col gap-1">
+            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
+              {t('filterTestTypeLabel')}
+            </Label>
             <input
               value={filterTestType}
               onChange={(e) => setFilterTestType(e.target.value)}
               placeholder={t('filterTestType')}
-              className="h-8 w-44 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[12px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+              className="h-8 w-44 rounded-md border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
             />
           </div>
 
           {/* Unit code filter */}
-          <div className="relative">
+          <div className="flex flex-col gap-1">
+            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
+              {t('filterUnitCodeLabel')}
+            </Label>
             <input
               value={filterUnitCode}
               onChange={(e) => setFilterUnitCode(e.target.value)}
               placeholder={t('filterUnitCode')}
-              className="h-8 w-36 rounded-lg border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[12px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+              className="h-8 w-36 rounded-md border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
             />
           </div>
 
           {/* Result filter */}
-          <Select value={filterIsPassed} onValueChange={handleFilterChange(setFilterIsPassed)}>
-            <SelectTrigger className="h-8 w-40 text-[12px] rounded-lg border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800">
-              <SelectValue placeholder={t('filterResult')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value=" ">{t('filterAll')}</SelectItem>
-              <SelectItem value="true">{t('resultPassed')}</SelectItem>
-              <SelectItem value="false">{t('resultFailed')}</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col gap-1">
+            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
+              {t('filterResultLabel')}
+            </Label>
+            <Select value={filterIsPassed} onValueChange={handleFilterChange(setFilterIsPassed)}>
+              <SelectTrigger className="h-8 w-40 text-[14px] rounded-md border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800">
+                <SelectValue placeholder={t('filterResult')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value=" ">{t('filterAll')}</SelectItem>
+                <SelectItem value="true">{t('resultPassed')}</SelectItem>
+                <SelectItem value="false">{t('resultFailed')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Clear filters */}
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="flex h-8 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 text-[12px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 text-[14px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
             >
               <X size={12} />
               {t('clearFilters')}

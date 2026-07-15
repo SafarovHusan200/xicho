@@ -33,8 +33,17 @@ function DeviceForm({ initialData, onSubmit, onClose, isPending, t, deviceTypes,
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
+
     if (!form.name.trim()) {
-      setErrors({ name: t('nameError') });
+      newErrors.name = t('nameError');
+    }
+    if (!form.ecosystem_reg_number.trim()) {
+      newErrors.ecosystem_reg_number = t('ecoError') || 'Ecosystem registration number is required';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -110,8 +119,11 @@ function DeviceForm({ initialData, onSubmit, onClose, isPending, t, deviceTypes,
             value={form.ecosystem_reg_number}
             onChange={(e) => set('ecosystem_reg_number', e.target.value)}
             placeholder={t('ecoPlaceholder')}
-            className="text-[14px]"
+            className={`text-[14px] ${errors.ecosystem_reg_number ? 'border-destructive' : ''}`}
           />
+          {errors.ecosystem_reg_number && (
+            <p className="text-xs text-destructive">{errors.ecosystem_reg_number}</p>
+          )}
         </div>
       </div>
 

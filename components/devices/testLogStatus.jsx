@@ -10,6 +10,7 @@ import {
 
 const WARNING_DAYS = 60;
 const EXPIRING_DAYS = 15;
+const STATUS_PRIORITY = ['overdue', 'expiring_soon', 'warning', 'ok', 'never_tested'];
 
 export const TEST_LOG_STATUS_CFG = {
   ok: { labelKey: 'statusOk', color: '#10B981', icon: CheckCircle2 },
@@ -26,13 +27,22 @@ export const TEST_LOG_ROW_BG = {
   passed: 'bg-emerald-50 dark:bg-emerald-950/20',
 };
 
-export const getTestLogStatus = (next_test_date) => {
+export const getTestLogStatus = (next_test_date, isPassed) => {
+  if (isPassed === true) return 'ok';
   if (!next_test_date) return 'never_tested';
   const diff = (new Date(next_test_date) - Date.now()) / 86400000;
   if (diff < 0) return 'overdue';
   if (diff <= EXPIRING_DAYS) return 'expiring_soon';
   if (diff <= WARNING_DAYS) return 'warning';
   return 'ok';
+};
+
+/* ── worst status among a set of logs sharing a day/group (already-passed logs count as ok) ── */
+export const getWorstStatus = (logs) => {
+  for (const p of STATUS_PRIORITY) {
+    if (logs.some((l) => getTestLogStatus(l.next_test_date, l.is_passed) === p)) return p;
+  }
+  return 'never_tested';
 };
 
 export function TestLogStatusBadge({ status, t }) {

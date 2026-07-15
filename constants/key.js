@@ -8,4 +8,5 @@ export const KEYS = {
   testLogs: 'test-logs',
   documents: 'documents',
   employees: 'staffio-employees',
+  reports: 'reports',
 };

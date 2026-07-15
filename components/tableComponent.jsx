@@ -51,7 +51,7 @@ const TableComponent = ({
   handleDelete,
   viewHref,
   rowClassName,
-  expandedRowId,
+  expandedRowIds,
   onToggleExpand,
   renderExpanded,
 }) => {
@@ -77,7 +77,7 @@ const TableComponent = ({
         <tbody className="divide-y divide-[#F0F1F5] dark:divide-slate-700/30">
           {data.map((row, index) => {
             const rowId = row.id ?? index;
-            const isExpanded = renderExpanded && expandedRowId === rowId;
+            const isExpanded = renderExpanded && expandedRowIds?.has(rowId);
             return (
               <React.Fragment key={rowId}>
                 <tr
