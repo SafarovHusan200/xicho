@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import {
   ArrowLeft,
@@ -33,6 +34,7 @@ import {
   FlaskConical,
 } from 'lucide-react';
 import useGetQuery from '@/hooks/all/useGetQuery';
+import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { Button } from '@/components/ui/button';
@@ -42,6 +44,8 @@ import { request } from '@/services/api';
 import toast from 'react-hot-toast';
 import TestLogCards from '@/components/devices/TestLogCards';
 import { TestResultBadge } from '@/components/devices/testLogStatus';
+import CustomModal from '@/components/modals/CustomModal';
+import DeviceForm from '@/components/devices/DeviceForm';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
@@ -238,14 +242,16 @@ function PersonCard({ person, index, t, locale, getEmployeeName }) {
 /* ── Page ────────────────────────────────────────────────────── */
 export default function DeviceDetailPage() {
   const { id } = useParams();
-  const router = useRouter();
   const { data: session } = useSession();
   const t = useTranslations('deviceDetail');
   const tt = useTranslations('testLogs');
+  const td = useTranslations('devices');
   const locale = useLocale();
+  const queryClient = useQueryClient();
   const { employees, setEmployees } = useEmployeeStore();
   const [docPreview, setDocPreview] = React.useState(null);
   const [loadingDocId, setLoadingDocId] = React.useState(null);
+  const [isEditOpen, setIsEditOpen] = React.useState(false);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
@@ -319,6 +325,44 @@ export default function DeviceDetailPage() {
     if (data?.length) setEmployees(data);
   }, [employeesData]);
 
+  /* ── edit modal: device types + facilities for the form, plus the update mutation ── */
+  const { data: deviceTypesData } = useGetQuery({
+    key: KEYS.deviceTypes,
+    url: URLS.deviceTypes,
+    params: { limit: 1000 },
+    headers: authHeader,
+    enabled: !!session?.accessToken,
+  });
+
+  const { data: facilitiesData } = useGetQuery({
+    key: KEYS.facilities,
+    url: URLS.facilities,
+    headers: authHeader,
+    enabled: !!session?.accessToken,
+  });
+
+  const deviceTypes = deviceTypesData?.data?.data ?? [];
+  const facilities = facilitiesData?.data?.data ?? [];
+
+  const { mutate: updateDevice, isPending: isUpdating } = usePatchPythonQuery({
+    listKeyId: KEYS.device,
+    hideSuccessToast: true,
+  });
+
+  const handleFormSubmit = (payload) => {
+    updateDevice(
+      { url: `${URLS.device}/${id}`, attributes: payload, config: { headers: authHeader } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: [[KEYS.device, id]] });
+          toast.success(td('successUpdated'));
+          setIsEditOpen(false);
+        },
+        onError: () => toast.error(td('errorUpdate')),
+      }
+    );
+  };
+
   const getEmployeeName = (employee_id) => {
     const emp = employees?.find((f) => f.id === employee_id);
     if (!emp) return '-';
@@ -378,7 +422,7 @@ export default function DeviceDetailPage() {
         </div>
 
         <Button
-          onClick={() => router.push(`/dashboard/devices?edit=${id}`)}
+          onClick={() => setIsEditOpen(true)}
           className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold self-start bg-[#3b82f6] hover:bg-[#2563eb]"
         >
           <Edit size={15} /> {t('edit')}
@@ -676,6 +720,26 @@ export default function DeviceDetailPage() {
             </div>
           </Section>
         )}
+
+        {/* ── Edit modal ─────────────────────────────────────── */}
+        <CustomModal
+          open={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          title={td('editTitle')}
+          className="max-w-200! w-full"
+        >
+          <div className="max-h-[70vh] overflow-y-auto px-1">
+            <DeviceForm
+              initialData={device}
+              onSubmit={handleFormSubmit}
+              onClose={() => setIsEditOpen(false)}
+              isPending={isUpdating}
+              t={td}
+              deviceTypes={deviceTypes}
+              facilities={facilities}
+            />
+          </div>
+        </CustomModal>
 
         {/* ── Doc preview modal ──────────────────────────────── */}
         {docPreview && (

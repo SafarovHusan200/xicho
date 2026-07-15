@@ -3,6 +3,7 @@
 import { FlaskConical, Loader2, MonitorSpeaker } from 'lucide-react';
 import {
   getTestLogStatus,
+  getDayDiffLabel,
   TEST_LOG_STATUS_CFG,
   TestLogStatusBadge,
   TestResultBadge,
@@ -32,12 +33,11 @@ function TestLogCards({ logs, locale, t, isLoading, twoCols = true, deviceMap })
   }
 
   return (
-    <div
-      className={`grid grid-cols-1   ${twoCols ? 'md:grid-cols-2 lg:grid-cols-3 ' : ''} gap-2 py-3`}
-    >
+    <div className={`grid grid-cols-1   ${twoCols ? ' 2xl:grid-cols-2 ' : ''} gap-2 py-3`}>
       {logs.map((log) => {
         const status = getTestLogStatus(log.next_test_date, log.is_passed);
         const cfg = TEST_LOG_STATUS_CFG[status];
+        const dayDiffLabel = getDayDiffLabel(log.next_test_date, t);
         return (
           <div
             key={log.id}
@@ -57,7 +57,7 @@ function TestLogCards({ logs, locale, t, isLoading, twoCols = true, deviceMap })
                 {log.is_passed ? (
                   <TestResultBadge isPassed={log.is_passed} t={t} />
                 ) : (
-                  <TestLogStatusBadge status={status} t={t} />
+                  <TestLogStatusBadge status={status} t={t} label={dayDiffLabel} />
                 )}
               </div>
               <div className="flex flex-wrap gap-5 items-center gap-x-3 gap-y-0.5 mt-1 text-[11px] text-[#7B8499] dark:text-slate-500">

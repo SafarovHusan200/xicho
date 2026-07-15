@@ -45,7 +45,7 @@ export const getWorstStatus = (logs) => {
   return 'never_tested';
 };
 
-export function TestLogStatusBadge({ status, t }) {
+export function TestLogStatusBadge({ status, t, label }) {
   const cfg = TEST_LOG_STATUS_CFG[status];
   if (!cfg) return <span className="text-muted-foreground text-[13px]">—</span>;
   const Icon = cfg.icon;
@@ -55,10 +55,17 @@ export function TestLogStatusBadge({ status, t }) {
       style={{ backgroundColor: `${cfg.color}18`, color: cfg.color, borderColor: `${cfg.color}30` }}
     >
       <Icon size={14} />
-      {t(cfg.labelKey)}
+      {label ?? t(cfg.labelKey)}
     </span>
   );
 }
+
+/* ── exact day-count phrasing, e.g. "44 kun o'tgan" / "15 kun qoldi" ── */
+export const getDayDiffLabel = (next_test_date, t) => {
+  if (!next_test_date) return null;
+  const diff = Math.ceil((new Date(next_test_date) - Date.now()) / 86400000);
+  return diff < 0 ? `${Math.abs(diff)} ${t('daysOverdue')}` : `${diff} ${t('daysLeft')}`;
+};
 
 /* ── Test result (pass/fail) — independent of the timing-based status above ── */
 export function TestResultBadge({ isPassed, t }) {

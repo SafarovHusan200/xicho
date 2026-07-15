@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, CalendarClock } from 'lucide-react';
-import { getWorstStatus, TEST_LOG_STATUS_CFG } from '@/components/devices/testLogStatus';
+import {
+  getWorstStatus,
+  getDayDiffLabel,
+  TEST_LOG_STATUS_CFG,
+} from '@/components/devices/testLogStatus';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const CELL = 16;
@@ -158,6 +162,7 @@ export default function DeadlineHeatmap({
       .map((log) => deviceMap?.[log.device_id]?.name ?? log.test_type)
       .join(', ');
     const extra = dayLogs.length > 3 ? ` +${dayLogs.length - 3}` : '';
+    const dayDiffLabel = getDayDiffLabel(day, tl);
     return (
       <div className="flex flex-col gap-1 py-0.5">
         <div className="flex items-center gap-1.5 font-semibold">
@@ -168,7 +173,7 @@ export default function DeadlineHeatmap({
           {names}
           {extra}
         </span>
-        <span className="opacity-70">{tl(cfg.labelKey)}</span>
+        <span className="opacity-70">{dayDiffLabel}</span>
       </div>
     );
   };

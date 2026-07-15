@@ -483,6 +483,8 @@
     "statusExpiring": "Осталось 15 дней",
     "statusOverdue": "Просрочено",
     "statusNever": "Никогда не тестировалось",
+    "daysLeft": "дн. осталось",
+    "daysOverdue": "дн. просрочено",
     "colDevice": "Устройство",
     "colTestType": "Тип испытания",
     "colProtocol": "Номер протокола",

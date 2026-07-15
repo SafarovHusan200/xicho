@@ -27,7 +27,7 @@ import { User, LogOut as LogOutIcon, Settings, Bell, ArrowLeft, Loader2 } from '
 import '@/styles/dashboard/style.css';
 import { signOut, useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import NotificationComponent from '@/components/NotificationComponent';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -423,7 +423,18 @@ const DashboardLayout = ({ children }) => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-3 sm:p-5">{children}</main>
+        <main className="flex-1 overflow-auto p-3 sm:p-5">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   MonitorSpeaker,
@@ -240,7 +241,12 @@ const DevicePage = () => {
   }));
 
   return (
-    <div className="flex flex-col gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className="flex flex-col gap-4"
+    >
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -274,21 +280,44 @@ const DevicePage = () => {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label={t('total')} value={totalCount} icon={MonitorSpeaker} iconColor="#3b82f6" />
-        <StatCard
-          label={t('active')}
-          value={activeCount}
-          icon={Activity}
-          iconColor="#10B981"
-          color="text-[#10B981]"
-        />
-        <StatCard
-          label={t('statusOverdue')}
-          value={overdueCount}
-          icon={XCircle}
-          iconColor="#ef4444"
-          color="text-red-500"
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <StatCard
+            label={t('total')}
+            value={totalCount}
+            icon={MonitorSpeaker}
+            iconColor="#3b82f6"
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.075, ease: 'easeOut' }}
+        >
+          <StatCard
+            label={t('active')}
+            value={activeCount}
+            icon={Activity}
+            iconColor="#10B981"
+            color="text-[#10B981]"
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
+        >
+          <StatCard
+            label={t('statusOverdue')}
+            value={overdueCount}
+            icon={XCircle}
+            iconColor="#ef4444"
+            color="text-red-500"
+          />
+        </motion.div>
       </div>
 
       {/* Filters */}
@@ -486,7 +515,7 @@ const DevicePage = () => {
           </div>
         </div>
       </CustomModal>
-    </div>
+    </motion.div>
   );
 };
 

@@ -57,7 +57,7 @@ const TableComponent = ({
 }) => {
   const t = useTranslations('common');
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto overflow-y-hidden">
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-[#EEF0F4] dark:border-slate-700/40 bg-[#F8F9FB] dark:bg-slate-800/60">
@@ -80,7 +80,14 @@ const TableComponent = ({
             const isExpanded = renderExpanded && expandedRowIds?.has(rowId);
             return (
               <React.Fragment key={rowId}>
-                <tr
+                <motion.tr
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.35,
+                    delay: Math.min(index * 0.1, 2),
+                    ease: 'easeOut',
+                  }}
                   className={`group hover:bg-[#F8FAFF] dark:hover:bg-slate-700/20 transition-colors duration-150 ${rowClassName?.(row) ?? ''}`}
                 >
                   {column.map((col, i) => {
@@ -141,7 +148,7 @@ const TableComponent = ({
                       </td>
                     );
                   })}
-                </tr>
+                </motion.tr>
                 {renderExpanded && (
                   <tr>
                     <td colSpan={column.length} className="p-0 border-0">

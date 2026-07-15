@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 import { Cpu, Plus, Loader2, AlertTriangle } from 'lucide-react';
 import CountUp from 'react-countup';
 
@@ -205,7 +206,12 @@ const DeviceTypePage = () => {
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className="flex flex-col gap-6"
+    >
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -240,7 +246,12 @@ const DeviceTypePage = () => {
 
       {/* Stat card */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-5 py-4 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+          className="flex flex-col gap-3 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 px-5 py-4 shadow-sm"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-widest text-[#7B8499] dark:text-slate-400">
               {t('total')}
@@ -255,11 +266,16 @@ const DeviceTypePage = () => {
           <span className="text-3xl font-bold text-[#031634] dark:text-slate-100">
             <CountUp start={0} end={totalCount} duration={1.4} />
           </span>
-        </div>
+        </motion.div>
       </div>
 
       {/* Table card */}
-      <div className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+        className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm overflow-hidden"
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/80">
           <div className="flex items-center gap-2 text-[#031634] dark:text-slate-100">
             <Cpu size={18} />
@@ -324,7 +340,7 @@ const DeviceTypePage = () => {
           limit={LIMIT}
           onChange={setPage}
         />
-      </div>
+      </motion.div>
 
       {/* Create / Edit Modal */}
       <CustomModal
@@ -371,7 +387,7 @@ const DeviceTypePage = () => {
           </div>
         </div>
       </CustomModal>
-    </div>
+    </motion.div>
   );
 };
 

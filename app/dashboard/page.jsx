@@ -630,10 +630,9 @@ const DashboardPage = () => {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-2.5 pb-4">
-            {dash?.responsible_persons.items.map((p) => (
-              <Link href={`/dashboard/users/${p.id}`} key={p.id}>
+            {dash?.responsible_persons.items.map((p, i) => (
+              <Link href={`/dashboard/users/${p.id}`} key={`${p.id}-${i}`}>
                 <PersonCard
-                  key={p.id}
                   name={getEmployeeName(p.employee_id)}
                   facility={p.facility_name}
                   orderNo={p.appointment_order_number}
@@ -690,9 +689,9 @@ const DashboardPage = () => {
             {!dash?.expiring_soon?.devices?.length ? (
               <Empty text={t('noExpiring')} />
             ) : (
-              dash.expiring_soon.devices.map((d) => (
+              dash.expiring_soon.devices.map((d, i) => (
                 <Link
-                  key={d.id}
+                  key={`${d.id}-${i}`}
                   href={`/dashboard/devices/${d.id}`}
                   className="block rounded-lg -mx-2 px-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30"
                 >
@@ -728,9 +727,9 @@ const DashboardPage = () => {
             {!dash?.overdue?.devices?.length ? (
               <Empty text={t('noOverdue')} />
             ) : (
-              dash.overdue.devices.map((d) => (
+              dash.overdue.devices.map((d, i) => (
                 <Link
-                  key={d.id}
+                  key={`${d.id}-${i}`}
                   href={`/dashboard/devices/${d.id}`}
                   className="block rounded-lg -mx-2 px-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30"
                 >

@@ -483,6 +483,8 @@
     "statusExpiring": "15 kun qoldi",
     "statusOverdue": "Muddati o'tgan",
     "statusNever": "Hech sinovdan o'tmagan",
+    "daysLeft": "kun qoldi",
+    "daysOverdue": "kun o'tgan",
     "colDevice": "Qurilma",
     "colTestType": "Sinov turi",
     "colProtocol": "Protokol raqami",

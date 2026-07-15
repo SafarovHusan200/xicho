@@ -16,6 +16,9 @@ import {
   FileText,
   FlaskConical,
   X,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from 'lucide-react';
 import useGetQuery from '@/hooks/all/useGetQuery';
 import usePostQuery from '@/hooks/all/usePostQuery';
@@ -49,6 +52,7 @@ import {
 import DeviceCombobox from '@/components/devices/DeviceCombobox';
 
 const LIMIT = 15;
+const STATUS_ORDER = ['overdue', 'expiring_soon', 'warning', 'ok', 'never_tested'];
 
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -280,6 +284,36 @@ export default function TestLogsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+
+  const toggleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const sortHeader = (label, key) => (
+    <button
+      type="button"
+      onClick={() => toggleSort(key)}
+      className="flex items-center gap-1 hover:text-[#3b82f6] transition-colors"
+    >
+      {label}
+      {sortKey === key ? (
+        sortDir === 'asc' ? (
+          <ArrowUp size={12} />
+        ) : (
+          <ArrowDown size={12} />
+        )
+      ) : (
+        <ArrowUpDown size={12} className="opacity-40" />
+      )}
+    </button>
+  );
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
@@ -339,6 +373,25 @@ export default function TestLogsPage() {
   const totalCount = logsData?.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / LIMIT);
   const devices = (devicesData?.data?.data ?? []).filter(Boolean);
+
+  /* ── sort the current page's rows by the clicked column (client-side, current page only) ── */
+  const sortedLogs = useMemo(() => {
+    if (!sortKey) return logs;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...logs].sort((a, b) => {
+      if (sortKey === 'test_type') {
+        return (a.test_type ?? '').localeCompare(b.test_type ?? '') * dir;
+      }
+      if (sortKey === 'status') {
+        const av = STATUS_ORDER.indexOf(getTestLogStatus(a.next_test_date, a.is_passed));
+        const bv = STATUS_ORDER.indexOf(getTestLogStatus(b.next_test_date, b.is_passed));
+        return (av - bv) * dir;
+      }
+      const av = a[sortKey] ? new Date(a[sortKey]).getTime() : -Infinity;
+      const bv = b[sortKey] ? new Date(b[sortKey]).getTime() : -Infinity;
+      return (av - bv) * dir;
+    });
+  }, [logs, sortKey, sortDir]);
 
   const deviceMap = useMemo(() => {
     const m = {};
@@ -439,7 +492,7 @@ export default function TestLogsPage() {
   };
 
   /* ── table data ──────────────────────────────────────────── */
-  const tableData = logs.map((log, i) => {
+  const tableData = sortedLogs.map((log, i) => {
     const dev = deviceMap[log.device_id] ?? {};
     const status = getTestLogStatus(log.next_test_date, log.is_passed);
     return {
@@ -471,11 +524,11 @@ export default function TestLogsPage() {
   const columns = [
     { key: '_tr', label: '#' },
     { key: '_device', label: t('colDevice') },
-    { key: 'test_type', label: t('colTestType') },
+    { key: 'test_type', label: sortHeader(t('colTestType'), 'test_type') },
     { key: 'test_protocol_number', label: t('colProtocol') },
-    { key: '_testDate', label: t('colTestDate') },
-    { key: '_nextDate', label: t('colNextDate') },
-    { key: '_status', label: t('colStatus') },
+    { key: '_testDate', label: sortHeader(t('colTestDate'), 'test_date') },
+    { key: '_nextDate', label: sortHeader(t('colNextDate'), 'next_test_date') },
+    { key: '_status', label: sortHeader(t('colStatus'), 'status') },
     { key: 'action', label: t('colActions'), align: 'right' },
   ];
 

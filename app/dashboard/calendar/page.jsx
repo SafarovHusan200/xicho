@@ -107,12 +107,14 @@ export default function CalendarPage() {
   };
   const modifiersClassNames = MODIFIERS_CLASS_NAMES;
 
-  /* ── upcoming tests (future only, soonest first) ── */
+  /* ── upcoming tests, plus overdue-and-failed ones (soonest/most-overdue first) ── */
   const upcomingLogs = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return logs
-      .filter((l) => l.next_test_date && new Date(l.next_test_date) >= today)
+      .filter(
+        (l) => l.next_test_date && (new Date(l.next_test_date) >= today || l.is_passed === false)
+      )
       .sort((a, b) => new Date(a.next_test_date) - new Date(b.next_test_date))
       .slice(0, 6);
   }, [logs]);
@@ -181,123 +183,151 @@ export default function CalendarPage() {
       </div>
 
       {/* ── Calendar / day detail / upcoming ──────────────── */}
-      <div className="grid grid-cols-3 2xl:grid-cols-4 gap-6 items-start">
-        {/* ── Deadline tracking grid ─────────────────────────── */}
+      <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 items-start">
         <div className="col-span-3">
-          <DeadlineHeatmap
-            logs={logs}
-            locale={locale}
-            t={t}
-            tl={tl}
-            deviceMap={deviceMap}
-            selectedDate={date}
-            onSelectDate={selectDate}
-            className=""
-          />
-        </div>
-
-        {/* Mini calendar */}
-        <div className=" max-w-80 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm p-5">
-          <h2 className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 flex items-center gap-2 mb-3">
-            <CalendarDays size={16} className="text-[#3b82f6]" />
-            {t('calendarCardTitle')}
-          </h2>
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={selectDate}
-            month={calendarMonth}
-            onMonthChange={setCalendarMonth}
-            className="rounded-md w-full p-0"
-            modifiers={modifiers}
-            modifiersClassNames={modifiersClassNames}
-          />
-        </div>
-
-        {/* Selected day detail */}
-        <div className=" rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm p-5">
-          <h2 className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 flex items-center gap-2 mb-1">
-            <CalendarCheck2 size={16} className="text-[#3b82f6]" />
-            {t('detailsCardTitle')}
-          </h2>
-          {date && (
-            <p className="text-[13px] text-[#7B8499] dark:text-slate-400 mb-1">
-              {date.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </p>
-          )}
-
-          {selectedLogs.length > 0 ? (
-            <TestLogCards
-              logs={selectedLogs}
-              locale={locale}
-              t={tl}
-              isLoading={false}
-              twoCols={false}
-              deviceMap={deviceMap}
-            />
-          ) : (
-            <p className="py-6 text-center text-[13px] text-[#7B8499] dark:text-slate-500">
-              {t('noEvents')}
-            </p>
-          )}
-        </div>
-
-        {/* Upcoming + pass rate */}
-        <div className=" flex flex-col gap-6 ">
-          <div className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 flex items-center gap-2">
-                <Clock size={16} className="text-[#3b82f6]" />
-                {t('upcomingTitle')}
-              </h2>
-              <span className="rounded-full bg-[#3b82f6]/10 px-2 py-0.5 text-[11px] font-semibold text-[#3b82f6]">
-                {upcomingLogs.length}
-              </span>
+          <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4">
+            {/* ── Deadline tracking grid ─────────────────────────── */}
+            <div className="col-span-4 ">
+              <DeadlineHeatmap
+                logs={logs}
+                locale={locale}
+                t={t}
+                tl={tl}
+                deviceMap={deviceMap}
+                selectedDate={date}
+                onSelectDate={selectDate}
+                className=""
+              />
             </div>
 
-            {upcomingLogs.length > 0 ? (
-              <TestLogCards
-                logs={upcomingLogs}
-                locale={locale}
-                t={tl}
-                isLoading={isLoading}
-                twoCols={false}
-                deviceMap={deviceMap}
+            {/* Mini calendar */}
+            <div className=" col-span-1  rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm p-5">
+              <h2 className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 flex items-center gap-2 mb-3">
+                <CalendarDays size={16} className="text-[#3b82f6]" />
+                {t('calendarCardTitle')}
+              </h2>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={selectDate}
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
+                className="rounded-md w-full p-0"
+                modifiers={modifiers}
+                modifiersClassNames={modifiersClassNames}
               />
-            ) : (
-              <p className="py-6 text-center text-[13px] text-[#7B8499] dark:text-slate-500">
-                {t('noUpcoming')}
-              </p>
-            )}
+            </div>
 
-            <Link
-              href="/dashboard/devices/test-logs"
-              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-slate-700 py-2 text-[13px] font-medium text-[#031634] dark:text-slate-200 hover:bg-[#F8F9FB] dark:hover:bg-slate-700/50 transition-colors"
-            >
-              {t('viewAll')}
-              <ArrowRight size={14} />
-            </Link>
+            {/* Selected day detail */}
+            <div className=" col-span-1 2xl:col-span-3 rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm p-5">
+              <h2 className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 flex items-center gap-2 mb-1">
+                <CalendarCheck2 size={16} className="text-[#3b82f6]" />
+                {t('detailsCardTitle')}
+              </h2>
+              {date && (
+                <p className="text-[13px] text-[#7B8499] dark:text-slate-400 mb-1">
+                  {date.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </p>
+              )}
+
+              {selectedLogs.length > 0 ? (
+                <TestLogCards
+                  logs={selectedLogs}
+                  locale={locale}
+                  t={tl}
+                  isLoading={false}
+                  twoCols={true}
+                  deviceMap={deviceMap}
+                />
+              ) : (
+                <p className="py-6 text-center text-[13px] text-[#7B8499] dark:text-slate-500">
+                  {t('noEvents')}
+                </p>
+              )}
+            </div>
+
+            <div className="2xl:hidden col-span-1">
+              {/* Upcoming + pass rate */}
+              <div className=" flex flex-col gap-6 ">
+                <div className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <h2 className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 flex items-center gap-2">
+                      <Clock size={16} className="text-[#3b82f6]" />
+                      {t('upcomingTitle')}
+                    </h2>
+                    <span className="rounded-full bg-[#3b82f6]/10 px-2 py-0.5 text-[11px] font-semibold text-[#3b82f6]">
+                      {upcomingLogs.length}
+                    </span>
+                  </div>
+
+                  {upcomingLogs.length > 0 ? (
+                    <TestLogCards
+                      logs={upcomingLogs}
+                      locale={locale}
+                      t={tl}
+                      isLoading={isLoading}
+                      twoCols={false}
+                      deviceMap={deviceMap}
+                    />
+                  ) : (
+                    <p className="py-6 text-center text-[13px] text-[#7B8499] dark:text-slate-500">
+                      {t('noUpcoming')}
+                    </p>
+                  )}
+
+                  <Link
+                    href="/dashboard/devices/test-logs"
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-slate-700 py-2 text-[13px] font-medium text-[#031634] dark:text-slate-200 hover:bg-[#F8F9FB] dark:hover:bg-slate-700/50 transition-colors"
+                  >
+                    {t('viewAll')}
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="rounded-2xl bg-linear-to-br from-slate-900 to-slate-800 shadow-md p-6 text-white">
-            <p className="text-xs font-semibold mb-2 tracking-widest opacity-75">
-              {t('passRateCardTitle')}
-            </p>
-            <h3 className="text-4xl font-bold mb-3">{passRate}%</h3>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-              {gradedTotal > 0
-                ? t('passRateCardDesc', { passed: passedCount, total: gradedTotal })
-                : t('passRateCardEmpty')}
-            </p>
-            <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-linear-to-r from-emerald-400 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
-                style={{ width: `${passRate}%` }}
-              />
+        <div className="hidden 2xl:block col-span-1">
+          {/* Upcoming + pass rate */}
+          <div className=" flex flex-col gap-6 ">
+            <div className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-[15px] font-semibold text-[#031634] dark:text-slate-100 flex items-center gap-2">
+                  <Clock size={16} className="text-[#3b82f6]" />
+                  {t('upcomingTitle')}
+                </h2>
+                <span className="rounded-full bg-[#3b82f6]/10 px-2 py-0.5 text-[11px] font-semibold text-[#3b82f6]">
+                  {upcomingLogs.length}
+                </span>
+              </div>
+
+              {upcomingLogs.length > 0 ? (
+                <TestLogCards
+                  logs={upcomingLogs}
+                  locale={locale}
+                  t={tl}
+                  isLoading={isLoading}
+                  twoCols={false}
+                  deviceMap={deviceMap}
+                />
+              ) : (
+                <p className="py-6 text-center text-[13px] text-[#7B8499] dark:text-slate-500">
+                  {t('noUpcoming')}
+                </p>
+              )}
+
+              <Link
+                href="/dashboard/devices/test-logs"
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-slate-700 py-2 text-[13px] font-medium text-[#031634] dark:text-slate-200 hover:bg-[#F8F9FB] dark:hover:bg-slate-700/50 transition-colors"
+              >
+                {t('viewAll')}
+                <ArrowRight size={14} />
+              </Link>
             </div>
           </div>
         </div>
