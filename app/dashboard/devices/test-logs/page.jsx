@@ -50,6 +50,8 @@ import {
   TestResultBadge,
 } from '@/components/devices/testLogStatus';
 import DeviceCombobox from '@/components/devices/DeviceCombobox';
+import useDeviceStore from '@/store/useDeviceStore';
+import useTestLogStore from '@/store/useTestLogStore';
 
 const LIMIT = 15;
 const STATUS_ORDER = ['overdue', 'expiring_soon', 'warning', 'ok', 'never_tested'];
@@ -106,7 +108,7 @@ function DatePickerField({ value, onChange, placeholder, locale }) {
 }
 
 /* ── TestLogForm ─────────────────────────────────────────────── */
-function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices, locale }) {
+export function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices, locale }) {
   const [form, setForm] = useState({
     device_id: initialData?.device_id ?? '',
     test_type: initialData?.test_type ?? '',
@@ -361,18 +363,25 @@ export default function TestLogsPage() {
     enabled: !!session,
   });
 
+  const { devices: storedDevices, setDevices } = useDeviceStore();
+
   const { data: devicesData } = useGetQuery({
-    key: `${KEYS.device}-for-logs`,
+    key: KEYS.device,
     url: URLS.device,
-    params: { limit: 200 },
+    params: { limit: 1000 },
     headers: authHeader,
-    enabled: !!session,
+    enabled: !!session && storedDevices.length === 0,
   });
+
+  useEffect(() => {
+    const data = devicesData?.data?.data;
+    if (data?.length) setDevices(data);
+  }, [devicesData]);
 
   const logs = (logsData?.data?.data ?? []).filter(Boolean);
   const totalCount = logsData?.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / LIMIT);
-  const devices = (devicesData?.data?.data ?? []).filter(Boolean);
+  const devices = storedDevices.filter(Boolean);
 
   /* ── sort the current page's rows by the clicked column (client-side, current page only) ── */
   const sortedLogs = useMemo(() => {
@@ -434,6 +443,11 @@ export default function TestLogsPage() {
     hideSuccessToast: true,
   });
 
+  /* test logs are cached in a shared store by other pages (calendar, device
+     detail, etc.) — reset it after any create/update/delete so they don't
+     keep showing stale data */
+  const { reset: resetTestLogStore } = useTestLogStore();
+
   const handleSubmit = (payload) => {
     if (editData) {
       updateLog(
@@ -446,6 +460,7 @@ export default function TestLogsPage() {
           onSuccess: () => {
             toast.success(t('successUpdated'));
             closeModal();
+            resetTestLogStore();
           },
           onError: () => toast.error(t('errorUpdate')),
         }
@@ -457,6 +472,7 @@ export default function TestLogsPage() {
           onSuccess: () => {
             toast.success(t('successCreated'));
             closeModal();
+            resetTestLogStore();
           },
           onError: () => toast.error(t('errorCreate')),
         }
@@ -472,6 +488,7 @@ export default function TestLogsPage() {
         onSuccess: () => {
           toast.success(t('successDeleted'));
           setDeleteTarget(null);
+          resetTestLogStore();
         },
         onError: () => toast.error(t('errorDelete')),
       }

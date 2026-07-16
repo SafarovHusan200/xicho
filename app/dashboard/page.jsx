@@ -44,7 +44,7 @@ const Skel = ({ w = 'w-14', h = 'h-10' }) => (
 function KpiCard({ icon: Icon, color, bg, label, value, sub, isLoading, alert }) {
   return (
     <div
-      className={`relative flex flex-col gap-1 rounded-2xl px-5 py-4 overflow-hidden shadow-sm ${bg}`}
+      className={`relative flex flex-col gap-1 rounded-2xl px-3 py-2 xl:px-5 xl:py-4 overflow-hidden shadow-sm ${bg}`}
     >
       <div className="relative flex items-center justify-between">
         <span className="text-[14px] font-bold uppercase tracking-widest" style={{ color }}>

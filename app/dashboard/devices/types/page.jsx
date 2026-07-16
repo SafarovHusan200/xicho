@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import TableComponent from '@/components/tableComponent';
 import CustomModal from '@/components/modals/CustomModal';
 import PaginationComponent from '@/components/PaginationComponent';
+import useDeviceTypeStore from '@/store/useDeviceTypeStore';
 
 const LIMIT = 15;
 
@@ -133,6 +134,10 @@ const DeviceTypePage = () => {
     hideErrorToast: true,
   });
 
+  /* device types are cached in a shared store by other pages — reset it
+     after any create/update/delete so they don't keep showing stale data */
+  const { reset: resetDeviceTypeStore } = useDeviceTypeStore();
+
   const apiError = (err, fallback) => {
     const detail = err?.response?.data?.detail;
     const msg = Array.isArray(detail)
@@ -159,6 +164,7 @@ const DeviceTypePage = () => {
           onSuccess: () => {
             setIsOpen(false);
             toast.success(t('successUpdated'));
+            resetDeviceTypeStore();
           },
           onError: (err) => apiError(err, t('errorUpdate')),
         }
@@ -170,6 +176,7 @@ const DeviceTypePage = () => {
           onSuccess: () => {
             setIsOpen(false);
             toast.success(t('successCreated'));
+            resetDeviceTypeStore();
           },
           onError: (err) => apiError(err, t('errorCreate')),
         }
@@ -186,6 +193,7 @@ const DeviceTypePage = () => {
           setDeleteModal(false);
           setSelectedItem(null);
           toast.success(t('successDeleted'));
+          resetDeviceTypeStore();
         },
         onError: (err) => apiError(err, t('errorDelete')),
       }

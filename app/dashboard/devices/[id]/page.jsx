@@ -39,6 +39,9 @@ import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { Button } from '@/components/ui/button';
 import useEmployeeStore from '@/store/useEmployeeStore';
+import useDeviceStore from '@/store/useDeviceStore';
+import useDeviceTypeStore from '@/store/useDeviceTypeStore';
+import useTestLogStore from '@/store/useTestLogStore';
 import { staffio } from '@/services/staffio';
 import { request } from '@/services/api';
 import toast from 'react-hot-toast';
@@ -299,13 +302,20 @@ export default function DeviceDetailPage() {
     enabled: !!session?.accessToken && !!id,
   });
 
-  const { isLoading: loading, data: testsData } = useGetQuery({
-    key: [KEYS.testLogs, id],
-    url: `${URLS.testLogs}`,
-    params: { device_id: id },
+  /* ── this device's test logs — filtered from the shared store instead of a per-device request ── */
+  const { testLogs: storedTestLogs, setTestLogs } = useTestLogStore();
+  const { data: testLogsListData, isLoading: loading } = useGetQuery({
+    key: KEYS.testLogs,
+    url: URLS.testLogs,
+    params: { limit: 1000 },
     headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: 'application/json' },
-    enabled: !!session?.accessToken && !!id,
+    enabled: !!session?.accessToken && storedTestLogs.length === 0,
   });
+
+  useEffect(() => {
+    const data = testLogsListData?.data?.data;
+    if (data?.length) setTestLogs(data);
+  }, [testLogsListData]);
 
   const {
     data: employeesData,
@@ -326,13 +336,19 @@ export default function DeviceDetailPage() {
   }, [employeesData]);
 
   /* ── edit modal: device types + facilities for the form, plus the update mutation ── */
+  const { deviceTypes: storedDeviceTypes, setDeviceTypes } = useDeviceTypeStore();
   const { data: deviceTypesData } = useGetQuery({
     key: KEYS.deviceTypes,
     url: URLS.deviceTypes,
     params: { limit: 1000 },
     headers: authHeader,
-    enabled: !!session?.accessToken,
+    enabled: !!session?.accessToken && storedDeviceTypes.length === 0,
   });
+
+  useEffect(() => {
+    const data = deviceTypesData?.data?.data;
+    if (data?.length) setDeviceTypes(data);
+  }, [deviceTypesData]);
 
   const { data: facilitiesData } = useGetQuery({
     key: KEYS.facilities,
@@ -341,13 +357,14 @@ export default function DeviceDetailPage() {
     enabled: !!session?.accessToken,
   });
 
-  const deviceTypes = deviceTypesData?.data?.data ?? [];
+  const deviceTypes = storedDeviceTypes.filter(Boolean);
   const facilities = facilitiesData?.data?.data ?? [];
 
   const { mutate: updateDevice, isPending: isUpdating } = usePatchPythonQuery({
     listKeyId: KEYS.device,
     hideSuccessToast: true,
   });
+  const { reset: resetDeviceStore } = useDeviceStore();
 
   const handleFormSubmit = (payload) => {
     updateDevice(
@@ -357,6 +374,7 @@ export default function DeviceDetailPage() {
           queryClient.invalidateQueries({ queryKey: [[KEYS.device, id]] });
           toast.success(td('successUpdated'));
           setIsEditOpen(false);
+          resetDeviceStore();
         },
         onError: () => toast.error(td('errorUpdate')),
       }
@@ -380,6 +398,8 @@ export default function DeviceDetailPage() {
 
   const device = data?.data;
   if (!device) return null;
+
+  const deviceTestLogs = storedTestLogs.filter((l) => l?.device_id === id);
 
   const statusKey = device.test_status in STATUS_ICONS ? device.test_status : 'never_tested';
   const st = STATUS_ICONS[statusKey];
@@ -591,11 +611,11 @@ export default function DeviceDetailPage() {
 
         {/* ── All test logs ────────────────────────────────────── */}
         <Section
-          title={`${t('sectionAllTests')}${testsData?.data?.count ? ` (${testsData.data.count})` : ''}`}
+          title={`${t('sectionAllTests')}${deviceTestLogs.length ? ` (${deviceTestLogs.length})` : ''}`}
           icon={FlaskConical}
           iconColor="#3b82f6"
         >
-          <TestLogCards logs={testsData?.data?.data} locale={locale} t={tt} isLoading={loading} />
+          <TestLogCards logs={deviceTestLogs} locale={locale} t={tt} isLoading={loading} />
         </Section>
 
         {/* ── Last test ──────────────────────────────────────── */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import { ru, uz } from 'date-fns/locale';
@@ -13,6 +13,8 @@ import { URLS } from '@/constants/url';
 import StatCard from '@/components/StatCard';
 import TestLogCards from '@/components/devices/TestLogCards';
 import { getTestLogStatus, getWorstStatus } from '@/components/devices/testLogStatus';
+import useTestLogStore from '@/store/useTestLogStore';
+import useDeviceStore from '@/store/useDeviceStore';
 
 import DeadlineHeatmap from '@/components/calendar/DeadlineHeatmap';
 
@@ -45,25 +47,39 @@ export default function CalendarPage() {
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
+  /* ── shared stores: fetched once app-wide, reused here instead of a fresh request ── */
+  const { testLogs: storedLogs, setTestLogs } = useTestLogStore();
+  const { devices: storedDevices, setDevices } = useDeviceStore();
+
   const { data: logsRes, isLoading } = useGetQuery({
-    key: `${KEYS.testLogs}-calendar`,
+    key: KEYS.testLogs,
     url: URLS.testLogs,
     params: { limit: 1000, offset: 0 },
     headers: authHeader,
-    enabled: !!session,
+    enabled: !!session && storedLogs.length === 0,
   });
 
   const { data: devicesRes } = useGetQuery({
-    key: `${KEYS.device}-for-calendar`,
+    key: KEYS.device,
     url: URLS.device,
     params: { limit: 1000 },
     headers: authHeader,
-    enabled: !!session,
+    enabled: !!session && storedDevices.length === 0,
   });
 
-  const logs = (logsRes?.data?.data ?? []).filter(Boolean);
+  useEffect(() => {
+    const data = logsRes?.data?.data;
+    if (data?.length) setTestLogs(data);
+  }, [logsRes]);
+
+  useEffect(() => {
+    const data = devicesRes?.data?.data;
+    if (data?.length) setDevices(data);
+  }, [devicesRes]);
+
+  const logs = storedLogs.filter(Boolean);
   const totalCount = logsRes?.data?.count ?? logs.length;
-  const devices = (devicesRes?.data?.data ?? []).filter(Boolean);
+  const devices = storedDevices.filter(Boolean);
 
   const deviceMap = useMemo(() => {
     const m = {};

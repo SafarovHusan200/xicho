@@ -22,7 +22,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut as LogOutIcon, Settings, Bell, ArrowLeft, Loader2 } from 'lucide-react';
+import {
+  User,
+  LogOut as LogOutIcon,
+  Settings,
+  Bell,
+  ArrowLeft,
+  Loader2,
+  Cpu,
+  MonitorSpeaker,
+  FlaskConical,
+} from 'lucide-react';
 
 import '@/styles/dashboard/style.css';
 import { signOut, useSession } from 'next-auth/react';
@@ -53,9 +63,9 @@ const menuKeys = [
     icon: TbDeviceDesktopAnalytics,
     key: 'devices',
     children: [
-      { labelKey: 'deviceTypes', href: '/dashboard/devices/types' },
-      { labelKey: 'devicesList', href: '/dashboard/devices' },
-      { labelKey: 'testLogs', href: '/dashboard/devices/test-logs' },
+      { labelKey: 'deviceTypes', href: '/dashboard/devices/types', icon: Cpu },
+      { labelKey: 'devicesList', href: '/dashboard/devices', icon: MonitorSpeaker },
+      { labelKey: 'testLogs', href: '/dashboard/devices/test-logs', icon: FlaskConical },
     ],
   },
   {
@@ -67,6 +77,126 @@ const menuKeys = [
   { labelKey: 'reports', href: '/dashboard/reports', icon: FaChartBar, key: 'reports' },
   { labelKey: 'settings', href: '/dashboard/settings', icon: IoSettingsOutline, key: 'settings' },
 ];
+
+/* ── defined outside DashboardLayout so its identity is stable across
+   parent re-renders (e.g. toggling a submenu) — otherwise React would
+   remount this whole subtree every time and framer-motion's exit/enter
+   transitions would never get a chance to play ── */
+const SidebarContent = ({ sidebarSmall, t, setSidebarOpen, pathname, openGroups, toggleGroup }) => (
+  <div className="h-full   flex  flex-col justify-between ">
+    <div>
+      <div className="mt-4 mb-10 px-3  flex items-center justify-between">
+        <Link href={'/'} className="flex items-center gap-3 relative overflow-hidden">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#3b82f6] shadow-md shadow-blue-900/50">
+            <MdOutlineHomeWork className="text-xl text-white" />
+          </div>
+          {sidebarSmall && (
+            <div>
+              <h3 className="font-bold text-[15px] text-white tracking-wide">ХИЧО</h3>
+              <p className="text-[#64748b] text-[11px] uppercase tracking-widest">
+                {t('subtitle')}
+              </p>
+            </div>
+          )}
+        </Link>
+
+        <button
+          className="lg:hidden absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <FaTimes size={16} />
+        </button>
+      </div>
+
+      <nav className="space-y-1 overflow-hidden">
+        {menuKeys.map(({ labelKey, href, icon: Icon, key, children }) => {
+          if (children) {
+            const isGroupActive = children.some((c) => pathname.startsWith(c.href));
+            const isOpen = openGroups[key] ?? isGroupActive;
+            return (
+              <div key={key}>
+                <button
+                  onClick={() => toggleGroup(key)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded transition duration-300 sidebar__link ${isGroupActive ? 'active' : ''}`}
+                >
+                  <Icon className="text-xl shrink-0" />
+                  {sidebarSmall && (
+                    <>
+                      <span className="text-sm font-medium flex-1 text-left">{t(labelKey)}</span>
+                      <MdKeyboardArrowDown
+                        size={16}
+                        className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                      />
+                    </>
+                  )}
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      key="submenu"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className={`mt-0.5 space-y-0.5 ${sidebarSmall ? 'pl-4' : ''}`}>
+                        {children.map((child) => {
+                          const childActive = pathname === child.href;
+                          const ChildIcon = child.icon;
+                          return (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              className={`flex items-center gap-2.5 px-4 py-2.5 rounded transition duration-300 sidebar__link ${childActive ? 'active' : ''}`}
+                            >
+                              <ChildIcon size={15} className="shrink-0" />
+                              {sidebarSmall && (
+                                <span className="text-[13px] font-medium">
+                                  {t(child.labelKey)}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          }
+
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center gap-3 px-4 py-3 rounded transition duration-300 sidebar__link ${active ? 'active' : ''}`}
+            >
+              <Icon className="text-xl shrink-0" />
+              {sidebarSmall && <span className="text-sm font-medium">{t(labelKey)}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+
+    <div className="rounded-xl border border-[rgba(59,130,246,0.15)] bg-[rgba(59,130,246,0.07)] p-4 flex flex-col gap-2">
+      {sidebarSmall && (
+        <p className="text-xs font-medium text-[#64748b] uppercase tracking-widest">
+          {t('systemStatus')}
+        </p>
+      )}
+      <div className={`flex items-center ${!sidebarSmall && 'justify-center'} gap-2`}>
+        <span className="inline-block w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]"></span>
+        {sidebarSmall && (
+          <span className="text-sm font-semibold text-[#e2e8f0]">{t('allGood')}</span>
+        )}
+      </div>
+    </div>
+  </div>
+);
 
 const DashboardLayout = ({ children }) => {
   const pathname = usePathname();
@@ -132,108 +262,6 @@ const DashboardLayout = ({ children }) => {
     return null;
   }
 
-  const SidebarContent = () => (
-    <div className="h-full   flex  flex-col justify-between ">
-      <div>
-        <div className="mt-4 mb-10 px-3  flex items-center justify-between">
-          <Link href={'/'} className="flex items-center gap-3 relative overflow-hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#3b82f6] shadow-md shadow-blue-900/50">
-              <MdOutlineHomeWork className="text-xl text-white" />
-            </div>
-            {sidebarSmall && (
-              <div>
-                <h3 className="font-bold text-[15px] text-white tracking-wide">ХИЧО</h3>
-                <p className="text-[#64748b] text-[11px] uppercase tracking-widest">
-                  {t('subtitle')}
-                </p>
-              </div>
-            )}
-          </Link>
-
-          <button
-            className="lg:hidden absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-500"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <FaTimes size={16} />
-          </button>
-        </div>
-
-        <nav className="space-y-1 overflow-hidden">
-          {menuKeys.map(({ labelKey, href, icon: Icon, key, children }) => {
-            if (children) {
-              const isGroupActive = children.some((c) => pathname.startsWith(c.href));
-              const isOpen = openGroups[key] ?? isGroupActive;
-              return (
-                <div key={key}>
-                  <button
-                    onClick={() => toggleGroup(key)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded transition duration-300 sidebar__link ${isGroupActive ? 'active' : ''}`}
-                  >
-                    <Icon className="text-xl shrink-0" />
-                    {sidebarSmall && (
-                      <>
-                        <span className="text-sm font-medium flex-1 text-left">{t(labelKey)}</span>
-                        <MdKeyboardArrowDown
-                          size={16}
-                          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                        />
-                      </>
-                    )}
-                  </button>
-                  {isOpen && (
-                    <div className={`mt-0.5 space-y-0.5 ${sidebarSmall ? 'pl-4' : ''}`}>
-                      {children.map((child) => {
-                        const childActive = pathname === child.href;
-                        return (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded transition duration-300 sidebar__link ${childActive ? 'active' : ''}`}
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0 opacity-60" />
-                            {sidebarSmall && (
-                              <span className="text-[13px] font-medium">{t(child.labelKey)}</span>
-                            )}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            }
-
-            const active = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-3 px-4 py-3 rounded transition duration-300 sidebar__link ${active ? 'active' : ''}`}
-              >
-                <Icon className="text-xl shrink-0" />
-                {sidebarSmall && <span className="text-sm font-medium">{t(labelKey)}</span>}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      <div className="rounded-xl border border-[rgba(59,130,246,0.15)] bg-[rgba(59,130,246,0.07)] p-4 flex flex-col gap-2">
-        {sidebarSmall && (
-          <p className="text-xs font-medium text-[#64748b] uppercase tracking-widest">
-            {t('systemStatus')}
-          </p>
-        )}
-        <div className={`flex items-center ${!sidebarSmall && 'justify-center'} gap-2`}>
-          <span className="inline-block w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]"></span>
-          {sidebarSmall && (
-            <span className="text-sm font-semibold text-[#e2e8f0]">{t('allGood')}</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
   const handleLogOut = async () => {
     setIsLogout(true);
   };
@@ -258,7 +286,14 @@ const DashboardLayout = ({ children }) => {
       <aside
         className={`hidden transition-all duration-400 lg:block ${sidebarSmall ? 'w-55' : 'w-18'} shrink-0 p-2 border-r border-[#0d2d50] bg-[#0A2540] dark:bg-[#1D293D] text-[#CBD5E1]`}
       >
-        <SidebarContent />
+        <SidebarContent
+          sidebarSmall={sidebarSmall}
+          t={t}
+          setSidebarOpen={setSidebarOpen}
+          pathname={pathname}
+          openGroups={openGroups}
+          toggleGroup={toggleGroup}
+        />
       </aside>
 
       {/* ── MOBILE SIDEBAR OVERLAY ── */}
@@ -279,7 +314,14 @@ const DashboardLayout = ({ children }) => {
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <SidebarContent />
+        <SidebarContent
+          sidebarSmall={sidebarSmall}
+          t={t}
+          setSidebarOpen={setSidebarOpen}
+          pathname={pathname}
+          openGroups={openGroups}
+          toggleGroup={toggleGroup}
+        />
       </aside>
 
       {/* ── MAIN CONTENT ── */}

@@ -1,12 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import {
   ArrowLeft,
+  Pencil,
   FlaskConical,
   Hash,
   Calendar,
@@ -16,6 +19,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import useGetQuery from '@/hooks/all/useGetQuery';
+import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import {
@@ -25,6 +29,10 @@ import {
   TestLogStatusBadge,
   TestResultBadge,
 } from '@/components/devices/testLogStatus';
+import { TestLogForm } from '../page';
+import CustomModal from '@/components/modals/CustomModal';
+import useDeviceStore from '@/store/useDeviceStore';
+import useTestLogStore from '@/store/useTestLogStore';
 
 /* ── InfoRow / Section — same visual language as the device detail page ── */
 function InfoRow({ icon: Icon, label, value, iconColor = '#7B8499' }) {
@@ -75,8 +83,11 @@ export default function TestLogDetailPage() {
   const td = useTranslations('deviceDetail');
   const tc = useTranslations('common');
   const locale = useLocale();
+  const queryClient = useQueryClient();
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
+
+  const [editOpen, setEditOpen] = useState(false);
 
   const { isLoading, data } = useGetQuery({
     key: [KEYS.testLogs, id],
@@ -95,6 +106,46 @@ export default function TestLogDetailPage() {
   });
 
   const device = deviceData?.data;
+
+  /* ── devices list, reused from the shared store for the edit form's select ── */
+  const { devices: storedDevices, setDevices } = useDeviceStore();
+  const { data: devicesData } = useGetQuery({
+    key: KEYS.device,
+    url: URLS.device,
+    params: { limit: 1000 },
+    headers: authHeader,
+    enabled: !!session?.accessToken && storedDevices.length === 0,
+  });
+  useEffect(() => {
+    const list = devicesData?.data?.data;
+    if (list?.length) setDevices(list);
+  }, [devicesData]);
+  const devices = storedDevices.filter(Boolean);
+
+  const { reset: resetTestLogStore } = useTestLogStore();
+  const { mutate: updateLog, isPending: updating } = usePatchPythonQuery({
+    listKeyId: KEYS.testLogs,
+    hideSuccessToast: true,
+  });
+
+  const handleEditSubmit = (payload) => {
+    updateLog(
+      {
+        url: `${URLS.testLogs}/${id}`,
+        attributes: payload,
+        config: { headers: authHeader },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('successUpdated'));
+          queryClient.invalidateQueries({ queryKey: [[KEYS.testLogs, id]] });
+          resetTestLogStore();
+          setEditOpen(false);
+        },
+        onError: () => toast.error(t('errorUpdate')),
+      }
+    );
+  };
 
   const fmt = (iso) =>
     iso
@@ -159,12 +210,14 @@ export default function TestLogDetailPage() {
           </div>
         </div>
 
-        <button
-          onClick={() => router.push('/dashboard/devices/test-logs')}
-          className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all self-start"
-        >
-          <ArrowLeft size={15} /> {tc('back')}
-        </button>
+        <div className="flex items-center gap-2 self-start">
+          <button
+            onClick={() => setEditOpen(true)}
+            className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold bg-[#3b82f6] hover:bg-[#2563eb] text-white transition-all"
+          >
+            <Pencil size={15} /> {tc('edit')}
+          </button>
+        </div>
       </div>
 
       {/* ── Main grid ──────────────────────────────────────── */}
@@ -239,6 +292,24 @@ export default function TestLogDetailPage() {
           )}
         </Section>
       </div>
+
+      {/* ── Edit modal ─────────────────────────────────────── */}
+      <CustomModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        title={t('editTitle')}
+        className="max-w-200! w-full"
+      >
+        <TestLogForm
+          initialData={log}
+          onSubmit={handleEditSubmit}
+          onClose={() => setEditOpen(false)}
+          isPending={updating}
+          t={t}
+          devices={devices}
+          locale={locale}
+        />
+      </CustomModal>
     </div>
   );
 }

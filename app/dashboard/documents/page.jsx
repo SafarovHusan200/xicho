@@ -20,6 +20,8 @@ import {
 
 import useGetQuery from '@/hooks/all/useGetQuery';
 import usePersonStore from '@/store/usePersonStore';
+import useDeviceStore from '@/store/useDeviceStore';
+import useTestLogStore from '@/store/useTestLogStore';
 import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import { request } from '@/services/api';
@@ -67,23 +69,25 @@ export default function DocumentsPage() {
     enabled: !!session,
   });
 
+  const { devices: storedDevices, setDevices } = useDeviceStore();
+  const { testLogs: storedTestLogs, setTestLogs } = useTestLogStore();
+  const { persons: allPersons, setPersons } = usePersonStore();
+
   const { data: devicesData } = useGetQuery({
-    key: `${KEYS.device}-for-docs`,
+    key: KEYS.device,
     url: URLS.device,
-    params: { limit: 200 },
+    params: { limit: 1000 },
     headers: authHeader,
-    enabled: !!session,
+    enabled: !!session && storedDevices.length === 0,
   });
 
   const { data: testLogsData } = useGetQuery({
-    key: `${KEYS.testLogs}-for-docs`,
+    key: KEYS.testLogs,
     url: URLS.testLogs,
-    params: { limit: 200 },
+    params: { limit: 1000 },
     headers: authHeader,
-    enabled: !!session,
+    enabled: !!session && storedTestLogs.length === 0,
   });
-
-  const { persons: allPersons, setPersons } = usePersonStore();
 
   const { data: getPersonsData } = useGetQuery({
     key: KEYS.person,
@@ -99,12 +103,22 @@ export default function DocumentsPage() {
     if (personsData) setPersons(personsData);
   }, [personsData]);
 
+  useEffect(() => {
+    const data = devicesData?.data?.data;
+    if (data?.length) setDevices(data);
+  }, [devicesData]);
+
+  useEffect(() => {
+    const data = testLogsData?.data?.data;
+    if (data?.length) setTestLogs(data);
+  }, [testLogsData]);
+
   const docs = (docsData?.data?.data ?? []).filter(Boolean);
   const totalCount = docsData?.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / LIMIT);
 
-  const devices = (devicesData?.data?.data ?? []).filter(Boolean);
-  const testLogs = (testLogsData?.data?.data ?? []).filter(Boolean);
+  const devices = storedDevices.filter(Boolean);
+  const testLogs = storedTestLogs.filter(Boolean);
   const persons = allPersons.filter(Boolean);
 
   /* ── local search filter ────────────────────────────────────────*/

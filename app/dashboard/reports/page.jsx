@@ -92,6 +92,10 @@ export default function ReportsPage() {
     } else {
       parts.push(t('periodYear'), year);
     }
+    /* ── day+month+time only — the period year above already covers the year, no need to repeat it ── */
+    const now = new Date();
+    const stamp = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}_${String(now.getMinutes()).padStart(2, '0')}`;
+    parts.push(stamp);
     const safe = parts.join('_').replace(/\s+/g, '_');
     return `${safe}.${format}`;
   };

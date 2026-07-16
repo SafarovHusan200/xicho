@@ -14,6 +14,7 @@ import {
   Search,
   XCircle,
   Activity,
+  FileUp,
 } from 'lucide-react';
 
 import useGetQuery from '@/hooks/all/useGetQuery';
@@ -38,27 +39,25 @@ import StatusBadge from '@/components/devices/StatusBadge';
 import ActiveBadge from '@/components/devices/ActiveBadge';
 import StatCard from '@/components/StatCard';
 import DeviceForm from '@/components/devices/DeviceForm';
+import ExcelImporter from '@/components/devices/ExcelImporter';
 import { TEST_STATUS_CONFIG } from '@/components/devices/statusConfig';
 import TestLogCards from '@/components/devices/TestLogCards';
+import useDeviceStore from '@/store/useDeviceStore';
+import useDeviceTypeStore from '@/store/useDeviceTypeStore';
+import useTestLogStore from '@/store/useTestLogStore';
 
 /* ── constants ─────────────────────────────────────────────── */
 const LIMIT = 15;
 
-/* ── DeviceTestLogsPanel ───────────────────────────────────── */
-function DeviceTestLogsPanel({ deviceId, authHeader, locale }) {
+/* ── DeviceTestLogsPanel — filters the shared test-log store locally
+   instead of firing a fresh per-device request every time a row expands ── */
+function DeviceTestLogsPanel({ deviceId, locale }) {
   const t = useTranslations('testLogs');
+  const { testLogs } = useTestLogStore();
 
-  const { data, isLoading } = useGetQuery({
-    key: [KEYS.testLogs, deviceId],
-    url: URLS.testLogs,
-    params: { device_id: deviceId, limit: 50, offset: 0 },
-    headers: authHeader,
-    enabled: !!deviceId,
-  });
+  const logs = testLogs.filter((l) => l?.device_id === deviceId);
 
-  const logs = (data?.data?.data ?? []).filter(Boolean);
-
-  return <TestLogCards logs={logs} locale={locale} t={t} isLoading={isLoading} />;
+  return <TestLogCards logs={logs} locale={locale} t={t} isLoading={false} />;
 }
 
 /* ── Page ───────────────────────────────────────────────────── */
@@ -79,6 +78,7 @@ const DevicePage = () => {
   const [filterTypeId, setFilterTypeId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [expandedDeviceIds, setExpandedDeviceIds] = useState(() => new Set());
+  const [importOpen, setImportOpen] = useState(false);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
@@ -120,13 +120,34 @@ const DevicePage = () => {
     enabled: !!session?.accessToken,
   });
 
+  const { deviceTypes: storedDeviceTypes, setDeviceTypes } = useDeviceTypeStore();
+  const { testLogs: storedTestLogs, setTestLogs } = useTestLogStore();
+
   const { data: deviceTypesData } = useGetQuery({
     key: KEYS.deviceTypes,
     url: URLS.deviceTypes,
     params: { limit: 1000 },
     headers: authHeader,
-    enabled: !!session?.accessToken,
+    enabled: !!session?.accessToken && storedDeviceTypes.length === 0,
   });
+
+  const { data: testLogsData } = useGetQuery({
+    key: KEYS.testLogs,
+    url: URLS.testLogs,
+    params: { limit: 1000 },
+    headers: authHeader,
+    enabled: !!session?.accessToken && storedTestLogs.length === 0,
+  });
+
+  useEffect(() => {
+    const data = deviceTypesData?.data?.data;
+    if (data?.length) setDeviceTypes(data);
+  }, [deviceTypesData]);
+
+  useEffect(() => {
+    const data = testLogsData?.data?.data;
+    if (data?.length) setTestLogs(data);
+  }, [testLogsData]);
 
   const { data: facilitiesData } = useGetQuery({
     key: KEYS.facilities,
@@ -134,6 +155,11 @@ const DevicePage = () => {
     headers: authHeader,
     enabled: !!session?.accessToken,
   });
+
+  /* devices themselves aren't read from the store on this page (it's the primary
+     paginated list), but other pages cache them there — reset it after any
+     create/update/delete so those pages don't keep showing stale data */
+  const { reset: resetDeviceStore } = useDeviceStore();
 
   /* mutations */
   const { mutate: createDevice, isPending: isCreating } = usePostQuery({
@@ -165,7 +191,7 @@ const DevicePage = () => {
   const items = listData?.data?.data ?? [];
   const totalCount = listData?.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / LIMIT);
-  const deviceTypes = deviceTypesData?.data?.data ?? [];
+  const deviceTypes = storedDeviceTypes.filter(Boolean);
   const facilities = facilitiesData?.data?.data ?? [];
 
   const activeCount = items.filter((d) => d.is_active).length;
@@ -186,6 +212,7 @@ const DevicePage = () => {
           onSuccess: () => {
             setIsOpen(false);
             toast.success(t('successUpdated'));
+            resetDeviceStore();
           },
           onError: (err) => apiError(err, t('errorUpdate')),
         }
@@ -197,6 +224,7 @@ const DevicePage = () => {
           onSuccess: () => {
             setIsOpen(false);
             toast.success(t('successCreated'));
+            resetDeviceStore();
           },
           onError: (err) => apiError(err, t('errorCreate')),
         }
@@ -213,6 +241,7 @@ const DevicePage = () => {
           setDeleteModal(false);
           setSelectedItem(null);
           toast.success(t('successDeleted'));
+          resetDeviceStore();
         },
         onError: (err) => apiError(err, t('errorDelete')),
       }
@@ -263,19 +292,29 @@ const DevicePage = () => {
             <p className="text-sm text-[#7B8499] dark:text-slate-400">{t('subtitle')}</p>
           </div>
         </div>
-        <Button
-          onClick={() => {
-            setSelectedItem(null);
-            setIsOpen(true);
-          }}
-          className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold shadow-md self-start sm:self-auto"
-          style={{ backgroundColor: '#3b82f6' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
-        >
-          <Plus size={16} />
-          {t('addNew')}
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            variant="outline"
+            onClick={() => setImportOpen(true)}
+            className="gap-2 rounded-xl px-4 h-10 text-sm font-semibold"
+          >
+            <FileUp size={16} />
+            Excel'dan import
+          </Button>
+          <Button
+            onClick={() => {
+              setSelectedItem(null);
+              setIsOpen(true);
+            }}
+            className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold shadow-md"
+            style={{ backgroundColor: '#3b82f6' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+          >
+            <Plus size={16} />
+            {t('addNew')}
+          </Button>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -446,7 +485,7 @@ const DevicePage = () => {
               })
             }
             renderExpanded={(row) => (
-              <DeviceTestLogsPanel deviceId={row.id} authHeader={authHeader} locale={locale} />
+              <DeviceTestLogsPanel deviceId={row.id} locale={locale} />
             )}
           />
         )}
@@ -514,6 +553,16 @@ const DevicePage = () => {
             </Button>
           </div>
         </div>
+      </CustomModal>
+
+      {/* Excel Import Modal */}
+      <CustomModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        title="Excel'dan qurilmalarni import qilish"
+        className="max-w-200! w-full"
+      >
+        <ExcelImporter onClose={() => setImportOpen(false)} />
       </CustomModal>
     </motion.div>
   );
