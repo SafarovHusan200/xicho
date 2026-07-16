@@ -78,6 +78,13 @@ const menuKeys = [
   { labelKey: 'settings', href: '/dashboard/settings', icon: IoSettingsOutline, key: 'settings' },
 ];
 
+/* ── active for the exact route AND any of its nested/detail sub-routes
+   (e.g. /dashboard/facility/89c4b902-... should keep "Facilities" active);
+   the /dashboard root is excluded from the prefix check since every route
+   starts with it ── */
+const isNavActive = (pathname, href) =>
+  pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
+
 /* ── defined outside DashboardLayout so its identity is stable across
    parent re-renders (e.g. toggling a submenu) — otherwise React would
    remount this whole subtree every time and framer-motion's exit/enter
@@ -111,7 +118,7 @@ const SidebarContent = ({ sidebarSmall, t, setSidebarOpen, pathname, openGroups,
       <nav className="space-y-1 overflow-hidden">
         {menuKeys.map(({ labelKey, href, icon: Icon, key, children }) => {
           if (children) {
-            const isGroupActive = children.some((c) => pathname.startsWith(c.href));
+            const isGroupActive = children.some((c) => isNavActive(pathname, c.href));
             const isOpen = openGroups[key] ?? isGroupActive;
             return (
               <div key={key}>
@@ -142,7 +149,7 @@ const SidebarContent = ({ sidebarSmall, t, setSidebarOpen, pathname, openGroups,
                     >
                       <div className={`mt-0.5 space-y-0.5 ${sidebarSmall ? 'pl-4' : ''}`}>
                         {children.map((child) => {
-                          const childActive = pathname === child.href;
+                          const childActive = isNavActive(pathname, child.href);
                           const ChildIcon = child.icon;
                           return (
                             <Link
@@ -152,9 +159,7 @@ const SidebarContent = ({ sidebarSmall, t, setSidebarOpen, pathname, openGroups,
                             >
                               <ChildIcon size={15} className="shrink-0" />
                               {sidebarSmall && (
-                                <span className="text-[13px] font-medium">
-                                  {t(child.labelKey)}
-                                </span>
+                                <span className="text-[13px] font-medium">{t(child.labelKey)}</span>
                               )}
                             </Link>
                           );
@@ -167,7 +172,7 @@ const SidebarContent = ({ sidebarSmall, t, setSidebarOpen, pathname, openGroups,
             );
           }
 
-          const active = pathname === href;
+          const active = isNavActive(pathname, href);
           return (
             <Link
               key={href}
@@ -214,7 +219,7 @@ const DashboardLayout = ({ children }) => {
   const [openGroups, setOpenGroups] = useState(() => {
     const initial = {};
     menuKeys.forEach((item) => {
-      if (item.children?.some((c) => pathname.startsWith(c.href))) {
+      if (item.children?.some((c) => isNavActive(pathname, c.href))) {
         initial[item.key] = true;
       }
     });

@@ -58,7 +58,8 @@
     "facilityLabel": "Объект",
     "until": "Действует до",
     "expiresInDaysLabel": "Период",
-    "daysUnit": "дн."
+    "daysUnit": "дн.",
+    "calendarLink": "Календарь"
   },
   "nav": {
     "monitoring": "Мониторинг",

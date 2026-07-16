@@ -14,9 +14,9 @@ import Providers from './providers';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
-  title: 'Hisobot tayyorlash',
+  title: 'ХИЧО',
   description:
-    "Xavfli ishlab chiqarish ob'ektlarida o'rnatilgan texnik qurilmalarni texnik ko'rik va sinov lardan o'tkazish holatini monitoring qilish elektron platformasi",
+    "Xavfli ishlab chiqarish ob'ektlarida o'rnatilgan texnik qurilmalarni texnik ko'rik va sinovlardan o'tkazish holatini monitoring qilish elektron platformasi",
 };
 
 export default async function RootLayout({ children }) {

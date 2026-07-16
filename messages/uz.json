@@ -58,7 +58,8 @@
     "facilityLabel": "Ob'ekt",
     "until": "Tugash sanasi",
     "expiresInDaysLabel": "Muddat oralig'i",
-    "daysUnit": "kun"
+    "daysUnit": "kun",
+    "calendarLink": "Kalendar"
   },
   "nav": {
     "monitoring": "Monitoring",
