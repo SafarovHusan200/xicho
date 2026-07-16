@@ -1,0 +1,244 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useTranslations, useLocale } from 'next-intl';
+import {
+  ArrowLeft,
+  FlaskConical,
+  Hash,
+  Calendar,
+  MonitorSpeaker,
+  Building2,
+  FileText,
+  Loader2,
+} from 'lucide-react';
+import useGetQuery from '@/hooks/all/useGetQuery';
+import { KEYS } from '@/constants/key';
+import { URLS } from '@/constants/url';
+import {
+  getTestLogStatus,
+  getDayDiffLabel,
+  TEST_LOG_STATUS_CFG,
+  TestLogStatusBadge,
+  TestResultBadge,
+} from '@/components/devices/testLogStatus';
+
+/* ── InfoRow / Section — same visual language as the device detail page ── */
+function InfoRow({ icon: Icon, label, value, iconColor = '#7B8499' }) {
+  return (
+    <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-slate-700/40 last:border-0">
+      <div
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+        style={{ backgroundColor: `${iconColor}15` }}
+      >
+        <Icon size={15} style={{ color: iconColor }} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-[#7B8499] dark:text-slate-500">
+          {label}
+        </p>
+        <p className="text-[14px] font-medium text-[#031634] dark:text-slate-100 mt-0.5 wrap-break-word">
+          {value ?? '—'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, icon: Icon, iconColor = '#3b82f6', children }) {
+  return (
+    <div className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/80">
+        <div
+          className="flex h-8 w-8 items-center justify-center rounded-lg"
+          style={{ backgroundColor: `${iconColor}18` }}
+        >
+          <Icon size={16} style={{ color: iconColor }} />
+        </div>
+        <span className="font-semibold text-[14px] text-[#031634] dark:text-slate-100">
+          {title}
+        </span>
+      </div>
+      <div className="px-5">{children}</div>
+    </div>
+  );
+}
+
+export default function TestLogDetailPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const t = useTranslations('testLogs');
+  const td = useTranslations('deviceDetail');
+  const tc = useTranslations('common');
+  const locale = useLocale();
+
+  const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
+
+  const { isLoading, data } = useGetQuery({
+    key: [KEYS.testLogs, id],
+    url: `${URLS.testLogs}/${id}`,
+    headers: authHeader,
+    enabled: !!session?.accessToken && !!id,
+  });
+
+  const log = data?.data;
+
+  const { data: deviceData } = useGetQuery({
+    key: [KEYS.device, log?.device_id],
+    url: `${URLS.device}/${log?.device_id}`,
+    headers: authHeader,
+    enabled: !!session?.accessToken && !!log?.device_id,
+  });
+
+  const device = deviceData?.data;
+
+  const fmt = (iso) =>
+    iso
+      ? new Date(iso).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+      : '—';
+
+  const fmtDateTime = (iso) =>
+    iso
+      ? new Date(iso).toLocaleString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '—';
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] gap-3 text-[#7B8499]">
+        <Loader2 size={24} className="animate-spin text-[#3b82f6]" />
+        <span className="text-sm">{t('loading')}</span>
+      </div>
+    );
+  }
+
+  if (!log) return null;
+
+  const status = getTestLogStatus(log.next_test_date, log.is_passed);
+  const cfg = TEST_LOG_STATUS_CFG[status];
+  const dayDiffLabel = getDayDiffLabel(log.next_test_date, t);
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* ── Header ─────────────────────────────────────────── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${cfg.color}18` }}
+          >
+            <FlaskConical size={20} style={{ color: cfg.color }} />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-2xl font-bold text-[#031634] dark:text-slate-100">
+                {log.test_type}
+              </h1>
+              {log.is_passed ? (
+                <TestResultBadge isPassed={log.is_passed} t={t} />
+              ) : (
+                <TestLogStatusBadge status={status} t={t} label={dayDiffLabel} />
+              )}
+            </div>
+            <p className="text-sm text-[#7B8499] dark:text-slate-400">
+              {log.test_protocol_number ?? '—'} · {device?.name ?? '—'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => router.push('/dashboard/devices/test-logs')}
+          className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all self-start"
+        >
+          <ArrowLeft size={15} /> {tc('back')}
+        </button>
+      </div>
+
+      {/* ── Main grid ──────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Section title={t('colTestType')} icon={FlaskConical} iconColor={cfg.color}>
+          <InfoRow
+            icon={Hash}
+            label={t('colProtocol')}
+            value={log.test_protocol_number}
+            iconColor="#3b82f6"
+          />
+          <InfoRow
+            icon={Calendar}
+            label={t('colTestDate')}
+            value={fmt(log.test_date)}
+            iconColor="#8b5cf6"
+          />
+          <InfoRow
+            icon={Calendar}
+            label={t('colNextDate')}
+            value={fmt(log.next_test_date)}
+            iconColor="#f59e0b"
+          />
+          <InfoRow
+            icon={Calendar}
+            label={td('createdAt')}
+            value={fmtDateTime(log.created_at)}
+            iconColor="#94a3b8"
+          />
+          <InfoRow
+            icon={Calendar}
+            label={td('updatedAt')}
+            value={fmtDateTime(log.updated_at)}
+            iconColor="#94a3b8"
+          />
+          {log.description && (
+            <InfoRow
+              icon={FileText}
+              label={t('descriptionLabel')}
+              value={log.description}
+              iconColor="#3b82f6"
+            />
+          )}
+        </Section>
+
+        <Section title={t('colDevice')} icon={MonitorSpeaker} iconColor="#3b82f6">
+          {device ? (
+            <>
+              <div className="py-3 border-b border-slate-100 dark:border-slate-700/40">
+                <Link
+                  href={`/dashboard/devices/${device.id}`}
+                  className="text-[15px] font-semibold text-[#3b82f6] hover:underline"
+                >
+                  {device.name}
+                </Link>
+              </div>
+              <InfoRow
+                icon={Hash}
+                label={td('serial')}
+                value={device.serial_number}
+                iconColor="#3b82f6"
+              />
+              <InfoRow
+                icon={Building2}
+                label={td('facilityName')}
+                value={device.facility?.name}
+                iconColor="#8b5cf6"
+              />
+            </>
+          ) : (
+            <p className="py-8 text-center text-sm text-muted-foreground">—</p>
+          )}
+        </Section>
+      </div>
+    </div>
+  );
+}

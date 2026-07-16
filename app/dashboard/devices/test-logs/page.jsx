@@ -305,12 +305,12 @@ export default function TestLogsPage() {
       {label}
       {sortKey === key ? (
         sortDir === 'asc' ? (
-          <ArrowUp size={12} />
+          <ArrowUp size={16} />
         ) : (
-          <ArrowDown size={12} />
+          <ArrowDown size={16} />
         )
       ) : (
-        <ArrowUpDown size={12} className="opacity-40" />
+        <ArrowUpDown size={16} className="opacity-40" />
       )}
     </button>
   );
@@ -688,6 +688,7 @@ export default function TestLogsPage() {
           <TableComponent
             column={columns}
             data={tableData}
+            viewHref={(row) => `/dashboard/devices/test-logs/${row.id}`}
             onEdit={openEdit}
             handleDelete={(row) => setDeleteTarget(row)}
             rowClassName={(row) => TEST_LOG_ROW_BG[row._rowStatus] ?? ''}

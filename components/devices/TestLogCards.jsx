@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FlaskConical, Loader2, MonitorSpeaker } from 'lucide-react';
 import {
   getTestLogStatus,
@@ -39,9 +40,10 @@ function TestLogCards({ logs, locale, t, isLoading, twoCols = true, deviceMap })
         const cfg = TEST_LOG_STATUS_CFG[status];
         const dayDiffLabel = getDayDiffLabel(log.next_test_date, t);
         return (
-          <div
+          <Link
             key={log.id}
-            className="flex items-center gap-3 p-3 rounded-xl border border-[rgba(197,198,207,0.25)] dark:border-slate-700/40 bg-white dark:bg-slate-800 hover:shadow-sm transition-all"
+            href={`/dashboard/devices/test-logs/${log.id}`}
+            className="flex items-center gap-3 p-3 rounded-xl border border-[rgba(197,198,207,0.25)] dark:border-slate-700/40 bg-white dark:bg-slate-800 hover:shadow-sm hover:border-[#3b82f6]/40 transition-all"
           >
             <div
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -75,7 +77,7 @@ function TestLogCards({ logs, locale, t, isLoading, twoCols = true, deviceMap })
                 </span>
               </div>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

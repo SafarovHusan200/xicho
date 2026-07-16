@@ -82,7 +82,9 @@ export default function ReportsPage() {
   const buildFileName = (format) => {
     const parts = [t('fileNamePrefix')];
     if (period === 'month') {
-      parts.push(new Date(2000, Number(month) - 1, 1).toLocaleDateString(dtLocale, { month: 'long' }));
+      parts.push(
+        new Date(2000, Number(month) - 1, 1).toLocaleDateString(dtLocale, { month: 'long' })
+      );
       parts.push(year);
     } else if (period === 'quarter') {
       parts.push(t('quarterN', { n: quarter }));
@@ -94,7 +96,7 @@ export default function ReportsPage() {
     return `${safe}.${format}`;
   };
 
-  /* ── export handler — fetches the same report as a file and forces a download ── */
+  /* ── PDF still comes from the backend as-is ── */
   const handleExport = async (format) => {
     setExporting(format);
     try {
@@ -120,6 +122,148 @@ export default function ReportsPage() {
   };
 
   const groupLabel = groupBy === 'facility' ? t('colFacility') : t('colDeviceType');
+
+  /* ── Excel is built client-side (exceljs) from the same data shown on screen, so we control its styling ── */
+  const handleExportExcel = async () => {
+    setExporting('xlsx');
+    try {
+      const ExcelJS = (await import('exceljs')).default;
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = t('title');
+      workbook.created = new Date();
+
+      const sheet = workbook.addWorksheet(t('listTitle').slice(0, 31), {
+        views: [{ state: 'frozen', ySplit: 4 }],
+      });
+
+      const COL_COUNT = 8;
+      sheet.columns = [
+        { width: 30 },
+        { width: 12 },
+        { width: 15 },
+        { width: 15 },
+        { width: 12 },
+        { width: 13 },
+        { width: 14 },
+        { width: 13 },
+      ];
+
+      const THIN_BORDER = { style: 'thin', color: { argb: 'FFE2E8F0' } };
+
+      /* ── row 1: title ── */
+      const titleRow = sheet.addRow([`${t('subtitle')} — ${report?.period_label ?? ''}`]);
+      sheet.mergeCells(1, 1, 1, COL_COUNT);
+      titleRow.height = 26;
+      titleRow.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF031634' } };
+      titleRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
+
+      /* ── row 2: generated-at ── */
+      const gen = report?.generated_at ? new Date(report.generated_at) : new Date();
+      const genText = `${String(gen.getUTCDate()).padStart(2, '0')}.${String(gen.getUTCMonth() + 1).padStart(2, '0')}.${gen.getUTCFullYear()} ${String(gen.getUTCHours()).padStart(2, '0')}:${String(gen.getUTCMinutes()).padStart(2, '0')} UTC`;
+      const genRow = sheet.addRow([`${t('generatedAtLabel')}: ${genText}`]);
+      sheet.mergeCells(2, 1, 2, COL_COUNT);
+      genRow.getCell(1).font = { italic: true, size: 10, color: { argb: 'FF7B8499' } };
+
+      /* ── row 3: blank spacer ── */
+      sheet.addRow([]);
+
+      /* ── row 4: header ── */
+      const headerRow = sheet.addRow([
+        groupLabel,
+        t('unitCodeLabel'),
+        t('colDevicesTotal'),
+        t('colDevicesTested'),
+        t('colTestsTotal'),
+        t('colPassed'),
+        t('colFailed'),
+        t('colUnspecified'),
+      ]);
+      headerRow.height = 26;
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = {
+          top: THIN_BORDER,
+          bottom: THIN_BORDER,
+          left: THIN_BORDER,
+          right: THIN_BORDER,
+        };
+      });
+
+      /* ── data rows ── */
+      rows.forEach((row, i) => {
+        const r = sheet.addRow([
+          row.group_name,
+          row.unit_code ?? '—',
+          row.devices_total,
+          row.devices_tested,
+          row.tests_total,
+          row.passed,
+          row.failed,
+          row.unspecified,
+        ]);
+        r.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: THIN_BORDER,
+            bottom: THIN_BORDER,
+            left: THIN_BORDER,
+            right: THIN_BORDER,
+          };
+          cell.alignment = { vertical: 'middle', horizontal: colNumber <= 2 ? 'left' : 'center' };
+          if (i % 2 === 1) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          }
+        });
+        r.getCell(6).font = { bold: true, color: { argb: 'FF10B981' } };
+        r.getCell(7).font = { bold: true, color: { argb: 'FFEF4444' } };
+        r.getCell(8).font = { bold: true, color: { argb: 'FF94A3B8' } };
+      });
+
+      /* ── totals row ── */
+      const totalsRow = sheet.addRow([
+        t('totalsRow'),
+        '',
+        totals.devices_total ?? 0,
+        totals.devices_tested ?? 0,
+        totals.tests_total ?? 0,
+        totals.passed ?? 0,
+        totals.failed ?? 0,
+        totals.unspecified ?? 0,
+      ]);
+      totalsRow.eachCell((cell, colNumber) => {
+        cell.font = { bold: true };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
+        cell.alignment = { vertical: 'middle', horizontal: colNumber <= 2 ? 'left' : 'center' };
+        cell.border = {
+          top: { style: 'double', color: { argb: 'FF3B82F6' } },
+          bottom: THIN_BORDER,
+          left: THIN_BORDER,
+          right: THIN_BORDER,
+        };
+      });
+      totalsRow.getCell(6).font = { bold: true, color: { argb: 'FF10B981' } };
+      totalsRow.getCell(7).font = { bold: true, color: { argb: 'FFEF4444' } };
+      totalsRow.getCell(8).font = { bold: true, color: { argb: 'FF94A3B8' } };
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = buildFileName('xlsx');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      toast.error(t('exportError'));
+    } finally {
+      setExporting(null);
+    }
+  };
 
   const tableData = rows.map((row, i) => ({
     id: row.group_id ?? i,
@@ -171,7 +315,7 @@ export default function ReportsPage() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => handleExport('xlsx')}
+            onClick={handleExportExcel}
             disabled={!!exporting || isLoading || rows.length === 0}
             className="text-[13px]"
           >
