@@ -199,7 +199,7 @@ const ResponsiblePersonsPage = () => {
     params: { limit: 1, is_active: true },
     headers: authHeader,
     enabled: !!session?.accessToken,
-    redirectOn403: false,
+  
   });
 
   const { mutate: createPerson, isPending: isCreating } = usePostQuery({

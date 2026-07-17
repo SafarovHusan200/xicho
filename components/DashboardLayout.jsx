@@ -57,7 +57,6 @@ const menuKeys = [
     key: 'locations',
   },
   { labelKey: 'users', href: '/dashboard/users', icon: FaUserShield, key: 'users' },
-
   {
     labelKey: 'devices',
     icon: TbDeviceDesktopAnalytics,

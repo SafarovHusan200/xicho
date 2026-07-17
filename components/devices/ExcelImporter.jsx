@@ -47,6 +47,7 @@ const COL = {
   SERIAL_NUMBER: 3,
   PASSPORT_TEXT: 4,
   RESPONSIBLE_PERSON: 5,
+  COMMISSIONING_DATE: 6,
 };
 
 /* device-type checkbox columns (G..K) — first non-empty cell wins.
@@ -66,7 +67,7 @@ const TEST_TYPE_COLUMNS = [
   { label: 'Ички кўрик', testCol: 13, nextCol: 14 },
   { label: 'Гидравлик синов', testCol: 15, nextCol: 16 },
   { label: 'ВМҚ-784', testCol: 17, nextCol: 18 },
-  { label: 'ПТО', testCol: 19, nextCol: 20 },
+  { label: 'PTO', testCol: 19, nextCol: 20 },
 ];
 
 const SLEEP_MS = 100;
@@ -176,6 +177,7 @@ function parseWorkbook(workbook) {
       regNumber,
       serialNumber,
       responsiblePerson: String(row[COL.RESPONSIBLE_PERSON] ?? '').trim(),
+      commissioning_date: String(row[COL.COMMISSIONING_DATE] ?? '').trim(),
       passportText: String(row[COL.PASSPORT_TEXT] ?? '').trim(),
       category: currentCategory,
       deviceTypeKeywordHit,
@@ -183,8 +185,12 @@ function parseWorkbook(workbook) {
     });
   }
 
+  console.log('devices', devices);
+
   if (devices.length === 0) {
-    warnings.push('No data rows recognized — check HEADER_ROWS / column indices against the real file.');
+    warnings.push(
+      'No data rows recognized — check HEADER_ROWS / column indices against the real file.'
+    );
   }
 
   return { devices, warnings };
@@ -272,7 +278,10 @@ export default function ExcelImporter({ onClose }) {
 
   const allRowsResolved = parsedDevices.length > 0 && parsedDevices.every(effectiveDeviceTypeId);
   const canImport =
-    !!facilityId && manufacturerDefault.trim().length > 0 && !!commissioningDefault && allRowsResolved;
+    !!facilityId &&
+    manufacturerDefault.trim().length > 0 &&
+    !!commissioningDefault &&
+    allRowsResolved;
 
   const handleFile = async (file) => {
     if (!file || isReadingFile) return;
@@ -306,7 +315,7 @@ export default function ExcelImporter({ onClose }) {
     const deviceTypeId = effectiveDeviceTypeId(row);
 
     if (!deviceTypeId) {
-      return { ok: false, error: "Qurilma turi tanlanmagan" };
+      return { ok: false, error: 'Qurilma turi tanlanmagan' };
     }
 
     const earliestTestDate = row.inspections
@@ -535,7 +544,7 @@ export default function ExcelImporter({ onClose }) {
           </div>
 
           {/* required fields the sheet has no column for */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label className="text-[13px] font-medium">
                 Barcha qurilmalar uchun ishlab chiqaruvchi ma'lumoti *
@@ -547,22 +556,13 @@ export default function ExcelImporter({ onClose }) {
                 className="text-[14px]"
               />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-[13px] font-medium">
-                Foydalanishga topshirilgan sana (standart) *
-              </Label>
-              <DatePickerField value={commissioningDefault} onChange={setCommissioningDefault} />
-              <p className="text-[11px] text-[#7B8499] dark:text-slate-400">
-                Qatorda sinov sanasi bo'lsa, eng birinchisi ishlatiladi
-              </p>
-            </div>
           </div>
 
           {uncategorizedCount > 0 && (
             <div className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 p-3 text-[12px] text-red-700 dark:text-red-400">
               <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-              {uncategorizedCount} ta qatorda kategoriya aniqlanmadi — qurilma turini belgilab bo'lmaydi
-              (import bloklangan).
+              {uncategorizedCount} ta qatorda kategoriya aniqlanmadi — qurilma turini belgilab
+              bo'lmaydi (import bloklangan).
             </div>
           )}
 
@@ -611,9 +611,11 @@ export default function ExcelImporter({ onClose }) {
               </thead>
               <tbody className="divide-y divide-[#F0F1F5] dark:divide-slate-700/40">
                 {parsedDevices.map((d, idx) => {
-                  const effectiveTypeId = rowTypeOverride[d.rowIndex] ?? categoryTypeMap[d.category] ?? '';
+                  const effectiveTypeId =
+                    rowTypeOverride[d.rowIndex] ?? categoryTypeMap[d.category] ?? '';
                   const rs = rowStatus[d.rowIndex];
-                  const rowReady = !!facilityId && !!manufacturerDefault.trim() && !!commissioningDefault;
+                  const rowReady =
+                    !!facilityId && !!manufacturerDefault.trim() && !!commissioningDefault;
                   return (
                     <tr key={d.rowIndex}>
                       <td className="px-3 py-1.5 text-[#7B8499]">{d.rowIndex}</td>
@@ -651,7 +653,7 @@ export default function ExcelImporter({ onClose }) {
                             rs?.state === 'error'
                               ? rs.message
                               : rs?.state === 'success'
-                                ? "Yaratildi — qayta yuklash uchun bosing"
+                                ? 'Yaratildi — qayta yuklash uchun bosing'
                                 : 'Faqat shu qurilmani yaratish'
                           }
                           className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-[#E2E8F0] dark:border-slate-700 text-[#7B8499] hover:bg-[#3b82f6]/10 hover:text-[#3b82f6] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
@@ -715,7 +717,9 @@ export default function ExcelImporter({ onClose }) {
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/30 p-3">
-                  <p className="text-[12px] text-emerald-600 dark:text-emerald-400">Muvaffaqiyatli</p>
+                  <p className="text-[12px] text-emerald-600 dark:text-emerald-400">
+                    Muvaffaqiyatli
+                  </p>
                   <p className="text-[20px] font-bold text-emerald-700 dark:text-emerald-300">
                     {successLogs.length}
                   </p>
