@@ -63,7 +63,7 @@ const menuKeys = [
     key: 'devices',
     children: [
       { labelKey: 'deviceTypes', href: '/dashboard/devices/types', icon: Cpu },
-      { labelKey: 'devicesList', href: '/dashboard/devices', icon: MonitorSpeaker },
+      { labelKey: 'devicesList', href: '/dashboard/devices/all', icon: MonitorSpeaker },
       { labelKey: 'testLogs', href: '/dashboard/devices/test-logs', icon: FlaskConical },
     ],
   },
@@ -369,7 +369,7 @@ const DashboardLayout = ({ children }) => {
             <LanguageSwitcher />
             <ThemeToggle />
             {/* Notification button */}
-            <button
+            {/* <button
               onClick={() => setIsNotification((prev) => !prev)}
               className={`relative flex h-8 w-8 items-center justify-center  cursor-pointer rounded-lg border transition-all ${
                 isNotification
@@ -382,7 +382,7 @@ const DashboardLayout = ({ children }) => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3b82f6] opacity-50"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[#3b82f6]"></span>
               </span>
-            </button>
+            </button> */}
             <AnimatePresence>
               {isNotification && <NotificationComponent onClose={() => setIsNotification(false)} />}
             </AnimatePresence>

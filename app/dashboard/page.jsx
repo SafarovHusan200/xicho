@@ -380,82 +380,6 @@ const DashboardPage = () => {
 
       {/* ─── Charts 2-row ─── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4  gap-5">
-        {/* Donut — device status */}
-        <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
-          <CardHeader className="pb-0 mb-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-[15px] font-semibold">{ts('pieTitle')}</CardTitle>
-                <CardDescription className="text-[12px] mt-0.5">
-                  {t('devicesCard')}: {dash?.devices.total ?? 0}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="flex  flex-col  items-center gap-1 pb-5 pt-2">
-            {/* chart */}
-            <ChartContainer config={pieConfig} className="aspect-square h-57.5 shrink-0">
-              <PieChart>
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Pie
-                  data={pieData.length ? pieData : [{ name: '—', value: 1, fill: '#e2e8f0' }]}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={60}
-                  cornerRadius={5}
-                  paddingAngle={1}
-                  stroke="var(--surface)"
-                  strokeWidth={2}
-                >
-                  {(pieData.length ? pieData : [{ fill: '#e2e8f0' }]).map((e, i) => (
-                    <Cell key={i} fill={e.fill} />
-                  ))}
-                  <Label
-                    content={({ viewBox }) => {
-                      if (!viewBox || !('cx' in viewBox)) return null;
-                      return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                        >
-                          <tspan
-                            x={viewBox.cx}
-                            y={viewBox.cy}
-                            className="fill-foreground text-[32px] font-black"
-                          >
-                            {dash?.devices.total ?? 0}
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className="fill-muted-foreground text-[11px]"
-                          >
-                            {ts('pieLabelTotal')}
-                          </tspan>
-                        </text>
-                      );
-                    }}
-                  />
-                </Pie>
-              </PieChart>
-            </ChartContainer>
-            {/* legend with bars */}
-            <div className="flex flex-col gap-4 flex-1 w-full">
-              {pieData.map((d) => (
-                <Bar
-                  key={d.name}
-                  label={d.name}
-                  value={d.value}
-                  max={dash?.devices.total || 1}
-                  color={d.fill}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Facilities */}
         <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
           <CardHeader className="pb-3">
@@ -536,6 +460,82 @@ const DashboardPage = () => {
                 max={dash?.facilities.total || 1}
                 color="#06b6d4"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Donut — device status */}
+        <Card className="rounded-2xl dark:bg-slate-800 border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 shadow-sm gap-0">
+          <CardHeader className="pb-0 mb-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-[15px] font-semibold">{ts('pieTitle')}</CardTitle>
+                <CardDescription className="text-[12px] mt-0.5">
+                  {t('devicesCard')}: {dash?.devices.total ?? 0}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex  flex-col  items-center gap-1 pb-5 pt-2">
+            {/* chart */}
+            <ChartContainer config={pieConfig} className="aspect-square h-57.5 shrink-0">
+              <PieChart>
+                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                <Pie
+                  data={pieData.length ? pieData : [{ name: '—', value: 1, fill: '#e2e8f0' }]}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={60}
+                  cornerRadius={5}
+                  paddingAngle={1}
+                  stroke="var(--surface)"
+                  strokeWidth={2}
+                >
+                  {(pieData.length ? pieData : [{ fill: '#e2e8f0' }]).map((e, i) => (
+                    <Cell key={i} fill={e.fill} />
+                  ))}
+                  <Label
+                    content={({ viewBox }) => {
+                      if (!viewBox || !('cx' in viewBox)) return null;
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground text-[32px] font-black"
+                          >
+                            {dash?.devices.total ?? 0}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className="fill-muted-foreground text-[11px]"
+                          >
+                            {ts('pieLabelTotal')}
+                          </tspan>
+                        </text>
+                      );
+                    }}
+                  />
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            {/* legend with bars */}
+            <div className="flex flex-col gap-4 flex-1 w-full">
+              {pieData.map((d) => (
+                <Bar
+                  key={d.name}
+                  label={d.name}
+                  value={d.value}
+                  max={dash?.devices.total || 1}
+                  color={d.fill}
+                />
+              ))}
             </div>
           </CardContent>
         </Card>

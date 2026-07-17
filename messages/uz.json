@@ -718,5 +718,22 @@
     "colFailed": "Muvaffaqiyatsiz",
     "colUnspecified": "Natijasiz",
     "totalsRow": "Jami"
+  },
+  "errorPages": {
+    "unauthorized": {
+      "title": "Shaxsingiz tasdiqlanmadi!",
+      "description": "Iltimos, tizimga qaytadan kirishingizni so'raymiz.",
+      "action": "Kirish"
+    },
+    "forbidden": {
+      "title": "Ushbu sahifa siz uchun taqiqlangan",
+      "description": "Sizda bu bo'limga kirish huquqi yo'q. Iltimos, administrator bilan bog'laning.",
+      "action": "Ortga"
+    },
+    "serverError": {
+      "title": "Server bilan bog'liq muammo bo'lishi mumkin",
+      "description": "Iltimos, birozdan so'ng qayta urinib ko'ring",
+      "action": "Ortga"
+    }
   }
 }
