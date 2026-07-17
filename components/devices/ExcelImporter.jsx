@@ -63,11 +63,11 @@ const DEVICE_TYPE_CHECK_COLUMNS = [
 
 /* the 5 inspection-type column pairs (test date, next test date), cols 11..20 */
 const TEST_TYPE_COLUMNS = [
-  { label: 'Ташқи кўрик', testCol: 11, nextCol: 12 },
-  { label: 'Ички кўрик', testCol: 13, nextCol: 14 },
-  { label: 'Гидравлик синов', testCol: 15, nextCol: 16 },
-  { label: 'ВМҚ-784', testCol: 17, nextCol: 18 },
-  { label: 'PTO', testCol: 19, nextCol: 20 },
+  { label: 'Ташқи кўрик', testCol: 12, nextCol: 13 },
+  { label: 'Ички кўрик', testCol: 14, nextCol: 15 },
+  { label: 'Гидравлик синов', testCol: 16, nextCol: 17 },
+  { label: 'ВМҚ-784', testCol: 18, nextCol: 19 },
+  { label: 'PTO', testCol: 20, nextCol: 21 },
 ];
 
 const SLEEP_MS = 100;
@@ -87,8 +87,16 @@ function parseFlexibleDate(cellValue) {
     if (parsed) return new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
     return null;
   }
-  const s = String(cellValue).trim();
+
+  let s = String(cellValue).trim();
   if (!s) return null;
+
+  // Normalize common year suffixes and stray spaces: "09.06.1998 йил", "03.01. 1971y"
+  s = s
+    .replace(/\s*(?:йил|y|Y)\s*$/u, '')
+    .replace(/\s*([.\-/])\s*/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   const ddmmyyyy = s.match(/^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})/);
   if (ddmmyyyy) {
@@ -177,7 +185,7 @@ function parseWorkbook(workbook) {
       regNumber,
       serialNumber,
       responsiblePerson: String(row[COL.RESPONSIBLE_PERSON] ?? '').trim(),
-      commissioning_date: String(row[COL.COMMISSIONING_DATE] ?? '').trim(),
+      commissioning_date: parseFlexibleDate(row[COL.COMMISSIONING_DATE]),
       passportText: String(row[COL.PASSPORT_TEXT] ?? '').trim(),
       category: currentCategory,
       deviceTypeKeywordHit,
@@ -216,7 +224,7 @@ export default function ExcelImporter({ onClose }) {
   /* ── the 3 backend-required fields that have no source column in the sheet ── */
   const [categoryTypeMap, setCategoryTypeMap] = useState({}); // { [category]: device_type_id }
   const [manufacturerDefault, setManufacturerDefault] = useState('');
-  const [commissioningDefault, setCommissioningDefault] = useState('');
+  const [globalDeviceTypeId, setGlobalDeviceTypeId] = useState('');
   /* ── per-row device-type override (seeded from categoryTypeMap, editable per row) ── */
   const [rowTypeOverride, setRowTypeOverride] = useState({}); // { [rowIndex]: device_type_id }
   /* ── per-row create status, for the single-row upload button ── */
@@ -269,19 +277,16 @@ export default function ExcelImporter({ onClose }) {
   const uniqueCategories = [...new Set(parsedDevices.map((d) => d.category).filter(Boolean))];
   const uncategorizedCount = parsedDevices.filter((d) => !d.category).length;
 
-  /* ── resolution order: sheet checkbox match → per-row manual override → category default ── */
+  /* ── resolution order: sheet checkbox match → per-row manual override → global override → category default ── */
   const effectiveDeviceTypeId = (row) =>
     matchDeviceTypeId(row.deviceTypeKeywordHit?.[0], deviceTypes) ||
     rowTypeOverride[row.rowIndex] ||
+    globalDeviceTypeId ||
     categoryTypeMap[row.category] ||
     null;
 
   const allRowsResolved = parsedDevices.length > 0 && parsedDevices.every(effectiveDeviceTypeId);
-  const canImport =
-    !!facilityId &&
-    manufacturerDefault.trim().length > 0 &&
-    !!commissioningDefault &&
-    allRowsResolved;
+  const canImport = !!facilityId && manufacturerDefault.trim().length > 0 && allRowsResolved;
 
   const handleFile = async (file) => {
     if (!file || isReadingFile) return;
@@ -329,7 +334,7 @@ export default function ExcelImporter({ onClose }) {
       facility_id: facilityId,
       device_type_id: deviceTypeId,
       manufacturer_details: manufacturerDefault.trim(),
-      commissioning_date: toISO(earliestTestDate) ?? commissioningDefault,
+      commissioning_date: row.commissioning_date,
       serial_number: row.serialNumber || `TEMP-SN-${ts}-${index}`,
       ecosystem_reg_number: row.regNumber || `TEMP-REG-${ts}-${index}`,
       passport_specifications: {
@@ -378,7 +383,7 @@ export default function ExcelImporter({ onClose }) {
 
   /* ── single-row upload button ── */
   const uploadSingleRow = async (row, index) => {
-    if (!facilityId || !manufacturerDefault.trim() || !commissioningDefault) return;
+    if (!facilityId || !manufacturerDefault.trim()) return;
     setRowStatus((p) => ({ ...p, [row.rowIndex]: { state: 'loading' } }));
     const result = await importOneRow(row, index);
     setRowStatus((p) => ({
@@ -438,7 +443,7 @@ export default function ExcelImporter({ onClose }) {
     setProgress({ done: 0, total: 0 });
     setCategoryTypeMap({});
     setManufacturerDefault('');
-    setCommissioningDefault('');
+
     setRowTypeOverride({});
     setRowStatus({});
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -544,7 +549,7 @@ export default function ExcelImporter({ onClose }) {
           </div>
 
           {/* required fields the sheet has no column for */}
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label className="text-[13px] font-medium">
                 Barcha qurilmalar uchun ishlab chiqaruvchi ma'lumoti *
@@ -556,13 +561,29 @@ export default function ExcelImporter({ onClose }) {
                 className="text-[14px]"
               />
             </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-[13px] font-medium">Barcha qatordagi qurilma turi</Label>
+              <Select value={globalDeviceTypeId} onValueChange={setGlobalDeviceTypeId}>
+                <SelectTrigger className="w-full text-[14px]">
+                  <SelectValue placeholder="Barchasiga qurilma turi tanlang..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {deviceTypes.map((dt) => (
+                    <SelectItem key={dt.id} value={dt.id}>
+                      {dt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {uncategorizedCount > 0 && (
+          {uncategorizedCount > 0 && !globalDeviceTypeId && (
             <div className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 p-3 text-[12px] text-red-700 dark:text-red-400">
               <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-              {uncategorizedCount} ta qatorda kategoriya aniqlanmadi — qurilma turini belgilab
-              bo'lmaydi (import bloklangan).
+              {uncategorizedCount} ta qatorda kategoriya aniqlanmadi — barcha qatordagi
+              qurilma turini tanlang yoki qator bo'yicha belgilash zarur.
             </div>
           )}
 
@@ -604,7 +625,7 @@ export default function ExcelImporter({ onClose }) {
                   <th className="px-3 py-2">Nomi</th>
                   <th className="px-3 py-2">Reestr</th>
                   <th className="px-3 py-2">Zavod №</th>
-                  <th className="px-3 py-2">Qurilma turi</th>
+
                   <th className="px-3 py-2">Sinovlar</th>
                   <th className="px-3 py-2 text-right">Amal</th>
                 </tr>
@@ -612,10 +633,13 @@ export default function ExcelImporter({ onClose }) {
               <tbody className="divide-y divide-[#F0F1F5] dark:divide-slate-700/40">
                 {parsedDevices.map((d, idx) => {
                   const effectiveTypeId =
-                    rowTypeOverride[d.rowIndex] ?? categoryTypeMap[d.category] ?? '';
+                    matchDeviceTypeId(d.deviceTypeKeywordHit?.[0], deviceTypes) ||
+                    rowTypeOverride[d.rowIndex] ||
+                    globalDeviceTypeId ||
+                    categoryTypeMap[d.category] ||
+                    '';
                   const rs = rowStatus[d.rowIndex];
-                  const rowReady =
-                    !!facilityId && !!manufacturerDefault.trim() && !!commissioningDefault;
+                  const rowReady = !!facilityId && !!manufacturerDefault.trim();
                   return (
                     <tr key={d.rowIndex}>
                       <td className="px-3 py-1.5 text-[#7B8499]">{d.rowIndex}</td>
@@ -624,25 +648,7 @@ export default function ExcelImporter({ onClose }) {
                       </td>
                       <td className="px-3 py-1.5 font-mono">{d.regNumber || '—'}</td>
                       <td className="px-3 py-1.5 font-mono">{d.serialNumber || '—'}</td>
-                      <td className="px-3 py-1.5">
-                        <Select
-                          value={effectiveTypeId}
-                          onValueChange={(v) =>
-                            setRowTypeOverride((p) => ({ ...p, [d.rowIndex]: v }))
-                          }
-                        >
-                          <SelectTrigger className="h-8 w-44 text-[12px]">
-                            <SelectValue placeholder={d.category || 'Tanlang...'} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {deviceTypes.map((dt) => (
-                              <SelectItem key={dt.id} value={dt.id}>
-                                {dt.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
+
                       <td className="px-3 py-1.5">{d.inspections.length}</td>
                       <td className="px-3 py-1.5 text-right">
                         <button

@@ -35,7 +35,6 @@ import {
 import TableComponent from '@/components/tableComponent';
 import CustomModal from '@/components/modals/CustomModal';
 import PaginationComponent from '@/components/PaginationComponent';
-import StatusBadge from '@/components/devices/StatusBadge';
 import ActiveBadge from '@/components/devices/ActiveBadge';
 import StatCard from '@/components/StatCard';
 import DeviceForm from '@/components/devices/DeviceForm';
@@ -484,9 +483,7 @@ const DevicePage = () => {
                 return next;
               })
             }
-            renderExpanded={(row) => (
-              <DeviceTestLogsPanel deviceId={row.id} locale={locale} />
-            )}
+            renderExpanded={(row) => <DeviceTestLogsPanel deviceId={row.id} locale={locale} />}
           />
         )}
 
