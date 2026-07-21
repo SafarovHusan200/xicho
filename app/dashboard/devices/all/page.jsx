@@ -298,7 +298,7 @@ const DevicePage = () => {
             className="gap-2 rounded-xl px-4 h-10 text-sm font-semibold"
           >
             <FileUp size={16} />
-            Excel'dan import
+            {t('importExcel')}
           </Button>
           <Button
             onClick={() => {
@@ -556,7 +556,8 @@ const DevicePage = () => {
       <CustomModal
         open={importOpen}
         onClose={() => setImportOpen(false)}
-        title="Excel'dan qurilmalarni import qilish"
+        title={t('importExcelTitle')}
+        description={t('importExcelHint')}
         className="max-w-200! w-full"
       >
         <ExcelImporter onClose={() => setImportOpen(false)} />

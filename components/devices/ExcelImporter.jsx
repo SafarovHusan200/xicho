@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import {
   UploadCloud,
   Upload,
@@ -196,9 +197,7 @@ function parseWorkbook(workbook) {
   console.log('devices', devices);
 
   if (devices.length === 0) {
-    warnings.push(
-      'No data rows recognized — check HEADER_ROWS / column indices against the real file.'
-    );
+    warnings.push('warningNoRows');
   }
 
   return { devices, warnings };
@@ -207,6 +206,7 @@ function parseWorkbook(workbook) {
 const STATUS = { IDLE: 'idle', PARSED: 'parsed', IMPORTING: 'importing', DONE: 'done' };
 
 export default function ExcelImporter({ onClose }) {
+  const t = useTranslations('excelImporter');
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const fileInputRef = useRef(null);
@@ -320,7 +320,7 @@ export default function ExcelImporter({ onClose }) {
     const deviceTypeId = effectiveDeviceTypeId(row);
 
     if (!deviceTypeId) {
-      return { ok: false, error: 'Qurilma turi tanlanmagan' };
+      return { ok: false, error: t('errDeviceTypeMissing') };
     }
 
     const earliestTestDate = row.inspections
@@ -370,13 +370,13 @@ export default function ExcelImporter({ onClose }) {
 
       return {
         ok: true,
-        note: inspectionErrors ? `${inspectionErrors} ta sinov qo'shilmadi` : null,
+        note: inspectionErrors ? t('errInspectionsSkipped', { count: inspectionErrors }) : null,
       };
     } catch (err) {
       const detail = err?.response?.data?.detail;
       const msg = Array.isArray(detail)
         ? detail.map((d) => (typeof d === 'string' ? d : d.msg)).join('; ')
-        : (detail ?? err?.message ?? 'Unknown error');
+        : (detail ?? err?.message ?? t('errUnknown'));
       return { ok: false, error: msg };
     }
   };
@@ -473,19 +473,17 @@ export default function ExcelImporter({ onClose }) {
             <>
               <Loader2 size={32} className="text-[#3b82f6] animate-spin" />
               <p className="text-[14px] font-medium text-[#031634] dark:text-slate-100">
-                {fileName || 'Fayl'} o'qilmoqda...
+                {fileName} {t('readingFile')}
               </p>
-              <p className="text-[12px] text-[#7B8499] dark:text-slate-400">
-                Iltimos kuting, ma'lumotlar tahlil qilinmoqda
-              </p>
+              <p className="text-[12px] text-[#7B8499] dark:text-slate-400">{t('readingHint')}</p>
             </>
           ) : (
             <>
               <UploadCloud size={32} className="text-[#3b82f6]" />
               <p className="text-[14px] font-medium text-[#031634] dark:text-slate-100">
-                Excel yoki CSV faylni shu yerga tashlang yoki tanlash uchun bosing
+                {t('dropHint')}
               </p>
-              <p className="text-[12px] text-[#7B8499] dark:text-slate-400">.xlsx, .xls, .csv</p>
+              <p className="text-[12px] text-[#7B8499] dark:text-slate-400">{t('dropFormats')}</p>
             </>
           )}
           <input
@@ -509,7 +507,7 @@ export default function ExcelImporter({ onClose }) {
                 {fileName}
               </p>
               <p className="text-[12px] text-[#7B8499] dark:text-slate-400">
-                {parsedDevices.length} ta qurilma aniqlandi
+                {t('devicesFound', { count: parsedDevices.length })}
               </p>
             </div>
             <button
@@ -526,17 +524,15 @@ export default function ExcelImporter({ onClose }) {
               className="flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-3 text-[12px] text-amber-700 dark:text-amber-400"
             >
               <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-              {w}
+              {t(w)}
             </div>
           ))}
 
           <div className="flex flex-col gap-1.5">
-            <Label className="text-[13px] font-medium">
-              Barcha qurilmalar tegishli bo'lgan obyekt *
-            </Label>
+            <Label className="text-[13px] font-medium">{t('facilityLabel')}</Label>
             <Select value={facilityId} onValueChange={setFacilityId}>
               <SelectTrigger className="w-full text-[14px]">
-                <SelectValue placeholder="Obyektni tanlang..." />
+                <SelectValue placeholder={t('facilityPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {facilities.map((f) => (
@@ -551,22 +547,20 @@ export default function ExcelImporter({ onClose }) {
           {/* required fields the sheet has no column for */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label className="text-[13px] font-medium">
-                Barcha qurilmalar uchun ishlab chiqaruvchi ma'lumoti *
-              </Label>
+              <Label className="text-[13px] font-medium">{t('manufacturerLabel')}</Label>
               <Input
                 value={manufacturerDefault}
                 onChange={(e) => setManufacturerDefault(e.target.value)}
-                placeholder="Masalan: Rossiya, TGMP-114"
+                placeholder={t('manufacturerPlaceholder')}
                 className="text-[14px]"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label className="text-[13px] font-medium">Barcha qatordagi qurilma turi</Label>
+              <Label className="text-[13px] font-medium">{t('globalTypeLabel')}</Label>
               <Select value={globalDeviceTypeId} onValueChange={setGlobalDeviceTypeId}>
                 <SelectTrigger className="w-full text-[14px]">
-                  <SelectValue placeholder="Barchasiga qurilma turi tanlang..." />
+                  <SelectValue placeholder={t('globalTypePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {deviceTypes.map((dt) => (
@@ -582,14 +576,13 @@ export default function ExcelImporter({ onClose }) {
           {uncategorizedCount > 0 && !globalDeviceTypeId && (
             <div className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 p-3 text-[12px] text-red-700 dark:text-red-400">
               <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-              {uncategorizedCount} ta qatorda kategoriya aniqlanmadi — barcha qatordagi
-              qurilma turini tanlang yoki qator bo'yicha belgilash zarur.
+              {t('uncategorizedWarning', { count: uncategorizedCount })}
             </div>
           )}
 
           {uniqueCategories.length > 0 && (
             <div className="flex flex-col gap-2">
-              <Label className="text-[13px] font-medium">Kategoriya → Qurilma turi *</Label>
+              <Label className="text-[13px] font-medium">{t('categoryMapLabel')}</Label>
               <div className="flex flex-col gap-2 rounded-xl border border-[#E2E8F0] dark:border-slate-700 p-3">
                 {uniqueCategories.map((cat) => (
                   <div key={cat} className="flex items-center gap-2">
@@ -601,7 +594,7 @@ export default function ExcelImporter({ onClose }) {
                       onValueChange={(v) => setCategoryTypeMap((p) => ({ ...p, [cat]: v }))}
                     >
                       <SelectTrigger className="w-56 text-[13px]">
-                        <SelectValue placeholder="Qurilma turini tanlang..." />
+                        <SelectValue placeholder={t('categoryTypePlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {deviceTypes.map((dt) => (
@@ -621,13 +614,13 @@ export default function ExcelImporter({ onClose }) {
             <table className="w-full text-[12px]">
               <thead className="sticky top-0 bg-[#F8FAFC] dark:bg-slate-800">
                 <tr className="text-left text-[#7B8499] dark:text-slate-400">
-                  <th className="px-3 py-2">#</th>
-                  <th className="px-3 py-2">Nomi</th>
-                  <th className="px-3 py-2">Reestr</th>
-                  <th className="px-3 py-2">Zavod №</th>
+                  <th className="px-3 py-2">{t('colRow')}</th>
+                  <th className="px-3 py-2">{t('colName')}</th>
+                  <th className="px-3 py-2">{t('colReg')}</th>
+                  <th className="px-3 py-2">{t('colSerial')}</th>
 
-                  <th className="px-3 py-2">Sinovlar</th>
-                  <th className="px-3 py-2 text-right">Amal</th>
+                  <th className="px-3 py-2">{t('colTests')}</th>
+                  <th className="px-3 py-2 text-right">{t('colAction')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F0F1F5] dark:divide-slate-700/40">
@@ -659,8 +652,8 @@ export default function ExcelImporter({ onClose }) {
                             rs?.state === 'error'
                               ? rs.message
                               : rs?.state === 'success'
-                                ? 'Yaratildi — qayta yuklash uchun bosing'
-                                : 'Faqat shu qurilmani yaratish'
+                                ? t('rowUploadTitleSuccess')
+                                : t('rowUploadTitleDefault')
                           }
                           className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-[#E2E8F0] dark:border-slate-700 text-[#7B8499] hover:bg-[#3b82f6]/10 hover:text-[#3b82f6] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
                         >
@@ -684,14 +677,14 @@ export default function ExcelImporter({ onClose }) {
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
             <Button type="button" variant="outline" onClick={onClose}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               onClick={startImport}
               disabled={!canImport || parsedDevices.length === 0}
               className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
             >
-              {parsedDevices.length} ta qurilmani import qilish
+              {t('importButton', { count: parsedDevices.length })}
             </Button>
           </div>
         </div>
@@ -724,14 +717,14 @@ export default function ExcelImporter({ onClose }) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/30 p-3">
                   <p className="text-[12px] text-emerald-600 dark:text-emerald-400">
-                    Muvaffaqiyatli
+                    {t('success')}
                   </p>
                   <p className="text-[20px] font-bold text-emerald-700 dark:text-emerald-300">
                     {successLogs.length}
                   </p>
                 </div>
                 <div className="rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/30 p-3">
-                  <p className="text-[12px] text-red-600 dark:text-red-400">Xatolik</p>
+                  <p className="text-[12px] text-red-600 dark:text-red-400">{t('error')}</p>
                   <p className="text-[20px] font-bold text-red-700 dark:text-red-300">
                     {errorLogs.length}
                   </p>
@@ -753,10 +746,10 @@ export default function ExcelImporter({ onClose }) {
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
                 <Button type="button" variant="outline" onClick={reset}>
-                  Yana import qilish
+                  {t('reimport')}
                 </Button>
                 <Button onClick={onClose} className="bg-[#3b82f6] hover:bg-[#2563eb] text-white">
-                  Yakunlash
+                  {t('finish')}
                 </Button>
               </div>
             </>
