@@ -14,5 +14,5 @@ export const config = {
   // GENERAL_AUTH_URL: "http://10.20.6.23:5656",
 
   // API_URL: 'http://10.40.9.46:8080/api/v1',
-  API_URL: 'http://10.20.61.97:8080/api/v1',
+  API_URL: 'http://10.20.6.97:8080/api/v1',
 };
