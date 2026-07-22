@@ -37,6 +37,8 @@ const useGetQuery = ({
   // Handle errors
   if (error) {
     const status = error?.response?.status;
+    // no response at all (server down, connection refused, timeout) — not a cancelled request
+    const isNetworkError = !error?.response && error?.code !== 'ERR_CANCELED';
 
     // 🔴 401 - Let ErrorBoundary/component handle refresh attempt
     if (status === 401) {
@@ -50,8 +52,8 @@ const useGetQuery = ({
     else if (status === 404 && showErrorMsg) {
       toast.error(error?.response?.data?.message || 'Resurs topilmadi');
     }
-    // 🔴 500 - Server error
-    else if (status >= 500 && redirectOn500) {
+    // 🔴 500 - Server error (or server unreachable)
+    else if ((status >= 500 || isNetworkError) && redirectOn500) {
       router.replace('/500');
     } else if (showErrorMsg) {
       toast.error(error?.response?.data?.message || 'Ошибка запроса');

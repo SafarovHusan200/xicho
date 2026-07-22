@@ -43,7 +43,7 @@ function DatePickerField({ value, onChange, placeholder }) {
           captionLayout="dropdown"
           endMonth={new Date(new Date().getFullYear() + 10, 11, 31)}
           onSelect={(d) => {
-            onChange(d ? d.toISOString() : '');
+            onChange(d ? new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString() : '');
             setOpen(false);
           }}
         />
