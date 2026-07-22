@@ -99,7 +99,7 @@ const SidebarContent = ({ sidebarSmall, t, setSidebarOpen, pathname, openGroups,
           {sidebarSmall && (
             <div>
               <h3 className="font-bold text-[15px] text-white tracking-wide">ХИЧО</h3>
-              <p className="text-[#64748b] text-[11px] uppercase tracking-widest">
+              <p className="text-[#64748b] text-[11px] min-w-0  uppercase tracking-widest">
                 {t('subtitle')}
               </p>
             </div>

@@ -267,7 +267,7 @@ const LoginPage = () => {
                         </FieldLabel>
                         <Input
                           id="fieldgroup-name"
-                          placeholder="Admin"
+                          placeholder={t('usernamePlaceholder')}
                           className="text-[16px]! py-5 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
                           required
                           name="username"
@@ -287,6 +287,7 @@ const LoginPage = () => {
                         </FieldLabel>
                         <PasswordInput
                           id="fieldgroup-email"
+                          placeholder={t('passwordPlaceholder')}
                           className="text-[16px]! py-5 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                           required
                           name="password"

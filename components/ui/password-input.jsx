@@ -21,7 +21,7 @@ function PasswordInput({ className, ...props }) {
         className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
         aria-label={visible ? 'Hide password' : 'Show password'}
       >
-        {visible ? <EyeOff /> : <Eye />}
+        {visible ? <EyeOff className="w-4.5! h-4.5! " /> : <Eye className="w-4.5! h-4.5!" />}
       </Button>
     </div>
   );
