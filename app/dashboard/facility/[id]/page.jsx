@@ -4,11 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft,
   Pencil,
+  Trash2,
+  AlertTriangle,
   Building2,
   LayoutGrid,
   Hash,
@@ -31,7 +34,10 @@ import {
 } from 'lucide-react';
 
 import useGetQuery from '@/hooks/all/useGetQuery';
+import useDeleteQuery from '@/hooks/all/useDeleteQuery';
+import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import useEmployeeStore from '@/store/useEmployeeStore';
+import useFacilityStore from '@/store/useFacilityStore';
 import { staffio } from '@/services/staffio';
 import { request } from '@/services/api';
 import { KEYS } from '@/constants/key';
@@ -39,6 +45,7 @@ import { URLS } from '@/constants/url';
 import { getUnitCodeName } from '@/constants/unit_codes';
 import { Button } from '@/components/ui/button';
 import CustomModal from '@/components/modals/CustomModal';
+import FacilityFormComponent from '@/components/forms/FacilityFormComponent';
 import { getMimeIcon, getMimeColor, getMimeLabel, fmtSize } from '@/components/documents/fileUtils';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
@@ -247,12 +254,58 @@ export default function FacilityDetailPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const t = useTranslations('facilityDetail');
+  const tf = useTranslations('facility');
+  const tc = useTranslations('common');
   const locale = useLocale();
+  const queryClient = useQueryClient();
   const { employees, setEmployees } = useEmployeeStore();
+  const { facilities: storedFacilities, setFacilities, reset: resetFacilityStore } =
+    useFacilityStore();
   const [loadingDocId, setLoadingDocId] = useState(null);
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
+
+  const { mutate: deleteFacility, isPending: isDeleting } = useDeleteQuery({
+    listKeyId: KEYS.facilities,
+    hideSuccessToast: true,
+  });
+
+  const handleDelete = () => {
+    deleteFacility(
+      { url: `${URLS.facilities}/${id}`, config: { headers: authHeader } },
+      {
+        onSuccess: () => {
+          toast.success(tf('successDeleted'));
+          resetFacilityStore();
+          router.push('/dashboard/facility');
+        },
+        onError: () => toast.error(tf('errorDelete')),
+      }
+    );
+  };
+
+  const { mutate: updateFacility, isPending: isUpdating } = usePatchPythonQuery({
+    listKeyId: KEYS.facilities,
+    hideSuccessToast: true,
+  });
+
+  const handleFormSubmit = (payload) => {
+    updateFacility(
+      { url: `${URLS.facilities}/${id}`, attributes: payload, config: { headers: authHeader } },
+      {
+        onSuccess: () => {
+          toast.success(tf('successUpdated'));
+          queryClient.invalidateQueries({ queryKey: [[KEYS.facilities, id]] });
+          resetFacilityStore();
+          setIsEditOpen(false);
+        },
+        onError: () => toast.error(tf('errorUpdate')),
+      }
+    );
+  };
 
   const { isLoading, data } = useGetQuery({
     key: [KEYS.facilities, id],
@@ -261,6 +314,22 @@ export default function FacilityDetailPage() {
     headers: { ...authHeader, Accept: 'application/json' },
     enabled: !!session?.accessToken && !!id,
   });
+
+  /* ── full facilities list, for the edit form's parent picker ── */
+  const { data: allFacilitiesData } = useGetQuery({
+    key: KEYS.facilities,
+    url: URLS.facilities,
+    params: { limit: 1000 },
+    headers: authHeader,
+    enabled: !!session?.accessToken && storedFacilities.length === 0,
+  });
+
+  useEffect(() => {
+    const list = allFacilitiesData?.data?.data;
+    if (list?.length) setFacilities(list);
+  }, [allFacilitiesData]);
+
+  const allFacilities = storedFacilities.filter(Boolean);
 
   const { data: employeesData } = useGetQuery({
     key: KEYS.employees,
@@ -389,12 +458,21 @@ export default function FacilityDetailPage() {
           </div>
         </div>
 
-        <Button
-          onClick={() => router.push(`/dashboard/facility?edit=${id}`)}
-          className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold self-start bg-[#3b82f6] hover:bg-[#2563eb]"
-        >
-          <Pencil size={15} /> {t('edit')}
-        </Button>
+        <div className="flex items-center gap-2 self-start">
+          <Button
+            onClick={() => setIsEditOpen(true)}
+            className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold bg-[#3b82f6] hover:bg-[#2563eb]"
+          >
+            <Pencil size={15} /> {t('edit')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsDeleteOpen(true)}
+            className="gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border-red-300 dark:border-red-800/60 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 hover:text-red-600"
+          >
+            <Trash2 size={15} /> {tc('delete')}
+          </Button>
+        </div>
       </div>
 
       {/* ── Devices summary ────────────────────────────────── */}
@@ -619,6 +697,53 @@ export default function FacilityDetailPage() {
           </Section>
         </div>
       </div>
+
+      {/* ── Edit modal ─────────────────────────────────────── */}
+      <CustomModal
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title={tf('editTitle')}
+        className="max-w-180! w-full"
+      >
+        <FacilityFormComponent
+          facilities={allFacilities.filter((f) => f.is_facilities)}
+          allFacilities={allFacilities}
+          onSubmit={handleFormSubmit}
+          onClose={() => setIsEditOpen(false)}
+          initialData={facility}
+          isPending={isUpdating}
+        />
+      </CustomModal>
+
+      {/* ── Delete modal ──────────────────────────────────── */}
+      <CustomModal
+        open={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        title={tf('deleteTitle')}
+        className="max-w-md! w-full"
+      >
+        <div className="flex flex-col gap-5 pt-1">
+          <div className="flex items-start gap-3 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 p-4">
+            <AlertTriangle size={20} className="text-red-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700 dark:text-red-400">
+              <span className="font-semibold">«{facility.name}»</span> {tf('deleteWarning')}
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" className="rounded-xl" onClick={() => setIsDeleteOpen(false)}>
+              {tf('cancel')}
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="rounded-xl gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold"
+            >
+              {isDeleting && <Loader2 size={14} className="animate-spin" />}
+              {isDeleting ? tf('deleting') : tf('confirmDelete')}
+            </Button>
+          </div>
+        </div>
+      </CustomModal>
 
       {/* ── Document preview modal ──────────────────────────── */}
       {previewDoc && (

@@ -188,7 +188,7 @@ function PersonCard({
   const color = colors[name.charCodeAt(0) % colors.length] ?? '#3b82f6';
 
   return (
-    <div className="flex flex-wrap  items-center gap-3 p-3 rounded-xl border border-[rgba(197,198,207,0.18)] dark:border-slate-700/30 bg-[rgba(255,255,255,0.6)] dark:bg-slate-700/20">
+    <div className="flex   items-center gap-3 p-2 rounded-xl border border-[rgba(197,198,207,0.18)] dark:border-slate-700/30 bg-[rgba(255,255,255,0.6)] dark:bg-slate-700/20">
       {/* avatar */}
       <div
         className=" h-9 w-9 hidden 2xl:flex items-center justify-center rounded-full shrink-0 text-white text-[13px] font-bold"
@@ -196,12 +196,13 @@ function PersonCard({
       >
         {initials}
       </div>
-      <div className="flex flex-col gap-0.5  flex-1">
+      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
         <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100 leading-tight truncate">
           {name}
         </span>
         <span className="text-[11px] text-[#7B8499] truncate">{facility}</span>
       </div>
+
       <div className="flex flex-col items-end gap-1 shrink-0">
         <div className="flex gap-1">
           {isInspector && (
@@ -634,7 +635,7 @@ const DashboardPage = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2.5 pb-4">
+          <CardContent className="flex flex-col gap-2.5 pb-4 ">
             {dash?.responsible_persons.items.map((p, i) => (
               <Link href={`/dashboard/users/${p.id}`} key={`${p.id}-${i}`}>
                 <PersonCard

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,6 +21,8 @@ import {
   ClipboardList,
   Loader2,
   Edit,
+  Trash2,
+  AlertTriangle,
   Phone,
   ShieldCheck,
   ExternalLink,
@@ -35,6 +37,7 @@ import {
 } from 'lucide-react';
 import useGetQuery from '@/hooks/all/useGetQuery';
 import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
+import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { Button } from '@/components/ui/button';
@@ -245,16 +248,19 @@ function PersonCard({ person, index, t, locale, getEmployeeName }) {
 /* ── Page ────────────────────────────────────────────────────── */
 export default function DeviceDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const { data: session } = useSession();
   const t = useTranslations('deviceDetail');
   const tt = useTranslations('testLogs');
   const td = useTranslations('devices');
+  const tc = useTranslations('common');
   const locale = useLocale();
   const queryClient = useQueryClient();
   const { employees, setEmployees } = useEmployeeStore();
   const [docPreview, setDocPreview] = React.useState(null);
   const [loadingDocId, setLoadingDocId] = React.useState(null);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
@@ -365,6 +371,24 @@ export default function DeviceDetailPage() {
     hideSuccessToast: true,
   });
   const { reset: resetDeviceStore } = useDeviceStore();
+  const { mutate: deleteDevice, isPending: isDeleting } = useDeleteQuery({
+    listKeyId: KEYS.device,
+    hideSuccessToast: true,
+  });
+
+  const handleDelete = () => {
+    deleteDevice(
+      { url: `${URLS.device}/${id}`, config: { headers: authHeader } },
+      {
+        onSuccess: () => {
+          toast.success(td('successDeleted'));
+          resetDeviceStore();
+          router.push('/dashboard/devices/all');
+        },
+        onError: () => toast.error(td('errorDelete')),
+      }
+    );
+  };
 
   const handleFormSubmit = (payload) => {
     updateDevice(
@@ -441,12 +465,21 @@ export default function DeviceDetailPage() {
           </div>
         </div>
 
-        <Button
-          onClick={() => setIsEditOpen(true)}
-          className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold self-start bg-[#3b82f6] hover:bg-[#2563eb]"
-        >
-          <Edit size={15} /> {t('edit')}
-        </Button>
+        <div className="flex items-center gap-2 self-start">
+          <Button
+            onClick={() => setIsEditOpen(true)}
+            className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold bg-[#3b82f6] hover:bg-[#2563eb]"
+          >
+            <Edit size={15} /> {t('edit')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsDeleteOpen(true)}
+            className="gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border-red-300 dark:border-red-800/60 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 hover:text-red-600"
+          >
+            <Trash2 size={15} /> {tc('delete')}
+          </Button>
+        </div>
       </div>
 
       {/* ── Stat cards ─────────────────────────────────────── */}
@@ -758,6 +791,40 @@ export default function DeviceDetailPage() {
               deviceTypes={deviceTypes}
               facilities={facilities}
             />
+          </div>
+        </CustomModal>
+
+        {/* ── Delete modal ─────────────────────────────────── */}
+        <CustomModal
+          open={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          title={td('deleteTitle')}
+          className="max-w-md! w-full"
+        >
+          <div className="flex flex-col gap-5 pt-1">
+            <div className="flex items-start gap-3 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 p-4">
+              <AlertTriangle size={20} className="text-red-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700 dark:text-red-400">
+                <span className="font-semibold">«{device.name}»</span> {td('deleteWarning')}
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setIsDeleteOpen(false)}
+              >
+                {td('cancel')}
+              </Button>
+              <Button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="rounded-xl gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold"
+              >
+                {isDeleting && <Loader2 size={14} className="animate-spin" />}
+                {isDeleting ? td('deleting') : td('confirmDelete')}
+              </Button>
+            </div>
           </div>
         </CustomModal>
 

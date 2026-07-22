@@ -129,7 +129,9 @@ export default function CalendarPage() {
     today.setHours(0, 0, 0, 0);
     return logs
       .filter(
-        (l) => l.next_test_date && (new Date(l.next_test_date) >= today || l.is_passed === false)
+        (l) =>
+          l.next_test_date &&
+          (new Date(l.next_test_date) >= today || l.is_passed === false || l.is_passed === null)
       )
       .sort((a, b) => new Date(a.next_test_date) - new Date(b.next_test_date))
       .slice(0, 6);
@@ -146,7 +148,7 @@ export default function CalendarPage() {
 
   const { passedCount, gradedTotal, passRate } = useMemo(() => {
     const passed = logs.filter((l) => l.is_passed === true).length;
-    const failed = logs.filter((l) => l.is_passed === false).length;
+    const failed = logs.filter((l) => l.is_passed === false || l.is_passed === null).length;
     const total = passed + failed;
     return {
       passedCount: passed,

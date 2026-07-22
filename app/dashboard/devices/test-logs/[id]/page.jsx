@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import {
   ArrowLeft,
   Pencil,
+  Trash2,
   FlaskConical,
   Hash,
   Calendar,
@@ -20,8 +21,10 @@ import {
 } from 'lucide-react';
 import useGetQuery from '@/hooks/all/useGetQuery';
 import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
+import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
+import { Button } from '@/components/ui/button';
 import {
   getTestLogStatus,
   getDayDiffLabel,
@@ -88,6 +91,7 @@ export default function TestLogDetailPage() {
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { isLoading, data } = useGetQuery({
     key: [KEYS.testLogs, id],
@@ -127,6 +131,24 @@ export default function TestLogDetailPage() {
     listKeyId: KEYS.testLogs,
     hideSuccessToast: true,
   });
+  const { mutate: deleteLog, isPending: deleting } = useDeleteQuery({
+    listKeyId: KEYS.testLogs,
+    hideSuccessToast: true,
+  });
+
+  const handleDelete = () => {
+    deleteLog(
+      { url: `${URLS.testLogs}/${id}`, config: { headers: authHeader } },
+      {
+        onSuccess: () => {
+          toast.success(t('successDeleted'));
+          resetTestLogStore();
+          router.push('/dashboard/devices/test-logs');
+        },
+        onError: () => toast.error(t('errorDelete')),
+      }
+    );
+  };
 
   const handleEditSubmit = (payload) => {
     updateLog(
@@ -216,6 +238,12 @@ export default function TestLogDetailPage() {
             className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold bg-[#3b82f6] hover:bg-[#2563eb] text-white transition-all"
           >
             <Pencil size={15} /> {tc('edit')}
+          </button>
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border border-red-300 dark:border-red-800/60 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 transition-all"
+          >
+            <Trash2 size={15} /> {tc('delete')}
           </button>
         </div>
       </div>
@@ -309,6 +337,42 @@ export default function TestLogDetailPage() {
           devices={devices}
           locale={locale}
         />
+      </CustomModal>
+
+      {/* ── Delete modal ───────────────────────────────────── */}
+      <CustomModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title={t('deleteTitle')}
+        className="max-w-sm"
+      >
+        <div className="flex flex-col gap-5 pt-1">
+          <p className="text-[14px] text-[#3C4043] dark:text-slate-300">
+            <span className="font-semibold text-[#031634] dark:text-slate-100">
+              {log.test_type}
+            </span>{' '}
+            {t('deleteWarning')}
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} className="text-[13px]">
+              {t('cancel')}
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-[13px] bg-red-500 hover:bg-red-600 text-white"
+            >
+              {deleting ? (
+                <span className="flex items-center gap-1.5">
+                  <Loader2 size={13} className="animate-spin" />
+                  {t('deleting')}
+                </span>
+              ) : (
+                t('confirmDelete')
+              )}
+            </Button>
+          </div>
+        </div>
       </CustomModal>
     </div>
   );
