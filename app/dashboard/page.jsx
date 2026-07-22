@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import dynamic from 'next/dynamic';
-import CountUp from 'react-countup';
 import {
   Monitor,
   CheckCircle2,
@@ -12,7 +11,6 @@ import {
   MapPin,
   Users,
   Building2,
-  Activity,
   CalendarDays,
 } from 'lucide-react';
 import { Cell, Pie, PieChart, Label } from 'recharts';
@@ -31,204 +29,13 @@ import { URLS } from '@/constants/url';
 import useEmployeeStore from '@/store/useEmployeeStore';
 import { staffio } from '@/services/staffio';
 import Link from 'next/link';
+import KpiCard from '@/components/dashboard/KpiCard';
+import Bar from '@/components/dashboard/Bar';
+import DeviceRow from '@/components/dashboard/DeviceRow';
+import PersonCard from '@/components/dashboard/PersonCard';
+import Empty from '@/components/dashboard/Empty';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), { ssr: false });
-
-/* ── Skeleton ────────────────────────────────────────────── */
-const Skel = ({ w = 'w-14', h = 'h-10' }) => (
-  <span
-    className={`inline-block ${w} ${h} animate-pulse rounded-xl bg-white/40 dark:bg-slate-700`}
-  />
-);
-
-/* ── KPI Card (gradient bg) ──────────────────────────────── */
-function KpiCard({ icon: Icon, color, bg, label, value, sub, isLoading, alert }) {
-  return (
-    <div
-      className={`relative flex flex-col gap-1 rounded-2xl px-3 py-2 xl:px-5 xl:py-4 overflow-hidden shadow-sm ${bg}`}
-    >
-      <div className="relative flex items-center justify-between">
-        <span className="text-[14px] font-bold uppercase tracking-widest" style={{ color }}>
-          {label}
-        </span>
-
-        {/* icon with optional ping rings */}
-        <div className="relative h-10 w-10 shrink-0">
-          {alert && (
-            <>
-              <span
-                className="absolute inset-0 rounded-xl animate-ping"
-                style={{ backgroundColor: `${color}35`, animationDuration: '1.6s' }}
-              />
-              <span
-                className="absolute inset-0 rounded-xl animate-ping"
-                style={{
-                  backgroundColor: `${color}20`,
-                  animationDuration: '1.6s',
-                  animationDelay: '0.5s',
-                }}
-              />
-            </>
-          )}
-          <div
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${color}25` }}
-          >
-            <Icon size={18} style={{ color }} className={alert ? 'animate-pulse' : ''} />
-          </div>
-        </div>
-      </div>
-
-      <span className="relative text-[36px] font-bold leading-none text-[#031634] dark:text-slate-100">
-        {isLoading ? <Skel /> : <CountUp start={0} end={value ?? 0} duration={1.4} separator=" " />}
-      </span>
-      {sub && (
-        <p className="relative text-[12px]  font-medium" style={{ color: `${color}cc` }}>
-          {sub}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ── Progress bar ────────────────────────────────────────── */
-function Bar({ label, value, max, color }) {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between text-[12px]">
-        <span className="flex items-center gap-1.5 text-[#44474E] dark:text-slate-400">
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-          {label}
-        </span>
-        <span className="font-semibold text-[#031634] dark:text-slate-100">{value}</span>
-      </div>
-      <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700/60 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ── Pulse dot ───────────────────────────────────────────── */
-const PulseDot = ({ color }) => (
-  <span className="relative flex h-2.5 w-2.5 shrink-0">
-    <span
-      className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
-      style={{ backgroundColor: color }}
-    />
-    <span
-      className="relative inline-flex rounded-full h-2.5 w-2.5"
-      style={{ backgroundColor: color }}
-    />
-  </span>
-);
-
-/* ── Device alert row ────────────────────────────────────── */
-function DeviceRow({ device, badge, badgeColor, pulse }) {
-  return (
-    <div className="flex items-center gap-3 py-3 border-b border-[rgba(197,198,207,0.15)] dark:border-slate-700/20 last:border-0">
-      <div
-        className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: `${badgeColor}15` }}
-      >
-        <Monitor size={14} style={{ color: badgeColor }} />
-      </div>
-      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          {pulse && <PulseDot color={badgeColor} />}
-          <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100 truncate">
-            {device.name}
-          </span>
-        </div>
-        <span className="text-[11px] text-[#7B8499] truncate">
-          {device.facility_name}
-          {device.serial_number && ` · ${device.serial_number}`}
-        </span>
-      </div>
-      <span
-        className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold border shrink-0"
-        style={{
-          backgroundColor: `${badgeColor}12`,
-          color: badgeColor,
-          borderColor: `${badgeColor}30`,
-        }}
-      >
-        {badge}
-      </span>
-    </div>
-  );
-}
-
-/* ── Person avatar card ──────────────────────────────────── */
-function PersonCard({
-  name,
-  facility,
-  orderNo,
-  endDate,
-  isInspector,
-  isMain,
-  inspectorLabel,
-  mainLabel,
-  untilLabel,
-}) {
-  const initials =
-    name && name !== '-'
-      ? name
-          .split(' ')
-          .map((w) => w[0])
-          .slice(0, 2)
-          .join('')
-          .toUpperCase()
-      : '?';
-  const colors = ['#3b82f6', '#10B981', '#8b5cf6', '#f59e0b', '#ec4899'];
-  const color = colors[name.charCodeAt(0) % colors.length] ?? '#3b82f6';
-
-  return (
-    <div className="flex   items-center gap-3 p-2 rounded-xl border border-[rgba(197,198,207,0.18)] dark:border-slate-700/30 bg-[rgba(255,255,255,0.6)] dark:bg-slate-700/20">
-      {/* avatar */}
-      <div
-        className=" h-9 w-9 hidden 2xl:flex items-center justify-center rounded-full shrink-0 text-white text-[13px] font-bold"
-        style={{ backgroundColor: color }}
-      >
-        {initials}
-      </div>
-      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100 leading-tight truncate">
-          {name}
-        </span>
-        <span className="text-[11px] text-[#7B8499] truncate">{facility}</span>
-      </div>
-
-      <div className="flex flex-col items-end gap-1 shrink-0">
-        <div className="flex gap-1">
-          {isInspector && (
-            <span className="rounded-full px-1.5 py-0.5 text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">
-              {inspectorLabel}
-            </span>
-          )}
-          {isMain && (
-            <span className="rounded-full px-1.5 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400">
-              {mainLabel}
-            </span>
-          )}
-        </div>
-        <span className="text-[10px] text-[#94a3b8]">#{orderNo}</span>
-      </div>
-    </div>
-  );
-}
-
-/* ── Empty ───────────────────────────────────────────────── */
-const Empty = ({ text }) => (
-  <div className="flex flex-col items-center justify-center py-8 gap-2 text-[#94a3b8]">
-    <Activity size={24} strokeWidth={1.5} />
-    <p className="text-[13px]">{text}</p>
-  </div>
-);
 
 /* ═══════════════════════════════════════════════════════════ */
 const DashboardPage = () => {
