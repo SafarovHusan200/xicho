@@ -36,6 +36,7 @@ import { TestLogForm } from '../page';
 import CustomModal from '@/components/modals/CustomModal';
 import useDeviceStore from '@/store/useDeviceStore';
 import useTestLogStore from '@/store/useTestLogStore';
+import { hasManageAccess } from '@/lib/permissions';
 
 /* ── InfoRow / Section — same visual language as the device detail page ── */
 function InfoRow({ icon: Icon, label, value, iconColor = '#7B8499' }) {
@@ -92,6 +93,7 @@ export default function TestLogDetailPage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const canManage = hasManageAccess(session);
 
   const { isLoading, data } = useGetQuery({
     key: [KEYS.testLogs, id],
@@ -232,20 +234,22 @@ export default function TestLogDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start">
-          <button
-            onClick={() => setEditOpen(true)}
-            className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold bg-[#3b82f6] hover:bg-[#2563eb] text-white transition-all"
-          >
-            <Pencil size={15} /> {tc('edit')}
-          </button>
-          <button
-            onClick={() => setDeleteOpen(true)}
-            className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border border-red-300 dark:border-red-800/60 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 transition-all"
-          >
-            <Trash2 size={15} /> {tc('delete')}
-          </button>
-        </div>
+        {canManage && (
+          <div className="flex items-center gap-2 self-start">
+            <button
+              onClick={() => setEditOpen(true)}
+              className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold bg-[#3b82f6] hover:bg-[#2563eb] text-white transition-all"
+            >
+              <Pencil size={15} /> {tc('edit')}
+            </button>
+            <button
+              onClick={() => setDeleteOpen(true)}
+              className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border border-red-300 dark:border-red-800/60 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 transition-all"
+            >
+              <Trash2 size={15} /> {tc('delete')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Main grid ──────────────────────────────────────── */}

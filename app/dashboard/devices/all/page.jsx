@@ -44,6 +44,7 @@ import TestLogCards from '@/components/devices/TestLogCards';
 import useDeviceStore from '@/store/useDeviceStore';
 import useDeviceTypeStore from '@/store/useDeviceTypeStore';
 import useTestLogStore from '@/store/useTestLogStore';
+import { hasManageAccess } from '@/lib/permissions';
 
 /* ── constants ─────────────────────────────────────────────── */
 const LIMIT = 15;
@@ -78,6 +79,7 @@ const DevicePage = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [expandedDeviceIds, setExpandedDeviceIds] = useState(() => new Set());
   const [importOpen, setImportOpen] = useState(false);
+  const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
@@ -291,29 +293,31 @@ const DevicePage = () => {
             <p className="text-sm text-[#7B8499] dark:text-slate-400">{t('subtitle')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button
-            variant="outline"
-            onClick={() => setImportOpen(true)}
-            className="gap-2 rounded-xl px-4 h-10 text-sm font-semibold"
-          >
-            <FileUp size={16} />
-            {t('importExcel')}
-          </Button>
-          <Button
-            onClick={() => {
-              setSelectedItem(null);
-              setIsOpen(true);
-            }}
-            className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold shadow-md"
-            style={{ backgroundColor: '#3b82f6' }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
-          >
-            <Plus size={16} />
-            {t('addNew')}
-          </Button>
-        </div>
+        {canManage && (
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Button
+              variant="outline"
+              onClick={() => setImportOpen(true)}
+              className="gap-2 rounded-xl px-4 h-10 text-sm font-semibold"
+            >
+              <FileUp size={16} />
+              {t('importExcel')}
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectedItem(null);
+                setIsOpen(true);
+              }}
+              className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold shadow-md"
+              style={{ backgroundColor: '#3b82f6' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+            >
+              <Plus size={16} />
+              {t('addNew')}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Stat cards */}
@@ -439,18 +443,20 @@ const DevicePage = () => {
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#7B8499]">
             <MonitorSpeaker size={40} className="text-slate-200 dark:text-slate-600" />
             <p className="text-sm">{t('empty')}</p>
-            <Button
-              onClick={() => {
-                setSelectedItem(null);
-                setIsOpen(true);
-              }}
-              variant="outline"
-              className="mt-1 gap-2 rounded-xl"
-              style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
-            >
-              <Plus size={14} />
-              {t('addFirst')}
-            </Button>
+            {canManage && (
+              <Button
+                onClick={() => {
+                  setSelectedItem(null);
+                  setIsOpen(true);
+                }}
+                variant="outline"
+                className="mt-1 gap-2 rounded-xl"
+                style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
+              >
+                <Plus size={14} />
+                {t('addFirst')}
+              </Button>
+            )}
           </div>
         ) : (
           <TableComponent
@@ -484,6 +490,7 @@ const DevicePage = () => {
               })
             }
             renderExpanded={(row) => <DeviceTestLogsPanel deviceId={row.id} locale={locale} />}
+            canManage={canManage}
           />
         )}
 

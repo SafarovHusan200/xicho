@@ -22,6 +22,7 @@ import TableComponent from '@/components/tableComponent';
 import CustomModal from '@/components/modals/CustomModal';
 import PaginationComponent from '@/components/PaginationComponent';
 import useDeviceTypeStore from '@/store/useDeviceTypeStore';
+import { hasManageAccess } from '@/lib/permissions';
 
 const LIMIT = 15;
 
@@ -100,6 +101,7 @@ const DeviceTypePage = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [page, setPage] = useState(1);
+  const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
@@ -237,19 +239,21 @@ const DeviceTypePage = () => {
           </div>
         </div>
 
-        <Button
-          onClick={() => {
-            setSelectedItem(null);
-            setIsOpen(true);
-          }}
-          className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold transition-all self-start sm:self-auto shadow-md"
-          style={{ backgroundColor: '#3b82f6' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#7c3aed')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
-        >
-          <Plus size={16} />
-          {t('addNew')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={() => {
+              setSelectedItem(null);
+              setIsOpen(true);
+            }}
+            className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold transition-all self-start sm:self-auto shadow-md"
+            style={{ backgroundColor: '#3b82f6' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#7c3aed')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+          >
+            <Plus size={16} />
+            {t('addNew')}
+          </Button>
+        )}
       </div>
 
       {/* Stat card */}
@@ -307,18 +311,20 @@ const DeviceTypePage = () => {
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#7B8499] dark:text-slate-400">
             <Cpu size={40} className="text-slate-200 dark:text-slate-600" />
             <p className="text-sm">{t('empty')}</p>
-            <Button
-              onClick={() => {
-                setSelectedItem(null);
-                setIsOpen(true);
-              }}
-              variant="outline"
-              className="mt-1 gap-2 rounded-xl border hover:opacity-90"
-              style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
-            >
-              <Plus size={14} />
-              {t('addFirst')}
-            </Button>
+            {canManage && (
+              <Button
+                onClick={() => {
+                  setSelectedItem(null);
+                  setIsOpen(true);
+                }}
+                variant="outline"
+                className="mt-1 gap-2 rounded-xl border hover:opacity-90"
+                style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
+              >
+                <Plus size={14} />
+                {t('addFirst')}
+              </Button>
+            )}
           </div>
         ) : (
           <TableComponent
@@ -338,6 +344,7 @@ const DeviceTypePage = () => {
               setSelectedItem(row);
               setDeleteModal(true);
             }}
+            canManage={canManage}
           />
         )}
 

@@ -22,6 +22,7 @@ const FacilityRow = ({
   onEdit,
   onDelete,
   onAddChild,
+  canManage = true,
   locale,
   isChild = false,
   t,
@@ -61,7 +62,7 @@ const FacilityRow = ({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          {!isChild && (
+          {!isChild && canManage && (
             <button
               onClick={() => onAddChild(facility)}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-150"
@@ -77,20 +78,24 @@ const FacilityRow = ({
           >
             <SquareArrowOutUpRight size={15} />
           </Link>
-          <button
-            onClick={() => onEdit(facility)}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
-            title={tc('edit')}
-          >
-            <Pencil size={15} />
-          </button>
-          <button
-            onClick={() => onDelete(facility)}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
-            title={tc('delete')}
-          >
-            <Trash2 size={15} />
-          </button>
+          {canManage && (
+            <>
+              <button
+                onClick={() => onEdit(facility)}
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
+                title={tc('edit')}
+              >
+                <Pencil size={15} />
+              </button>
+              <button
+                onClick={() => onDelete(facility)}
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
+                title={tc('delete')}
+              >
+                <Trash2 size={15} />
+              </button>
+            </>
+          )}
           {!isChild && hasChildren && (
             <button
               // onClick={() => onToggle(facility.id)}
@@ -126,6 +131,7 @@ const FacilityRow = ({
                     locale={locale}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    canManage={canManage}
                     t={t}
                     tc={tc}
                   />

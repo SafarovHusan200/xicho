@@ -47,6 +47,7 @@ import { Button } from '@/components/ui/button';
 import CustomModal from '@/components/modals/CustomModal';
 import FacilityFormComponent from '@/components/forms/FacilityFormComponent';
 import { getMimeIcon, getMimeColor, getMimeLabel, fmtSize } from '@/components/documents/fileUtils';
+import { hasManageAccess } from '@/lib/permissions';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
@@ -265,6 +266,7 @@ export default function FacilityDetailPage() {
   const [previewDoc, setPreviewDoc] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
@@ -458,21 +460,23 @@ export default function FacilityDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start">
-          <Button
-            onClick={() => setIsEditOpen(true)}
-            className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold bg-[#3b82f6] hover:bg-[#2563eb]"
-          >
-            <Pencil size={15} /> {t('edit')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsDeleteOpen(true)}
-            className="gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border-red-300 dark:border-red-800/60 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 hover:text-red-600"
-          >
-            <Trash2 size={15} /> {tc('delete')}
-          </Button>
-        </div>
+        {canManage && (
+          <div className="flex items-center gap-2 self-start">
+            <Button
+              onClick={() => setIsEditOpen(true)}
+              className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold bg-[#3b82f6] hover:bg-[#2563eb]"
+            >
+              <Pencil size={15} /> {t('edit')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteOpen(true)}
+              className="gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold border-red-300 dark:border-red-800/60 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 hover:text-red-600"
+            >
+              <Trash2 size={15} /> {tc('delete')}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* ── Devices summary ────────────────────────────────── */}

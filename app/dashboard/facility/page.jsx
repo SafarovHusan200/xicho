@@ -26,6 +26,7 @@ import { URLS } from '@/constants/url';
 import { useSession } from 'next-auth/react';
 import { Building2, Plus, Factory, Loader2, LayoutGrid, Search, X } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
+import { hasManageAccess } from '@/lib/permissions';
 
 const HazardousFacilities = () => {
   const { data: session } = useSession();
@@ -41,6 +42,7 @@ const HazardousFacilities = () => {
   const [filterType, setFilterType] = useState('all');
 
   const { facilities, setFacilities } = useFacilityStore();
+  const canManage = hasManageAccess(session);
 
   console.log(session);
 
@@ -297,16 +299,18 @@ const HazardousFacilities = () => {
           </div>
         </div>
 
-        <Button
-          onClick={openCreate}
-          className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold transition-all self-start sm:self-auto shadow-md"
-          style={{ backgroundColor: '#3b82f6' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
-        >
-          <Plus size={16} />
-          {t('addNew')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={openCreate}
+            className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold transition-all self-start sm:self-auto shadow-md"
+            style={{ backgroundColor: '#3b82f6' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+          >
+            <Plus size={16} />
+            {t('addNew')}
+          </Button>
+        )}
       </div>
 
       {/* Stat cards */}
@@ -396,15 +400,17 @@ const HazardousFacilities = () => {
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#7B8499] dark:text-slate-400">
             <Building2 size={40} className="text-slate-200 dark:text-slate-600" />
             <p className="text-sm">{t('empty')}</p>
-            <Button
-              onClick={openCreate}
-              variant="outline"
-              className="mt-1 gap-2 rounded-xl border hover:opacity-90"
-              style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
-            >
-              <Plus size={14} />
-              {t('addFirst')}
-            </Button>
+            {canManage && (
+              <Button
+                onClick={openCreate}
+                variant="outline"
+                className="mt-1 gap-2 rounded-xl border hover:opacity-90"
+                style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
+              >
+                <Plus size={14} />
+                {t('addFirst')}
+              </Button>
+            )}
           </div>
         ) : visibleRootFacilities.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#7B8499] dark:text-slate-400">
@@ -432,6 +438,7 @@ const HazardousFacilities = () => {
                 onEdit={handleUpdate}
                 onDelete={handleDelete}
                 onAddChild={handleAddChild}
+                canManage={canManage}
                 locale={locale}
                 t={t}
                 tc={tc}

@@ -22,6 +22,7 @@ import CustomModal from '@/components/modals/CustomModal';
 import LocationFormComponent from '@/components/forms/LocationFormComponent';
 import { MapPin, Plus, Loader2, Navigation2, Pencil, Trash2, Map } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { hasManageAccess } from '@/lib/permissions';
 
 const LocationsMap = dynamic(() => import('@/components/LocationsMap'), {
   ssr: false,
@@ -40,6 +41,7 @@ const LocationsPage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
@@ -147,16 +149,18 @@ const LocationsPage = () => {
           </div>
         </div>
 
-        <Button
-          onClick={() => setCreateOpen(true)}
-          className="gap-2 rounded-xl px-5 h-10 text-sm font-semibold transition-all self-start sm:self-auto shadow-md text-white"
-          style={{ backgroundColor: '#3b82f6' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
-        >
-          <Plus size={16} />
-          {t('addNew')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="gap-2 rounded-xl px-5 h-10 text-sm font-semibold transition-all self-start sm:self-auto shadow-md text-white"
+            style={{ backgroundColor: '#3b82f6' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+          >
+            <Plus size={16} />
+            {t('addNew')}
+          </Button>
+        )}
       </div>
 
       {/* Main card */}
@@ -274,26 +278,30 @@ const LocationsPage = () => {
                       className="flex items-center gap-1 w-16 justify-end"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button
-                        onClick={() => {
-                          setSelectedLocation(location);
-                          setEditOpen(true);
-                        }}
-                        className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400  hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
-                        title={tc('edit')}
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedLocation(location);
-                          setDeleteOpen(true);
-                        }}
-                        className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400  hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
-                        title={tc('delete')}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {canManage && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setSelectedLocation(location);
+                              setEditOpen(true);
+                            }}
+                            className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400  hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
+                            title={tc('edit')}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedLocation(location);
+                              setDeleteOpen(true);
+                            }}
+                            className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400  hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
+                            title={tc('delete')}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );

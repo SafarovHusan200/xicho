@@ -37,6 +37,7 @@ import StatCard from '@/components/StatCard';
 import TypeBadge from '@/components/documents/TypeBadge';
 import UploadForm from '@/components/documents/UploadForm';
 import { getMimeIcon, getMimeColor, fmtSize } from '@/components/documents/fileUtils';
+import { hasManageAccess } from '@/lib/permissions';
 
 const LIMIT = 15;
 
@@ -56,6 +57,7 @@ export default function DocumentsPage() {
   const [downloadingId, setDownloadingId] = useState(null);
   const [viewingId, setViewingId] = useState(null);
   const [previewModal, setPreviewModal] = useState(null);
+  const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
   const offset = (page - 1) * LIMIT;
@@ -344,22 +346,26 @@ export default function DocumentsPage() {
               <Download size={15} />
             )}
           </button>
-          {/* Rename */}
-          <button
-            onClick={() => openRename(doc)}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
-            title={t('renameTitle')}
-          >
-            <Pencil size={15} />
-          </button>
-          {/* Delete */}
-          <button
-            onClick={() => setDeleteTarget(doc)}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
-            title={t('deleteTitle')}
-          >
-            <Trash2 size={15} />
-          </button>
+          {canManage && (
+            <>
+              {/* Rename */}
+              <button
+                onClick={() => openRename(doc)}
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-150"
+                title={t('renameTitle')}
+              >
+                <Pencil size={15} />
+              </button>
+              {/* Delete */}
+              <button
+                onClick={() => setDeleteTarget(doc)}
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150"
+                title={t('deleteTitle')}
+              >
+                <Trash2 size={15} />
+              </button>
+            </>
+          )}
         </div>
       ),
     };
@@ -387,13 +393,15 @@ export default function DocumentsPage() {
             <p className="text-[13px] text-[#7B8499] dark:text-slate-400">{t('subtitle')}</p>
           </div>
         </div>
-        <Button
-          onClick={() => setUploadOpen(true)}
-          className="flex items-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-xl h-10 px-5 text-[13px] font-medium shadow-sm"
-        >
-          <Plus size={16} />
-          {t('addNew')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={() => setUploadOpen(true)}
+            className="flex items-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-xl h-10 px-5 text-[13px] font-medium shadow-sm"
+          >
+            <Plus size={16} />
+            {t('addNew')}
+          </Button>
+        )}
       </div>
 
       {/* ── stats ──────────────────────────────────────────────── */}

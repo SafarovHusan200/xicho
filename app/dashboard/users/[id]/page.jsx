@@ -28,6 +28,7 @@ import {
   FileSpreadsheet,
   File,
 } from 'lucide-react';
+import { hasManageAccess } from '@/lib/permissions';
 import useGetQuery from '@/hooks/all/useGetQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
@@ -189,6 +190,7 @@ export default function PersonDetailPage() {
   const [docPreview, setDocPreview] = useState(null);
   const [loadingDocId, setLoadingDocId] = useState(null);
   const [now] = useState(() => Date.now());
+  const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
 
@@ -350,12 +352,14 @@ export default function PersonDetailPage() {
           </div>
         </div>
 
-        <Button
-          onClick={() => router.push(`/dashboard/users?edit=${id}`)}
-          className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold self-start bg-[#3b82f6] hover:bg-[#2563eb]"
-        >
-          <Edit size={15} /> {t('edit')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={() => router.push(`/dashboard/users?edit=${id}`)}
+            className="gap-2 rounded-xl px-4 h-10 text-[13px] text-white font-semibold self-start bg-[#3b82f6] hover:bg-[#2563eb]"
+          >
+            <Edit size={15} /> {t('edit')}
+          </Button>
+        )}
       </div>
 
       {/* ── Stat cards ─────────────────────────────────────── */}

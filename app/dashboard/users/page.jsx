@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import PaginationComponent from '@/components/PaginationComponent';
 import { useTranslations, useLocale } from 'next-intl';
+import { hasManageAccess } from '@/lib/permissions';
 import useEmployeeStore from '@/store/useEmployeeStore';
 import { staffio } from '@/services/staffio';
 
@@ -68,6 +69,7 @@ const ResponsiblePersonsPage = () => {
   const [filterInspector, setFilterInspector] = useState('');
   const [filterMain, setFilterMain] = useState('');
   const [filterActive, setFilterActive] = useState('');
+  const canManage = hasManageAccess(session);
 
   const t = useTranslations('persons');
   const tc = useTranslations('common');
@@ -382,16 +384,18 @@ const ResponsiblePersonsPage = () => {
           </div>
         </div>
 
-        <Button
-          onClick={openCreate}
-          className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold transition-all self-start sm:self-auto shadow-md"
-          style={{ backgroundColor: '#3b82f6' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
-        >
-          <Plus size={16} />
-          {t('addNew')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={openCreate}
+            className="gap-2 rounded-xl px-5 h-10 text-sm dark:text-white font-semibold transition-all self-start sm:self-auto shadow-md"
+            style={{ backgroundColor: '#3b82f6' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+          >
+            <Plus size={16} />
+            {t('addNew')}
+          </Button>
+        )}
       </div>
 
       {/* Stat cards */}
@@ -565,15 +569,17 @@ const ResponsiblePersonsPage = () => {
                 {t('clearFilters')}
               </button>
             ) : (
-              <Button
-                onClick={openCreate}
-                variant="outline"
-                className="mt-1 gap-2 rounded-xl border hover:opacity-90"
-                style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
-              >
-                <Plus size={14} />
-                {t('addFirst')}
-              </Button>
+              canManage && (
+                <Button
+                  onClick={openCreate}
+                  variant="outline"
+                  className="mt-1 gap-2 rounded-xl border hover:opacity-90"
+                  style={{ color: '#3b82f6', borderColor: '#3b82f6' }}
+                >
+                  <Plus size={14} />
+                  {t('addFirst')}
+                </Button>
+              )
             )}
           </div>
         ) : (
@@ -594,6 +600,7 @@ const ResponsiblePersonsPage = () => {
             viewHref={(row) => `/dashboard/users/${row.id}`}
             onEdit={handleUpdate}
             handleDelete={handleDelete}
+            canManage={canManage}
           />
         )}
 

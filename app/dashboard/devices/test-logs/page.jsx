@@ -52,6 +52,7 @@ import {
 import DeviceCombobox from '@/components/devices/DeviceCombobox';
 import useDeviceStore from '@/store/useDeviceStore';
 import useTestLogStore from '@/store/useTestLogStore';
+import { hasManageAccess } from '@/lib/permissions';
 
 const LIMIT = 15;
 const STATUS_ORDER = ['overdue', 'expiring_soon', 'warning', 'ok', 'never_tested'];
@@ -288,6 +289,7 @@ export default function TestLogsPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
+  const canManage = hasManageAccess(session);
 
   const toggleSort = (key) => {
     if (sortKey === key) {
@@ -562,13 +564,15 @@ export default function TestLogsPage() {
             <p className="text-[13px] text-[#7B8499] dark:text-slate-400">{t('subtitle')}</p>
           </div>
         </div>
-        <Button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-xl h-10 px-5 text-[13px] font-medium shadow-sm"
-        >
-          <Plus size={16} />
-          {t('addNew')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-xl h-10 px-5 text-[13px] font-medium shadow-sm"
+          >
+            <Plus size={16} />
+            {t('addNew')}
+          </Button>
+        )}
       </div>
 
       {/* ── Stats ──────────────────────────────────────────── */}
@@ -709,6 +713,7 @@ export default function TestLogsPage() {
             onEdit={openEdit}
             handleDelete={(row) => setDeleteTarget(row)}
             rowClassName={(row) => TEST_LOG_ROW_BG[row._rowStatus] ?? ''}
+            canManage={canManage}
           />
         )}
 
