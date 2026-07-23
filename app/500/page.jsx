@@ -1,6 +1,5 @@
 'use client';
 
-import DashboardLayout from '@/components/DashboardLayout';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -10,8 +9,8 @@ const ServerErrorPage = () => {
   const t = useTranslations('errorPages');
 
   return (
-    <div className="flex flex-col items-center mt-10">
-      <h1 className="mt-4 mb-5 text-3xl font-semibold text-slate-950 dark:text-white">
+    <div className="flex flex-col items-center sm:mt-10">
+      <h1 className="mt-4 mb-5 text-3xl text-center font-semibold text-slate-950 dark:text-white">
         {t('serverError.title')}
       </h1>
       <p>{t('serverError.description')}</p>

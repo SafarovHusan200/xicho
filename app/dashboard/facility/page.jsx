@@ -42,6 +42,8 @@ const HazardousFacilities = () => {
 
   const { facilities, setFacilities } = useFacilityStore();
 
+  console.log(session);
+
   useEffect(() => {
     if (!editId || isOpen || !facilities.length) return;
     const target = facilities.find((f) => f.id === editId);
