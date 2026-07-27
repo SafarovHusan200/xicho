@@ -807,9 +807,11 @@
       "action": "Ortga"
     },
     "serverError": {
-      "title": "Server bilan bog'liq muammo bo'lishi mumkin",
+      "title": "Kutilmagan xatolik yuz berdi",
       "description": "Iltimos, birozdan so'ng qayta urinib ko'ring",
-      "action": "Ortga"
+      "action": "Ortga",
+      "digestLabel": "Xato kodi",
+      "detailsLabel": "Xato tafsilotlari (development)"
     }
   }
 }
