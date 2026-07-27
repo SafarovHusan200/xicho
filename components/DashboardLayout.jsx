@@ -426,8 +426,8 @@ const DashboardLayout = ({ children }) => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* Logout modal */}
 
+            {/* Logout modal */}
             <CustomModal
               open={isLogout}
               onClose={() => !isLoggingOut && setIsLogout(false)}
@@ -444,7 +444,7 @@ const DashboardLayout = ({ children }) => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="rounded-xl"
+                    className="rounded-md"
                     onClick={() => setIsLogout(false)}
                     disabled={isLoggingOut}
                   >
@@ -452,7 +452,7 @@ const DashboardLayout = ({ children }) => {
                   </Button>
                   <Button
                     type="button"
-                    className="rounded-xl gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold"
+                    className="rounded-md gap-2 bg-[#ff5454] hover:bg-[#ff3535] text-white font-semibold"
                     onClick={onLogout}
                     disabled={isLoggingOut}
                   >

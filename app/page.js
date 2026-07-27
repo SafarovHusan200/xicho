@@ -10,7 +10,7 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingComponent from '@/components/LoadingComponent';
-import { LogIn, LogOut } from 'lucide-react';
+import { Loader2, LogIn, LogOut } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -299,17 +299,25 @@ const LoginPage = () => {
                     </motion.div>
 
                     <motion.div
-                      {...fadeUp(0.46)}
-                      whileHover={{ y: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full pt-2"
+                      initial={{ y: 4 }}
+                      animate={{ y: 0 }}
+                      transition={{ duration: 0.2, ease: 'easeOut' }}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ y: 0 }}
                     >
                       <Button
                         type="submit"
                         className="bg-[#3525CD] hover:bg-[#2a1eb8] dark:bg-[#3b82f6] dark:hover:bg-[#2563eb] w-full text-[16px] text-white py-5"
                         disabled={isLoading}
                       >
-                        {isLoading ? t('submitting') : t('submit')}
+                        {isLoading ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            {t('submitting')}
+                          </>
+                        ) : (
+                          t('submit')
+                        )}
                       </Button>
                     </motion.div>
                   </FieldGroup>
