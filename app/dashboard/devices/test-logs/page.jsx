@@ -50,6 +50,7 @@ import {
   TestResultBadge,
 } from '@/components/devices/testLogStatus';
 import DeviceCombobox from '@/components/devices/DeviceCombobox';
+import { EmployeeCombobox } from '@/components/forms/PersonFormComponent';
 import useDeviceStore from '@/store/useDeviceStore';
 import useTestLogStore from '@/store/useTestLogStore';
 import { hasManageAccess } from '@/lib/permissions';
@@ -66,7 +67,7 @@ function useDebounce(value, delay) {
   return debounced;
 }
 
-function DatePickerField({ value, onChange, placeholder, locale }) {
+function DatePickerField({ value, onChange, placeholder, locale, triggerClassName }) {
   const [open, setOpen] = useState(false);
   const date = value ? new Date(value) : undefined;
   const formatted = date
@@ -82,13 +83,14 @@ function DatePickerField({ value, onChange, placeholder, locale }) {
         <button
           type="button"
           className={cn(
-            'flex w-full items-center justify-between rounded-md border px-3 py-2 text-[14px] bg-background transition-colors',
+            'flex w-full items-center justify-between rounded-md border px-3 text-[14px] bg-background transition-colors',
             'hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-input',
-            !formatted && 'text-muted-foreground'
+            !formatted && 'text-muted-foreground',
+            triggerClassName ?? 'h-9'
           )}
         >
-          <span>{formatted ?? placeholder}</span>
-          <CalendarIcon size={15} className="text-muted-foreground" />
+          <span className="truncate">{formatted ?? placeholder}</span>
+          <CalendarIcon size={15} className="shrink-0 text-muted-foreground ml-2" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -284,6 +286,13 @@ export default function TestLogsPage() {
   const [filterTestType, setFilterTestType] = useState('');
   const [filterUnitCode, setFilterUnitCode] = useState('');
   const [filterIsPassed, setFilterIsPassed] = useState('');
+  const [filterDeviceName, setFilterDeviceName] = useState('');
+  const [filterEcosystemRegNumber, setFilterEcosystemRegNumber] = useState('');
+  const [filterStationName, setFilterStationName] = useState('');
+  const [filterFacilityName, setFilterFacilityName] = useState('');
+  const [filterEmployeeId, setFilterEmployeeId] = useState('');
+  const [filterTestDateFrom, setFilterTestDateFrom] = useState('');
+  const [filterTestDateTo, setFilterTestDateTo] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -324,15 +333,39 @@ export default function TestLogsPage() {
   const debouncedProtocol = useDebounce(filterProtocol, 500);
   const debouncedTestType = useDebounce(filterTestType, 500);
   const debouncedUnitCode = useDebounce(filterUnitCode, 1000);
+  const debouncedDeviceName = useDebounce(filterDeviceName, 500);
+  const debouncedEcosystemRegNumber = useDebounce(filterEcosystemRegNumber, 500);
+  const debouncedStationName = useDebounce(filterStationName, 500);
+  const debouncedFacilityName = useDebounce(filterFacilityName, 500);
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedProtocol, debouncedTestType, debouncedUnitCode]);
+  }, [
+    debouncedProtocol,
+    debouncedTestType,
+    debouncedUnitCode,
+    debouncedDeviceName,
+    debouncedEcosystemRegNumber,
+    debouncedStationName,
+    debouncedFacilityName,
+  ]);
 
   const offset = (page - 1) * LIMIT;
 
-  const hasFilters =
-    filterProtocol || filterDeviceId || filterTestType || filterUnitCode || filterIsPassed;
+  const hasFilters = !!(
+    filterProtocol ||
+    filterDeviceId ||
+    filterTestType ||
+    filterUnitCode ||
+    filterIsPassed ||
+    filterDeviceName ||
+    filterEcosystemRegNumber ||
+    filterStationName ||
+    filterFacilityName ||
+    filterEmployeeId ||
+    filterTestDateFrom ||
+    filterTestDateTo
+  );
 
   const clearFilters = () => {
     setFilterProtocol('');
@@ -340,6 +373,13 @@ export default function TestLogsPage() {
     setFilterTestType('');
     setFilterUnitCode('');
     setFilterIsPassed('');
+    setFilterDeviceName('');
+    setFilterEcosystemRegNumber('');
+    setFilterStationName('');
+    setFilterFacilityName('');
+    setFilterEmployeeId('');
+    setFilterTestDateFrom('');
+    setFilterTestDateTo('');
     setPage(1);
   };
 
@@ -360,6 +400,15 @@ export default function TestLogsPage() {
       ...(debouncedTestType.trim() ? { test_type: debouncedTestType.trim() } : {}),
       ...(debouncedUnitCode.trim() ? { unit_code: debouncedUnitCode.trim() } : {}),
       ...(filterIsPassed.trim() ? { is_passed: filterIsPassed.trim() === 'true' } : {}),
+      ...(debouncedDeviceName.trim() ? { device_name: debouncedDeviceName.trim() } : {}),
+      ...(debouncedEcosystemRegNumber.trim()
+        ? { ecosystem_reg_number: debouncedEcosystemRegNumber.trim() }
+        : {}),
+      ...(debouncedStationName.trim() ? { station_name: debouncedStationName.trim() } : {}),
+      ...(debouncedFacilityName.trim() ? { facility_name: debouncedFacilityName.trim() } : {}),
+      ...(filterEmployeeId ? { employee_id: filterEmployeeId } : {}),
+      ...(filterTestDateFrom ? { test_date_from: filterTestDateFrom } : {}),
+      ...(filterTestDateTo ? { test_date_to: filterTestDateTo } : {}),
     },
     headers: authHeader,
     enabled: !!session,
@@ -551,6 +600,15 @@ export default function TestLogsPage() {
     { key: 'action', label: t('colActions'), align: 'right' },
   ];
 
+  /* ── shared filter control styling — keeps every field in the
+     filter grid the same height/rhythm regardless of control type ── */
+  const filterLabelClass =
+    'text-[11px] font-semibold uppercase tracking-wide text-[#7B8499] dark:text-slate-500';
+  const filterInputClass =
+    'h-9 w-full rounded-md border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all';
+  const filterTriggerClass =
+    'h-9 text-[14px] rounded-md border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800';
+
   return (
     <div className="flex flex-col gap-6">
       {/* ── Header ─────────────────────────────────────────── */}
@@ -624,55 +682,47 @@ export default function TestLogsPage() {
         </div>
 
         {/* ── Filter row ── */}
-        <div className="flex flex-wrap items-end gap-3 px-5 py-3 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60">
+        <div className="grid grid-cols-1 gap-x-3 gap-y-4 px-5 py-4 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {/* Device filter */}
-          <div className="flex flex-col gap-1" style={{ maxWidth: '400px', width: '100%' }}>
-            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
-              {t('filterDeviceLabel')}
-            </Label>
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterDeviceLabel')}</Label>
             <DeviceCombobox
               value={filterDeviceId.trim()}
               onChange={handleFilterChange(setFilterDeviceId)}
               devices={devices}
               placeholder={t('filterDevice')}
               allLabel={t('filterAll')}
-              triggerClassName="h-8 py-0 text-[14px] rounded-md border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800"
+              triggerClassName={filterTriggerClass}
             />
           </div>
 
           {/* Test type filter */}
-          <div className="flex flex-col gap-1">
-            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
-              {t('filterTestTypeLabel')}
-            </Label>
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterTestTypeLabel')}</Label>
             <input
               value={filterTestType}
               onChange={(e) => setFilterTestType(e.target.value)}
               placeholder={t('filterTestType')}
-              className="h-8 w-44 rounded-md border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+              className={filterInputClass}
             />
           </div>
 
           {/* Unit code filter */}
-          <div className="flex flex-col gap-1">
-            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
-              {t('filterUnitCodeLabel')}
-            </Label>
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterUnitCodeLabel')}</Label>
             <input
               value={filterUnitCode}
               onChange={(e) => setFilterUnitCode(e.target.value)}
               placeholder={t('filterUnitCode')}
-              className="h-8 w-36 rounded-md border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all"
+              className={filterInputClass}
             />
           </div>
 
           {/* Result filter */}
-          <div className="flex flex-col gap-1">
-            <Label className="text-[11px] font-medium text-[#7B8499] dark:text-slate-400">
-              {t('filterResultLabel')}
-            </Label>
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterResultLabel')}</Label>
             <Select value={filterIsPassed} onValueChange={handleFilterChange(setFilterIsPassed)}>
-              <SelectTrigger className="h-8 w-40 text-[14px] rounded-md border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800">
+              <SelectTrigger className={cn(filterTriggerClass, 'w-full')}>
                 <SelectValue placeholder={t('filterResult')} />
               </SelectTrigger>
               <SelectContent>
@@ -683,15 +733,94 @@ export default function TestLogsPage() {
             </Select>
           </div>
 
+          {/* Device name filter */}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterDeviceNameLabel')}</Label>
+            <input
+              value={filterDeviceName}
+              onChange={(e) => setFilterDeviceName(e.target.value)}
+              placeholder={t('filterDeviceName')}
+              className={filterInputClass}
+            />
+          </div>
+
+          {/* Ecosystem reg. number filter */}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterEcosystemRegLabel')}</Label>
+            <input
+              value={filterEcosystemRegNumber}
+              onChange={(e) => setFilterEcosystemRegNumber(e.target.value)}
+              placeholder={t('filterEcosystemReg')}
+              className={filterInputClass}
+            />
+          </div>
+
+          {/* Station name filter */}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterStationNameLabel')}</Label>
+            <input
+              value={filterStationName}
+              onChange={(e) => setFilterStationName(e.target.value)}
+              placeholder={t('filterStationName')}
+              className={filterInputClass}
+            />
+          </div>
+
+          {/* Facility name filter */}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterFacilityNameLabel')}</Label>
+            <input
+              value={filterFacilityName}
+              onChange={(e) => setFilterFacilityName(e.target.value)}
+              placeholder={t('filterFacilityName')}
+              className={filterInputClass}
+            />
+          </div>
+
+          {/* Employee filter */}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterEmployeeLabel')}</Label>
+            <EmployeeCombobox
+              value={filterEmployeeId}
+              onChange={handleFilterChange(setFilterEmployeeId)}
+              allLabel={t('filterAll')}
+              triggerClassName={filterTriggerClass}
+            />
+          </div>
+
+          {/* Test date range filter */}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterTestDateFromLabel')}</Label>
+            <DatePickerField
+              value={filterTestDateFrom}
+              onChange={handleFilterChange(setFilterTestDateFrom)}
+              placeholder={t('datePlaceholder')}
+              locale={locale}
+              triggerClassName={filterTriggerClass}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterTestDateToLabel')}</Label>
+            <DatePickerField
+              value={filterTestDateTo}
+              onChange={handleFilterChange(setFilterTestDateTo)}
+              placeholder={t('datePlaceholder')}
+              locale={locale}
+              triggerClassName={filterTriggerClass}
+            />
+          </div>
+
           {/* Clear filters */}
           {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="flex h-8 items-center gap-1.5 rounded-md border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 text-[14px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
-            >
-              <X size={12} />
-              {t('clearFilters')}
-            </button>
+            <div className="flex flex-col justify-end min-w-0">
+              <button
+                onClick={clearFilters}
+                className="flex h-9 items-center justify-center gap-1.5 rounded-md border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 px-3 text-[14px] font-medium text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
+              >
+                <X size={13} />
+                {t('clearFilters')}
+              </button>
+            </div>
           )}
         </div>
 

@@ -23,7 +23,7 @@ import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import useEmployeeStore from '@/store/useEmployeeStore';
 
-export function EmployeeCombobox({ value, onChange, error }) {
+export function EmployeeCombobox({ value, onChange, error, allLabel, triggerClassName }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const { data: session } = useSession();
@@ -60,7 +60,17 @@ export function EmployeeCombobox({ value, onChange, error }) {
   }, [employees, search]);
 
   const selected = employees.find((e) => e.id === value);
-  const selectedLabel = selected ? `${selected.last_name} ${selected.first_name}` : null;
+  const selectedLabel = selected
+    ? `${selected.last_name} ${selected.first_name}`
+    : !value && allLabel
+      ? allLabel
+      : null;
+
+  const select = (id) => {
+    onChange(id);
+    setOpen(false);
+    setSearch('');
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -68,10 +78,11 @@ export function EmployeeCombobox({ value, onChange, error }) {
         <button
           type="button"
           className={cn(
-            'flex w-full items-center justify-between rounded-md border px-3 py-2 text-[14px]  transition-colors',
-            'hover:bg-accent/30 ',
+            'flex w-full items-center justify-between rounded-md border px-3 py-2 text-[14px] bg-background transition-colors',
+            'hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
             error ? 'border-destructive' : 'border-input',
-            !selectedLabel && 'text-muted-foreground'
+            !selectedLabel && 'text-muted-foreground',
+            triggerClassName
           )}
         >
           <div className="flex items-center gap-2 min-w-0">
@@ -103,6 +114,23 @@ export function EmployeeCombobox({ value, onChange, error }) {
         </div>
 
         <div className="max-h-64 overflow-y-auto py-1" onWheel={(e) => e.stopPropagation()}>
+          {allLabel && !isLoading && (
+            <button
+              type="button"
+              onClick={() => select('')}
+              className={cn(
+                'flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-accent transition-colors',
+                !value && 'bg-accent'
+              )}
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#3b82f6]/10 text-[#3b82f6]">
+                <User size={14} />
+              </div>
+              <span className="text-[13px] font-medium">{allLabel}</span>
+              {!value && <Check size={12} className="ml-auto shrink-0 text-[#3b82f6]" />}
+            </button>
+          )}
+
           {isLoading ? (
             <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground text-sm">
               <Loader2 size={16} className="animate-spin" />
@@ -117,11 +145,7 @@ export function EmployeeCombobox({ value, onChange, error }) {
                 <button
                   key={emp.id}
                   type="button"
-                  onClick={() => {
-                    onChange(emp.id);
-                    setOpen(false);
-                    setSearch('');
-                  }}
+                  onClick={() => select(emp.id)}
                   className={cn(
                     'flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-accent transition-colors',
                     isSelected && 'bg-accent'

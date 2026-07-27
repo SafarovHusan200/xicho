@@ -15,6 +15,7 @@ import {
   XCircle,
   Activity,
   FileUp,
+  X,
 } from 'lucide-react';
 
 import useGetQuery from '@/hooks/all/useGetQuery';
@@ -24,7 +25,7 @@ import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -41,13 +42,24 @@ import DeviceForm from '@/components/devices/DeviceForm';
 import ExcelImporter from '@/components/devices/ExcelImporter';
 import { TEST_STATUS_CONFIG } from '@/components/devices/statusConfig';
 import TestLogCards from '@/components/devices/TestLogCards';
+import { EmployeeCombobox } from '@/components/forms/PersonFormComponent';
 import useDeviceStore from '@/store/useDeviceStore';
 import useDeviceTypeStore from '@/store/useDeviceTypeStore';
 import useTestLogStore from '@/store/useTestLogStore';
 import { hasManageAccess } from '@/lib/permissions';
+import { Input } from '@/components/ui/input';
 
 /* ── constants ─────────────────────────────────────────────── */
 const LIMIT = 15;
+
+function useDebounce(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
 
 /* ── DeviceTestLogsPanel — filters the shared test-log store locally
    instead of firing a fresh per-device request every time a row expands ── */
