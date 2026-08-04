@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'rea
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { MapPin } from 'lucide-react';
+import { MapPin, ExternalLink } from 'lucide-react';
 
 const activeIconHtml = renderToStaticMarkup(<MapPin size={32} color="#1d4ed8" fill="#dbeafe" />);
 const defaultIconHtml = renderToStaticMarkup(<MapPin size={28} color="#3b82f6" fill="#eff6ff" />);
@@ -39,6 +39,7 @@ function MapController({ locations, activeLocationId }) {
 export default function LocationsMap({ locations, facilityMap, activeLocationId, onMarkerClick }) {
   const center =
     locations.length > 0 ? [locations[0].latitude, locations[0].longitude] : [41.2995, 69.2401];
+  const activeLocation = locations.find((l) => l.id === activeLocationId);
 
   return (
     <div className="flex-1 relative z-0">
@@ -81,6 +82,18 @@ export default function LocationsMap({ locations, facilityMap, activeLocationId,
           );
         })}
       </MapContainer>
+
+      {activeLocation && (
+        <a
+          href={`https://www.google.com/maps?q=${activeLocation.latitude},${activeLocation.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute top-3 right-3 z-400 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold border shadow-sm transition-opacity  bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50"
+        >
+          <ExternalLink size={11} />
+          Google Maps
+        </a>
+      )}
 
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 bg-black/60 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full pointer-events-none">
         LAT: {center[0].toFixed(4)} &nbsp;|&nbsp; LNG: {center[1].toFixed(4)}
