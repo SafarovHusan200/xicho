@@ -50,9 +50,11 @@ import {
   TestResultBadge,
 } from '@/components/devices/testLogStatus';
 import DeviceCombobox from '@/components/devices/DeviceCombobox';
+import FacilityCombobox from '@/components/facility/FacilityCombobox';
 import { EmployeeCombobox } from '@/components/forms/PersonFormComponent';
 import useDeviceStore from '@/store/useDeviceStore';
 import useTestLogStore from '@/store/useTestLogStore';
+import useFacilityStore from '@/store/useFacilityStore';
 import { hasManageAccess } from '@/lib/permissions';
 
 const LIMIT = 15;
@@ -332,10 +334,8 @@ export default function TestLogsPage() {
 
   const debouncedProtocol = useDebounce(filterProtocol, 500);
   const debouncedTestType = useDebounce(filterTestType, 500);
-  const debouncedUnitCode = useDebounce(filterUnitCode, 1000);
   const debouncedDeviceName = useDebounce(filterDeviceName, 500);
   const debouncedEcosystemRegNumber = useDebounce(filterEcosystemRegNumber, 500);
-  const debouncedStationName = useDebounce(filterStationName, 500);
   const debouncedFacilityName = useDebounce(filterFacilityName, 500);
 
   useEffect(() => {
@@ -343,10 +343,8 @@ export default function TestLogsPage() {
   }, [
     debouncedProtocol,
     debouncedTestType,
-    debouncedUnitCode,
     debouncedDeviceName,
     debouncedEcosystemRegNumber,
-    debouncedStationName,
     debouncedFacilityName,
   ]);
 
@@ -398,13 +396,13 @@ export default function TestLogsPage() {
       ...(debouncedProtocol.trim() ? { test_protocol_number: debouncedProtocol.trim() } : {}),
       ...(filterDeviceId && filterDeviceId.trim() ? { device_id: filterDeviceId.trim() } : {}),
       ...(debouncedTestType.trim() ? { test_type: debouncedTestType.trim() } : {}),
-      ...(debouncedUnitCode.trim() ? { unit_code: debouncedUnitCode.trim() } : {}),
+      ...(filterUnitCode.trim() ? { unit_code: filterUnitCode.trim() } : {}),
       ...(filterIsPassed.trim() ? { is_passed: filterIsPassed.trim() === 'true' } : {}),
       ...(debouncedDeviceName.trim() ? { device_name: debouncedDeviceName.trim() } : {}),
       ...(debouncedEcosystemRegNumber.trim()
         ? { ecosystem_reg_number: debouncedEcosystemRegNumber.trim() }
         : {}),
-      ...(debouncedStationName.trim() ? { station_name: debouncedStationName.trim() } : {}),
+      ...(filterStationName.trim() ? { station_name: filterStationName.trim() } : {}),
       ...(debouncedFacilityName.trim() ? { facility_name: debouncedFacilityName.trim() } : {}),
       ...(filterEmployeeId ? { employee_id: filterEmployeeId } : {}),
       ...(filterTestDateFrom ? { test_date_from: filterTestDateFrom } : {}),
@@ -429,10 +427,35 @@ export default function TestLogsPage() {
     if (data?.length) setDevices(data);
   }, [devicesData]);
 
+  const { facilities: storedFacilities, setFacilities } = useFacilityStore();
+
+  const { data: facilitiesData } = useGetQuery({
+    key: KEYS.facilities,
+    url: URLS.facilities,
+    headers: authHeader,
+    enabled: !!session && storedFacilities.length === 0,
+  });
+
+  useEffect(() => {
+    const data = facilitiesData?.data?.data;
+    if (data?.length) setFacilities(data);
+  }, [facilitiesData]);
+
   const logs = (logsData?.data?.data ?? []).filter(Boolean);
   const totalCount = logsData?.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / LIMIT);
   const devices = storedDevices.filter(Boolean);
+  const facilities = storedFacilities.filter(Boolean);
+
+  /* ── main stations only (is_facilities=true) — source for the unit-code /
+     station-name combobox filters; sub-facilities (ОПО) are excluded ── */
+  const stationFacilities = useMemo(
+    () =>
+      facilities
+        .filter((f) => f.is_facilities)
+        .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+    [facilities]
+  );
 
   /* ── sort the current page's rows by the clicked column (client-side, current page only) ── */
   const sortedLogs = useMemo(() => {
@@ -607,7 +630,7 @@ export default function TestLogsPage() {
   const filterInputClass =
     'h-9 w-full rounded-md border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-[14px] text-[#031634] dark:text-slate-100 placeholder:text-[#7B8499] dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/30 focus:border-[#3b82f6] transition-all';
   const filterTriggerClass =
-    'h-9 text-[14px] rounded-md border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800';
+    'h-9 text-[14px] rounded-md border border-[#E2E8F0] focus:border-[#3b82f6] dark:border-slate-700 bg-white dark:bg-slate-800';
 
   return (
     <div className="flex flex-col gap-6">
@@ -683,6 +706,20 @@ export default function TestLogsPage() {
 
         {/* ── Filter row ── */}
         <div className="grid grid-cols-1 gap-x-3 gap-y-4 px-5 py-4 border-b border-[#F0F1F5] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/60 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          {/* Station name filter */}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <Label className={filterLabelClass}>{t('filterStationNameLabel')}</Label>
+            <FacilityCombobox
+              value={filterStationName}
+              onChange={handleFilterChange(setFilterStationName)}
+              facilities={stationFacilities}
+              valueField="name"
+              placeholder={t('filterStationName')}
+              allLabel={t('filterAll')}
+              triggerClassName={filterTriggerClass}
+            />
+          </div>
+
           {/* Device filter */}
           <div className="flex flex-col gap-1.5 min-w-0">
             <Label className={filterLabelClass}>{t('filterDeviceLabel')}</Label>
@@ -710,11 +747,14 @@ export default function TestLogsPage() {
           {/* Unit code filter */}
           <div className="flex flex-col gap-1.5 min-w-0">
             <Label className={filterLabelClass}>{t('filterUnitCodeLabel')}</Label>
-            <input
+            <FacilityCombobox
               value={filterUnitCode}
-              onChange={(e) => setFilterUnitCode(e.target.value)}
+              onChange={handleFilterChange(setFilterUnitCode)}
+              facilities={stationFacilities}
+              valueField="unit_code"
               placeholder={t('filterUnitCode')}
-              className={filterInputClass}
+              allLabel={t('filterAll')}
+              triggerClassName={filterTriggerClass}
             />
           </div>
 
@@ -733,17 +773,6 @@ export default function TestLogsPage() {
             </Select>
           </div>
 
-          {/* Device name filter */}
-          <div className="flex flex-col gap-1.5 min-w-0">
-            <Label className={filterLabelClass}>{t('filterDeviceNameLabel')}</Label>
-            <input
-              value={filterDeviceName}
-              onChange={(e) => setFilterDeviceName(e.target.value)}
-              placeholder={t('filterDeviceName')}
-              className={filterInputClass}
-            />
-          </div>
-
           {/* Ecosystem reg. number filter */}
           <div className="flex flex-col gap-1.5 min-w-0">
             <Label className={filterLabelClass}>{t('filterEcosystemRegLabel')}</Label>
@@ -751,17 +780,6 @@ export default function TestLogsPage() {
               value={filterEcosystemRegNumber}
               onChange={(e) => setFilterEcosystemRegNumber(e.target.value)}
               placeholder={t('filterEcosystemReg')}
-              className={filterInputClass}
-            />
-          </div>
-
-          {/* Station name filter */}
-          <div className="flex flex-col gap-1.5 min-w-0">
-            <Label className={filterLabelClass}>{t('filterStationNameLabel')}</Label>
-            <input
-              value={filterStationName}
-              onChange={(e) => setFilterStationName(e.target.value)}
-              placeholder={t('filterStationName')}
               className={filterInputClass}
             />
           </div>

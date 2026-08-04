@@ -39,7 +39,7 @@ function DeviceForm({ initialData, onSubmit, onClose, isPending, t, deviceTypes,
       newErrors.name = t('nameError');
     }
     if (!form.ecosystem_reg_number.trim()) {
-      newErrors.ecosystem_reg_number = t('ecoError') || 'Ecosystem registration number is required';
+      newErrors.ecosystem_reg_number = t('ecoError');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -207,13 +207,13 @@ function DeviceForm({ initialData, onSubmit, onClose, isPending, t, deviceTypes,
       </div>
 
       <div className="flex justify-end gap-2 pt-1">
-        <Button type="button" variant="outline" className="rounded-xl" onClick={onClose}>
+        <Button type="button" variant="outline" className="rounded-lg" onClick={onClose}>
           {t('cancel')}
         </Button>
         <Button
           type="submit"
           disabled={isPending}
-          className="rounded-xl gap-2 text-white font-semibold"
+          className="rounded-lg gap-2 text-white font-semibold"
           style={{ backgroundColor: '#3b82f6' }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}

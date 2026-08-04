@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import {
   ArrowLeft,
@@ -21,7 +21,9 @@ import {
   ClipboardList,
   Loader2,
   Edit,
+  Pencil,
   Trash2,
+  Plus,
   AlertTriangle,
   Phone,
   ShieldCheck,
@@ -41,6 +43,8 @@ import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import { KEYS } from '@/constants/key';
 import { URLS } from '@/constants/url';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import useEmployeeStore from '@/store/useEmployeeStore';
 import useDeviceStore from '@/store/useDeviceStore';
 import useDeviceTypeStore from '@/store/useDeviceTypeStore';
@@ -53,6 +57,7 @@ import TestLogCards from '@/components/devices/TestLogCards';
 import { TestResultBadge } from '@/components/devices/testLogStatus';
 import CustomModal from '@/components/modals/CustomModal';
 import DeviceForm from '@/components/devices/DeviceForm';
+import UploadForm from '@/components/documents/UploadForm';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
@@ -119,7 +124,7 @@ const fmtSize = (bytes) => {
 };
 
 /* ── DocCard ─────────────────────────────────────────────────── */
-function DocCard({ doc, onView, loadingId, t }) {
+function DocCard({ doc, onView, onRename, onDelete, loadingId, canManage, t, tdoc }) {
   const MimeIcon = getMimeIcon(doc.file_type);
   const color = getMimeColor(doc.file_type);
   const label = getMimeLabel(doc.file_type);
@@ -146,14 +151,34 @@ function DocCard({ doc, onView, loadingId, t }) {
           </span>
         </div>
       </div>
-      <button
-        onClick={() => onView(doc)}
-        disabled={isLoading}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 transition-all disabled:opacity-50"
-        title={t('viewTitle')}
-      >
-        {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Eye size={15} />}
-      </button>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          onClick={() => onView(doc)}
+          disabled={isLoading}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 dark:border-blue-800/70 bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 transition-all disabled:opacity-50"
+          title={t('viewTitle')}
+        >
+          {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Eye size={15} />}
+        </button>
+        {canManage && onRename && (
+          <button
+            onClick={() => onRename(doc)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-orange-200 dark:border-orange-800/70 bg-orange-50 dark:bg-orange-950/40 text-orange-500 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 hover:text-orange-600 transition-all"
+            title={tdoc?.('renameTitle')}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
+        {canManage && onDelete && (
+          <button
+            onClick={() => onDelete(doc)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 hover:text-red-600 transition-all"
+            title={tdoc?.('deleteTitle')}
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -181,19 +206,22 @@ function InfoRow({ icon: Icon, label, value, iconColor = '#7B8499' }) {
 }
 
 /* ── Section ─────────────────────────────────────────────────── */
-function Section({ title, icon: Icon, iconColor = '#3b82f6', children }) {
+function Section({ title, icon: Icon, iconColor = '#3b82f6', action, children }) {
   return (
     <div className="rounded-2xl border border-[rgba(197,198,207,0.30)] dark:border-slate-700/50 bg-white dark:bg-slate-800 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/80">
-        <div
-          className="flex h-8 w-8 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${iconColor}18` }}
-        >
-          <Icon size={16} style={{ color: iconColor }} />
+      <div className="flex items-center justify-between gap-2.5 px-5 py-4 border-b border-[rgba(197,198,207,0.20)] dark:border-slate-700/40 bg-[#FAFBFC] dark:bg-slate-800/80">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+            style={{ backgroundColor: `${iconColor}18` }}
+          >
+            <Icon size={16} style={{ color: iconColor }} />
+          </div>
+          <span className="font-semibold text-[14px] text-[#031634] dark:text-slate-100 truncate">
+            {title}
+          </span>
         </div>
-        <span className="font-semibold text-[14px] text-[#031634] dark:text-slate-100">
-          {title}
-        </span>
+        {action}
       </div>
       <div className="px-5">{children}</div>
     </div>
@@ -255,6 +283,7 @@ export default function DeviceDetailPage() {
   const tt = useTranslations('testLogs');
   const td = useTranslations('devices');
   const tc = useTranslations('common');
+  const tdoc = useTranslations('documents');
   const locale = useLocale();
   const queryClient = useQueryClient();
   const { employees, setEmployees } = useEmployeeStore();
@@ -262,6 +291,10 @@ export default function DeviceDetailPage() {
   const [loadingDocId, setLoadingDocId] = React.useState(null);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
+  const [uploadOpen, setUploadOpen] = React.useState(false);
+  const [renameTarget, setRenameTarget] = React.useState(null);
+  const [renameValue, setRenameValue] = React.useState('');
+  const [deleteDocTarget, setDeleteDocTarget] = React.useState(null);
   const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
@@ -411,6 +444,86 @@ export default function DeviceDetailPage() {
     const emp = employees?.find((f) => f.id === employee_id);
     if (!emp) return '-';
     return `${emp.last_name} ${emp.first_name}`;
+  };
+
+  /* ── document mutations (upload / rename / delete), scoped to this device —
+     documents ride along on the device GET response, so refetch that query
+     (same key shape used by handleFormSubmit above) instead of a document list ── */
+  const invalidateDocs = () => {
+    queryClient.invalidateQueries({ queryKey: [[KEYS.device, id]] });
+    queryClient.invalidateQueries({ queryKey: [KEYS.documents] });
+  };
+
+  const { mutate: uploadDoc, isPending: uploading } = useMutation({
+    mutationFn: (formData) =>
+      request.post(`/${URLS.documents}/`, formData, {
+        headers: {
+          Authorization: authHeader.Authorization,
+          'Content-Type': undefined,
+        },
+      }),
+    onSuccess: () => {
+      invalidateDocs();
+      toast.success(tdoc('successUploaded'));
+      setUploadOpen(false);
+    },
+    onError: (err) => {
+      const detail = err?.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map((d) => (typeof d === 'string' ? d : (d.msg ?? JSON.stringify(d)))).join('; ')
+        : typeof detail === 'string'
+          ? detail
+          : err?.response?.data?.message || tdoc('errorUpload');
+      toast.error(msg);
+    },
+  });
+
+  const { mutate: renameDoc, isPending: renaming } = usePatchPythonQuery({
+    hideSuccessToast: true,
+    hideErrorToast: true,
+  });
+  const { mutate: deleteDoc, isPending: deletingDoc } = useDeleteQuery({
+    hideSuccessToast: true,
+    hideErrorToast: true,
+  });
+
+  const openRenameDoc = (doc) => {
+    setRenameTarget(doc);
+    setRenameValue(doc.file_name ?? '');
+  };
+
+  const handleRenameDoc = () => {
+    if (!renameValue.trim() || !renameTarget?.id) return;
+    renameDoc(
+      {
+        url: `${URLS.documents}/${renameTarget.id}`,
+        attributes: { file_name: renameValue.trim() },
+        config: { headers: authHeader },
+      },
+      {
+        onSuccess: () => {
+          invalidateDocs();
+          toast.success(tdoc('successRenamed'));
+          setRenameTarget(null);
+        },
+        onError: () => toast.error(tdoc('errorRename')),
+      }
+    );
+  };
+
+  const handleDeleteDoc = () => {
+    if (!deleteDocTarget?.id) return;
+    deleteDoc(
+      { url: `${URLS.documents}/${deleteDocTarget.id}`, config: { headers: authHeader } },
+      {
+        onSuccess: () => {
+          invalidateDocs();
+          toast.success(tdoc('successDeleted'));
+          setDeleteDocTarget(null);
+        },
+        onError: () => toast.error(tdoc('errorDelete')),
+      }
+    );
   };
 
   if (isLoading) {
@@ -758,23 +871,46 @@ export default function DeviceDetailPage() {
         )}
 
         {/* ── Documents ──────────────────────────────────────── */}
-        {device.documents?.length > 0 && (
+        {(device.documents?.length > 0 || canManage) && (
           <Section
-            title={`${t('sectionDocuments')} (${device.documents.length})`}
+            title={`${t('sectionDocuments')}${device.documents?.length ? ` (${device.documents.length})` : ''}`}
             icon={FolderOpen}
             iconColor="#0ea5e9"
+            action={
+              canManage && (
+                <Button
+                  onClick={() => setUploadOpen(true)}
+                  size="sm"
+                  className="gap-1.5 rounded-lg text-[12px] text-white font-semibold bg-[#3b82f6] hover:bg-[#2563eb] shrink-0"
+                >
+                  <Plus size={14} />
+                  {tdoc('addNew')}
+                </Button>
+              )
+            }
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 py-3">
-              {device.documents.map((doc) => (
-                <DocCard
-                  key={doc.id}
-                  doc={doc}
-                  onView={handleDocView}
-                  loadingId={loadingDocId}
-                  t={t}
-                />
-              ))}
-            </div>
+            {!device.documents?.length ? (
+              <div className="py-8 text-center">
+                <FolderOpen size={32} className="mx-auto text-slate-200 dark:text-slate-600 mb-2" />
+                <p className="text-sm text-muted-foreground">{tdoc('empty')}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 py-3">
+                {device.documents.map((doc) => (
+                  <DocCard
+                    key={doc.id}
+                    doc={doc}
+                    onView={handleDocView}
+                    onRename={openRenameDoc}
+                    onDelete={setDeleteDocTarget}
+                    loadingId={loadingDocId}
+                    canManage={canManage}
+                    t={t}
+                    tdoc={tdoc}
+                  />
+                ))}
+              </div>
+            )}
           </Section>
         )}
 
@@ -827,6 +963,100 @@ export default function DeviceDetailPage() {
               >
                 {isDeleting && <Loader2 size={14} className="animate-spin" />}
                 {isDeleting ? td('deleting') : td('confirmDelete')}
+              </Button>
+            </div>
+          </div>
+        </CustomModal>
+
+        {/* ── Upload document modal ───────────────────────────── */}
+        <CustomModal
+          open={uploadOpen}
+          onClose={() => setUploadOpen(false)}
+          title={tdoc('uploadTitle')}
+          className="max-w-150! w-full"
+        >
+          <UploadForm
+            onSubmit={uploadDoc}
+            onClose={() => setUploadOpen(false)}
+            isPending={uploading}
+            t={tdoc}
+            lockedOwnerType="device_id"
+            lockedOwnerId={device.id}
+            lockedOwnerLabel={device.name}
+          />
+        </CustomModal>
+
+        {/* ── Rename document modal ───────────────────────────── */}
+        <CustomModal
+          open={!!renameTarget}
+          onClose={() => setRenameTarget(null)}
+          title={tdoc('renameTitle')}
+          className="max-w-150! w-full"
+        >
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-[14px] font-medium">{tdoc('fileNameLabel')}</Label>
+              <Input
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                placeholder={tdoc('fileNamePlaceholder')}
+                className="text-[14px]"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleRenameDoc()}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+              <Button variant="outline" onClick={() => setRenameTarget(null)} className="text-[13px]">
+                {tdoc('cancel')}
+              </Button>
+              <Button
+                onClick={handleRenameDoc}
+                disabled={renaming || !renameValue.trim()}
+                className="text-[13px] bg-[#3b82f6] hover:bg-[#2563eb]"
+              >
+                {renaming ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 size={13} className="animate-spin" />
+                    {tdoc('saving')}
+                  </span>
+                ) : (
+                  tdoc('save')
+                )}
+              </Button>
+            </div>
+          </div>
+        </CustomModal>
+
+        {/* ── Delete document modal ───────────────────────────── */}
+        <CustomModal
+          open={!!deleteDocTarget}
+          onClose={() => setDeleteDocTarget(null)}
+          title={tdoc('deleteTitle')}
+          className="max-w-md! w-full"
+        >
+          <div className="flex flex-col gap-5 pt-1">
+            <div className="flex items-start gap-3 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 p-4">
+              <AlertTriangle size={20} className="text-red-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700 dark:text-red-400">
+                <span className="font-semibold">«{deleteDocTarget?.file_name}»</span>{' '}
+                {tdoc('deleteWarning')}
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setDeleteDocTarget(null)}
+              >
+                {tdoc('cancel')}
+              </Button>
+              <Button
+                onClick={handleDeleteDoc}
+                disabled={deletingDoc}
+                className="rounded-xl gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold"
+              >
+                {deletingDoc && <Loader2 size={14} className="animate-spin" />}
+                {deletingDoc ? tdoc('deleting') : tdoc('confirmDelete')}
               </Button>
             </div>
           </div>

@@ -26,7 +26,6 @@ import {
   User,
   LogOut as LogOutIcon,
   Settings,
-  Bell,
   ArrowLeft,
   Loader2,
   Cpu,
@@ -38,7 +37,6 @@ import '@/styles/dashboard/style.css';
 import { signOut, useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
-import NotificationComponent from '@/components/NotificationComponent';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTranslations } from 'next-intl';
@@ -209,7 +207,6 @@ const DashboardLayout = ({ children }) => {
   const [sidebarSmall, setSidebarSmall] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
-  const [isNotification, setIsNotification] = useState(false);
   const [isLogout, setIsLogout] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -368,24 +365,7 @@ const DashboardLayout = ({ children }) => {
             </p>
             <LanguageSwitcher />
             <ThemeToggle />
-            {/* Notification button */}
-            {/* <button
-              onClick={() => setIsNotification((prev) => !prev)}
-              className={`relative flex h-8 w-8 items-center justify-center  cursor-pointer rounded-lg border transition-all ${
-                isNotification
-                  ? 'border-[#3b82f6] bg-[#3b82f6]/10 dark:bg-[#3b82f6]/20 text-[#3b82f6]'
-                  : 'border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-              }`}
-            >
-              <Bell size={15} />
-              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3b82f6] opacity-50"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#3b82f6]"></span>
-              </span>
-            </button> */}
-            <AnimatePresence>
-              {isNotification && <NotificationComponent onClose={() => setIsNotification(false)} />}
-            </AnimatePresence>
+
             {/* User dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

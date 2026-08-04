@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MonitorSpeaker } from 'lucide-react';
 
 import useGetQuery from '@/hooks/all/useGetQuery';
 import useEmployeeStore from '@/store/useEmployeeStore';
@@ -22,9 +22,21 @@ import {
 import { validateFile } from './fileUtils';
 import FileDropZone from './FileDropZone';
 
-function UploadForm({ onSubmit, onClose, isPending, t, devices, testLogs, persons }) {
-  const [ownerType, setOwnerType] = useState('');
-  const [ownerId, setOwnerId] = useState('');
+function UploadForm({
+  onSubmit,
+  onClose,
+  isPending,
+  t,
+  devices,
+  testLogs,
+  persons,
+  lockedOwnerType,
+  lockedOwnerId,
+  lockedOwnerLabel,
+}) {
+  const isLocked = !!(lockedOwnerType && lockedOwnerId);
+  const [ownerType, setOwnerType] = useState(isLocked ? lockedOwnerType : '');
+  const [ownerId, setOwnerId] = useState(isLocked ? lockedOwnerId : '');
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -141,29 +153,46 @@ function UploadForm({ onSubmit, onClose, isPending, t, devices, testLogs, person
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-2">
-      {/* Owner type */}
-      <div className="flex flex-col gap-1.5">
-        <Label className="text-[14px] font-medium">{t('ownerTypeLabel')} *</Label>
-        <Select value={ownerType} onValueChange={handleOwnerTypeChange}>
-          <SelectTrigger className="w-full text-[14px]">
-            <SelectValue placeholder={t('ownerTypePlaceholder')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="device_id">{t('ownerTypeDevice')}</SelectItem>
-            <SelectItem value="test_log_id">{t('ownerTypeTestLog')}</SelectItem>
-            <SelectItem value="responsible_person_id">{t('ownerTypePerson')}</SelectItem>
-          </SelectContent>
-        </Select>
-        {errors.ownerType && <p className="text-xs text-destructive">{errors.ownerType}</p>}
-      </div>
-
-      {/* Owner ID */}
-      {ownerType && (
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-[14px] font-medium">{t('ownerIdLabel')} *</Label>
-          {ownerIdContent()}
-          {errors.ownerId && <p className="text-xs text-destructive">{errors.ownerId}</p>}
+      {isLocked ? (
+        /* Owner already known (e.g. right after creating a device) — skip straight to file upload */
+        <div className="flex items-center gap-2.5 rounded-xl border border-[#3b82f6]/20 bg-[#3b82f6]/5 px-3 py-2.5">
+          <MonitorSpeaker size={16} className="text-[#3b82f6] shrink-0" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-[11px] text-[#7B8499] dark:text-slate-400">
+              {t('ownerTypeDevice')}
+            </span>
+            <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100">
+              {lockedOwnerLabel || lockedOwnerId}
+            </span>
+          </div>
         </div>
+      ) : (
+        <>
+          {/* Owner type */}
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-[14px] font-medium">{t('ownerTypeLabel')} *</Label>
+            <Select value={ownerType} onValueChange={handleOwnerTypeChange}>
+              <SelectTrigger className="w-full text-[14px]">
+                <SelectValue placeholder={t('ownerTypePlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="device_id">{t('ownerTypeDevice')}</SelectItem>
+                <SelectItem value="test_log_id">{t('ownerTypeTestLog')}</SelectItem>
+                <SelectItem value="responsible_person_id">{t('ownerTypePerson')}</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.ownerType && <p className="text-xs text-destructive">{errors.ownerType}</p>}
+          </div>
+
+          {/* Owner ID */}
+          {ownerType && (
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-[14px] font-medium">{t('ownerIdLabel')} *</Label>
+              {ownerIdContent()}
+              {errors.ownerId && <p className="text-xs text-destructive">{errors.ownerId}</p>}
+            </div>
+          )}
+        </>
       )}
 
       {/* File */}

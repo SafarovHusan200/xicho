@@ -48,6 +48,10 @@ import useDeviceTypeStore from '@/store/useDeviceTypeStore';
 import useTestLogStore from '@/store/useTestLogStore';
 import { hasManageAccess } from '@/lib/permissions';
 import { Input } from '@/components/ui/input';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { request } from '@/services/api';
+import UploadForm from '@/components/documents/UploadForm';
+import usePersonStore from '@/store/usePersonStore';
 
 /* ── constants ─────────────────────────────────────────────── */
 const LIMIT = 15;
@@ -77,12 +81,16 @@ const DevicePage = () => {
   const { data: session } = useSession();
   const t = useTranslations('devices');
   const tc = useTranslations('common');
+  const td = useTranslations('documents');
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+  const queryClient = useQueryClient();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [newDevice, setNewDevice] = useState(null);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [page, setPage] = useState(1);
@@ -135,6 +143,14 @@ const DevicePage = () => {
 
   const { deviceTypes: storedDeviceTypes, setDeviceTypes } = useDeviceTypeStore();
   const { testLogs: storedTestLogs, setTestLogs } = useTestLogStore();
+
+  const { devices: storedDevices, setDevices } = useDeviceStore();
+
+  const { persons: allPersons, setPersons } = usePersonStore();
+
+  const devices = storedDevices.filter(Boolean);
+  const testLogs = storedTestLogs.filter(Boolean);
+  const persons = allPersons.filter(Boolean);
 
   const { data: deviceTypesData } = useGetQuery({
     key: KEYS.deviceTypes,
@@ -234,8 +250,11 @@ const DevicePage = () => {
       createDevice(
         { url: URLS.device, attributes: payload, config: { headers: authHeader } },
         {
-          onSuccess: () => {
+          onSuccess: (res) => {
+            const created = res?.data?.data ?? res?.data ?? {};
             setIsOpen(false);
+            setNewDevice({ id: created?.id, name: created?.name || payload.name });
+            setUploadOpen(true);
             toast.success(t('successCreated'));
             resetDeviceStore();
           },
@@ -244,6 +263,32 @@ const DevicePage = () => {
       );
     }
   }
+
+  /* ── upload mutation (direct axios — multipart/form-data) ───── */
+  const { mutate: uploadDoc, isPending: uploading } = useMutation({
+    mutationFn: (formData) =>
+      request.post(`/${URLS.documents}/`, formData, {
+        headers: {
+          Authorization: authHeader.Authorization,
+          'Content-Type': undefined,
+        },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [KEYS.documents] });
+      toast.success(td('successUploaded'));
+      setUploadOpen(false);
+      setNewDevice(null);
+    },
+    onError: (err) => {
+      const detail = err?.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map((d) => (typeof d === 'string' ? d : (d.msg ?? JSON.stringify(d)))).join('; ')
+        : typeof detail === 'string'
+          ? detail
+          : err?.response?.data?.message || td('errorUpload');
+      toast.error(msg);
+    },
+  });
 
   function confirmDelete() {
     if (!selectedItem?.id) return;
@@ -523,7 +568,7 @@ const DevicePage = () => {
           if (editId) router.replace('/dashboard/devices');
         }}
         title={selectedItem ? t('editTitle') : t('createTitle')}
-        className="max-w-200! w-full"
+        className="max-w-240! w-full"
       >
         <div className="max-h-[70vh] overflow-y-auto px-1">
           <DeviceForm
@@ -539,6 +584,33 @@ const DevicePage = () => {
             facilities={facilities}
           />
         </div>
+      </CustomModal>
+
+      {/* ── upload modal ───────────────────────────────────────── */}
+      <CustomModal
+        open={uploadOpen}
+        onClose={() => {
+          setUploadOpen(false);
+          setNewDevice(null);
+        }}
+        title={td('uploadTitle')}
+        className="max-w-150! w-full"
+      >
+        <UploadForm
+          onSubmit={uploadDoc}
+          onClose={() => {
+            setUploadOpen(false);
+            setNewDevice(null);
+          }}
+          isPending={uploading}
+          t={td}
+          devices={devices}
+          testLogs={testLogs}
+          persons={persons}
+          lockedOwnerType="device_id"
+          lockedOwnerId={newDevice?.id}
+          lockedOwnerLabel={newDevice?.name}
+        />
       </CustomModal>
 
       {/* Delete Modal */}

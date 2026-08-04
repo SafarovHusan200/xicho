@@ -416,6 +416,7 @@
     "save": "Saqlash",
     "saving": "Saqlanmoqda...",
     "nameError": "Nom kiritilishi shart",
+    "ecoError": "Ekologiya identifikatsiya raqami kiritilishi shart",
     "successCreated": "Qurilma muvaffaqiyatli qo'shildi",
     "successUpdated": "Qurilma muvaffaqiyatli tahrirlandi",
     "successDeleted": "Qurilma muvaffaqiyatli o'chirildi",
