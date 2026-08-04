@@ -626,6 +626,7 @@
     "sectionPassport": "Паспортные характеристики",
     "sectionPersons": "Ответственные лица",
     "sectionDocuments": "Документы",
+    "addDocument": "Загрузить документ",
     "sectionLastTest": "Последнее испытание",
     "sectionAllTests": "Все испытания",
     "lastTestType": "Тип испытания",

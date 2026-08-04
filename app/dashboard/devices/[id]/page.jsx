@@ -922,7 +922,7 @@ export default function DeviceDetailPage() {
                   className="gap-1.5 rounded-lg text-[12px] text-white font-semibold bg-[#3b82f6] hover:bg-[#2563eb] shrink-0"
                 >
                   <Plus size={14} />
-                  {tdoc('addNew')}
+                  {t('addDocument')}
                 </Button>
               )
             }
