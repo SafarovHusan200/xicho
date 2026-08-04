@@ -38,6 +38,7 @@ import {
   FlaskConical,
 } from 'lucide-react';
 import useGetQuery from '@/hooks/all/useGetQuery';
+import usePostQuery from '@/hooks/all/usePostQuery';
 import usePatchPythonQuery from '@/hooks/all/usePatchQuery';
 import useDeleteQuery from '@/hooks/all/useDeleteQuery';
 import { KEYS } from '@/constants/key';
@@ -57,6 +58,7 @@ import TestLogCards from '@/components/devices/TestLogCards';
 import { TestResultBadge } from '@/components/devices/testLogStatus';
 import CustomModal from '@/components/modals/CustomModal';
 import DeviceForm from '@/components/devices/DeviceForm';
+import { TestLogForm } from '../test-logs/page';
 import UploadForm from '@/components/documents/UploadForm';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
@@ -295,6 +297,7 @@ export default function DeviceDetailPage() {
   const [renameTarget, setRenameTarget] = React.useState(null);
   const [renameValue, setRenameValue] = React.useState('');
   const [deleteDocTarget, setDeleteDocTarget] = React.useState(null);
+  const [testLogOpen, setTestLogOpen] = React.useState(false);
   const canManage = hasManageAccess(session);
 
   const authHeader = { Authorization: `Bearer ${session?.accessToken}` };
@@ -344,7 +347,7 @@ export default function DeviceDetailPage() {
   });
 
   /* ── this device's test logs — filtered from the shared store instead of a per-device request ── */
-  const { testLogs: storedTestLogs, setTestLogs } = useTestLogStore();
+  const { testLogs: storedTestLogs, setTestLogs, reset: resetTestLogStore } = useTestLogStore();
   const { data: testLogsListData, isLoading: loading } = useGetQuery({
     key: KEYS.testLogs,
     url: URLS.testLogs,
@@ -522,6 +525,29 @@ export default function DeviceDetailPage() {
           setDeleteDocTarget(null);
         },
         onError: () => toast.error(tdoc('errorDelete')),
+      }
+    );
+  };
+
+  /* ── create test log, locked to this device — edit/delete stay on the
+     test-log detail page, which already has both ── */
+  const { mutate: createLog, isPending: creatingLog } = usePostQuery({
+    listKeyId: KEYS.testLogs,
+    hideSuccessToast: true,
+    hideErrorToast: true,
+  });
+
+  const handleCreateTestLog = (payload) => {
+    createLog(
+      { url: URLS.testLogs, attributes: payload, config: { headers: authHeader } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: [[KEYS.device, id]] });
+          resetTestLogStore();
+          toast.success(tt('successCreated'));
+          setTestLogOpen(false);
+        },
+        onError: () => toast.error(tt('errorCreate')),
       }
     );
   };
@@ -764,6 +790,18 @@ export default function DeviceDetailPage() {
           title={`${t('sectionAllTests')}${deviceTestLogs.length ? ` (${deviceTestLogs.length})` : ''}`}
           icon={FlaskConical}
           iconColor="#3b82f6"
+          action={
+            canManage && (
+              <Button
+                onClick={() => setTestLogOpen(true)}
+                size="sm"
+                className="gap-1.5 rounded-lg text-[12px] text-white font-semibold bg-[#3b82f6] hover:bg-[#2563eb] shrink-0"
+              >
+                <Plus size={14} />
+                {tt('addNew')}
+              </Button>
+            )
+          }
         >
           <TestLogCards logs={deviceTestLogs} locale={locale} t={tt} isLoading={loading} />
         </Section>
@@ -1059,6 +1097,26 @@ export default function DeviceDetailPage() {
                 {deletingDoc ? tdoc('deleting') : tdoc('confirmDelete')}
               </Button>
             </div>
+          </div>
+        </CustomModal>
+
+        {/* ── Create test log modal ───────────────────────────── */}
+        <CustomModal
+          open={testLogOpen}
+          onClose={() => setTestLogOpen(false)}
+          title={tt('createTitle')}
+          className="max-w-200! w-full"
+        >
+          <div className="max-h-[70vh] overflow-y-auto px-1">
+            <TestLogForm
+              onSubmit={handleCreateTestLog}
+              onClose={() => setTestLogOpen(false)}
+              isPending={creatingLog}
+              t={tt}
+              locale={locale}
+              lockedDeviceId={device.id}
+              lockedDeviceLabel={device.name}
+            />
           </div>
         </CustomModal>
 

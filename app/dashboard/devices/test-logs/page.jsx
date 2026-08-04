@@ -15,6 +15,7 @@ import {
   CalendarIcon,
   FileText,
   FlaskConical,
+  MonitorSpeaker,
   X,
   ArrowUp,
   ArrowDown,
@@ -113,9 +114,19 @@ function DatePickerField({ value, onChange, placeholder, locale, triggerClassNam
 }
 
 /* ── TestLogForm ─────────────────────────────────────────────── */
-export function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devices, locale }) {
+export function TestLogForm({
+  initialData,
+  onSubmit,
+  onClose,
+  isPending,
+  t,
+  devices,
+  locale,
+  lockedDeviceId,
+  lockedDeviceLabel,
+}) {
   const [form, setForm] = useState({
-    device_id: initialData?.device_id ?? '',
+    device_id: initialData?.device_id ?? lockedDeviceId ?? '',
     test_type: initialData?.test_type ?? '',
     test_protocol_number: initialData?.test_protocol_number ?? '',
     description: initialData?.description ?? '',
@@ -161,19 +172,28 @@ export function TestLogForm({ initialData, onSubmit, onClose, isPending, t, devi
       {/* Device */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-[14px] font-medium">{t('deviceLabel')} *</Label>
-        <Select value={form.device_id} onValueChange={(v) => set('device_id', v)}>
-          <SelectTrigger className="w-full text-[14px]">
-            <SelectValue placeholder={t('devicePlaceholder')} />
-          </SelectTrigger>
-          <SelectContent>
-            {(devices ?? []).filter(Boolean).map((d) => (
-              <SelectItem key={d.id} value={d.id}>
-                {d.name}
-                {d.serial_number ? ` · ${d.serial_number}` : ''}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {lockedDeviceId ? (
+          <div className="flex items-center gap-2.5 rounded-xl border border-[#3b82f6]/20 bg-[#3b82f6]/5 px-3 py-2.5">
+            <MonitorSpeaker size={16} className="text-[#3b82f6] shrink-0" />
+            <span className="text-[13px] font-semibold text-[#031634] dark:text-slate-100 truncate">
+              {lockedDeviceLabel || lockedDeviceId}
+            </span>
+          </div>
+        ) : (
+          <Select value={form.device_id} onValueChange={(v) => set('device_id', v)}>
+            <SelectTrigger className="w-full text-[14px]">
+              <SelectValue placeholder={t('devicePlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {(devices ?? []).filter(Boolean).map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
+                  {d.serial_number ? ` · ${d.serial_number}` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         {errors.device_id && <p className="text-xs text-destructive">{errors.device_id}</p>}
       </div>
 
