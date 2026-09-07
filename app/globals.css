@@ -49,6 +49,9 @@
 }
 
 :root {
+  --font-scale: 1;
+  --app-font-family: 'Inter', 'Inter Fallback', sans-serif;
+
   /* Custom dashboard semantic colors — light mode */
   --surface: #ffffff;
   --surface-2: #fafbfc;
@@ -158,18 +161,26 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-family);
   }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+    font-size: calc(16px * var(--font-scale));
   }
   button:not(:disabled),
   [role='button']:not([aria-disabled='true']) {
     cursor: pointer;
   }
+}
+
+/* Boosts perceived contrast app-wide; most colors here are hardcoded per
+   component rather than routed through the --clr-* tokens above, so a filter
+   is the only lever that reaches every one of them uniformly. */
+.high-contrast {
+  filter: contrast(1.18) saturate(1.08);
 }
 
 .leaflet-attribution-flag {

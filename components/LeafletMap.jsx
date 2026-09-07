@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { ExternalLink } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -30,8 +31,8 @@ export default function LeafletMap({ locations = [], lat, lng, label }) {
   const items = locations.length
     ? locations
     : lat != null && lng != null
-    ? [{ id: 'single', latitude: lat, longitude: lng, facility_name: label, address_line: '' }]
-    : [];
+      ? [{ id: 'single', latitude: lat, longitude: lng, facility_name: label, address_line: '' }]
+      : [];
 
   if (!items.length) return null;
 
@@ -57,6 +58,16 @@ export default function LeafletMap({ locations = [], lat, lng, label }) {
                 {loc.address_line}
               </>
             )}
+            <br />
+            <a
+              href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700"
+            >
+              Google Maps
+              <ExternalLink size={11} />
+            </a>
           </Popup>
         </Marker>
       ))}

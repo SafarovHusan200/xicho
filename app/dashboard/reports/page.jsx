@@ -31,6 +31,7 @@ import {
 import StatCard from '@/components/StatCard';
 import TableComponent from '@/components/tableComponent';
 import { cn } from '@/lib/utils';
+import { MONTH_NAMES } from '@/constants/monthNames';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
@@ -41,7 +42,7 @@ export default function ReportsPage() {
   const { data: session } = useSession();
   const t = useTranslations('reports');
   const locale = useLocale();
-  const dtLocale = locale === 'ru' ? 'ru-RU' : 'uz-UZ';
+  const monthNames = MONTH_NAMES[locale === 'ru' ? 'ru' : 'uz'];
 
   const [period, setPeriod] = useState('year');
   const [year, setYear] = useState(String(CURRENT_YEAR));
@@ -82,9 +83,7 @@ export default function ReportsPage() {
   const buildFileName = (format) => {
     const parts = [t('fileNamePrefix')];
     if (period === 'month') {
-      parts.push(
-        new Date(2000, Number(month) - 1, 1).toLocaleDateString(dtLocale, { month: 'long' })
-      );
+      parts.push(monthNames[Number(month) - 1]);
       parts.push(year);
     } else if (period === 'quarter') {
       parts.push(t('quarterN', { n: quarter }));
@@ -435,7 +434,7 @@ export default function ReportsPage() {
               <SelectContent>
                 {MONTH_NUMS.map((m) => (
                   <SelectItem key={m} value={String(m)} className="capitalize">
-                    {new Date(2000, m - 1, 1).toLocaleDateString(dtLocale, { month: 'long' })}
+                    {monthNames[m - 1]}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -90,7 +90,7 @@ const SidebarContent = ({ sidebarSmall, t, setSidebarOpen, pathname, openGroups,
   <div className="h-full   flex  flex-col justify-between ">
     <div>
       <div className="mt-4 mb-6 px-3  flex items-center justify-between">
-        <Link href={'/'} className="flex items-center gap-3 relative overflow-hidden">
+        <Link href={'/dashboard'} className="flex items-center gap-3 relative overflow-hidden">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#3b82f6] shadow-md shadow-blue-900/50">
             <MdOutlineHomeWork className="text-xl text-white" />
           </div>

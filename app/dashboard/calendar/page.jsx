@@ -20,6 +20,12 @@ import DeadlineHeatmap from '@/components/calendar/DeadlineHeatmap';
 
 const toKey = (d) => new Date(d).toLocaleDateString('en-CA');
 
+/* uz-UZ's CLDR date pattern is y-MM-dd regardless of the 2-digit/2-digit/numeric
+   options (they only pick which fields show, not the order) — format manually
+   so the display is always dd.mm.yyyy for both locales */
+const fmtDMY = (d) =>
+  `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+
 const MODIFIERS_CLASS_NAMES = {
   overdue: 'bg-[#ef4444]/15 text-[#ef4444] font-semibold dark:bg-[#ef4444]/25 dark:text-[#f87171]',
   expiringSoon:
@@ -244,11 +250,7 @@ export default function CalendarPage() {
               </h2>
               {date && (
                 <p className="text-[13px] text-[#7B8499] dark:text-slate-400 mb-1">
-                  {date.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
+                  {fmtDMY(date)}
                 </p>
               )}
 

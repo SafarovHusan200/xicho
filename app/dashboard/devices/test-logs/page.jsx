@@ -46,6 +46,7 @@ import PaginationComponent from '@/components/PaginationComponent';
 import StatCard from '@/components/StatCard';
 import {
   getTestLogStatus,
+  getDayDiffLabel,
   TEST_LOG_ROW_BG,
   TestLogStatusBadge,
   TestResultBadge,
@@ -606,6 +607,7 @@ export default function TestLogsPage() {
   const tableData = sortedLogs.map((log, i) => {
     const dev = deviceMap[log.device_id] ?? {};
     const status = getTestLogStatus(log.next_test_date, log.is_passed);
+    const dayDiffLabel = getDayDiffLabel(log.next_test_date, t);
     return {
       _tr: i + 1,
       ...log,
@@ -627,7 +629,7 @@ export default function TestLogsPage() {
       _status: log.is_passed ? (
         <TestResultBadge isPassed={log.is_passed} t={t} />
       ) : (
-        <TestLogStatusBadge status={status} t={t} />
+        <TestLogStatusBadge status={status} t={t} label={dayDiffLabel} />
       ),
     };
   });

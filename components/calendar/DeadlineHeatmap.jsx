@@ -8,6 +8,7 @@ import {
   TEST_LOG_STATUS_CFG,
 } from '@/components/devices/testLogStatus';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { MONTH_NAMES } from '@/constants/monthNames';
 
 const CELL = 16;
 const GAP = 5;
@@ -16,41 +17,8 @@ const STEP = CELL + GAP;
 const NEUTRAL_CLASS = 'bg-slate-100 dark:bg-slate-700/40';
 const LEGEND_ORDER = ['ok', 'warning', 'expiring_soon', 'overdue'];
 
-/* ── hardcoded month/weekday names — some browsers fall back to "M01" style
-   labels for Intl.DateTimeFormat('uz-UZ', ...) when their bundled ICU data
-   is incomplete, so we don't rely on toLocaleDateString for these ── */
-const MONTH_NAMES = {
-  ru: [
-    'Январь',
-    'Февраль',
-    'Март',
-    'Апрель',
-    'Май',
-    'Июнь',
-    'Июль',
-    'Август',
-    'Сентябрь',
-    'Октябрь',
-    'Ноябрь',
-    'Декабрь',
-  ],
-  uz: [
-    'Yanvar',
-    'Fevral',
-    'Mart',
-    'Aprel',
-    'May',
-    'Iyun',
-    'Iyul',
-    'Avgust',
-    'Sentabr',
-    'Oktabr',
-    'Noyabr',
-    'Dekabr',
-  ],
-};
-
-/* ── indexed 0=Sunday..6=Saturday, matching Date#getDay() ── */
+/* ── indexed 0=Sunday..6=Saturday, matching Date#getDay() — hardcoded for the
+   same reason as MONTH_NAMES (see constants/monthNames.js) ── */
 const WEEKDAY_NAMES = {
   ru: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
   uz: ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'],

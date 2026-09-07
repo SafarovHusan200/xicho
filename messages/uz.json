@@ -89,6 +89,19 @@
     "subtitle": "Sanoat nazorati",
     "openMenu": "Menyuni ochish"
   },
+  "settingsPage": {
+    "title": "Sozlamalar",
+    "subtitle": "Platforma interfeysini shaxsiylashtirish",
+    "darkTheme": "Tungi mavzu",
+    "darkThemeDesc": "Yorug' va tungi mavzular orasida almashtirish",
+    "highContrast": "Yuqori kontrastlilik",
+    "highContrastDesc": "O'qishni yaxshilash uchun kontrastni kuchaytiradi",
+    "fontScale": "Shrift o'lchami",
+    "fontScaleDesc": "90% dan 130% gacha",
+    "fontFamily": "Interfeys shrifti",
+    "fontFamilyDesc": "Asosiy shriftni tanlang",
+    "fontDefault": "{font} (standart)"
+  },
   "facility": {
     "title": "Xavfli ishlab chiqarish ob'ektlari",
     "subtitle": "Monitoring va xavfsizlik nazorati tizimi",
