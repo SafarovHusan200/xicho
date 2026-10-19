@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -23,6 +23,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [mounted, setMounted] = useState(false);
   const [savedLogins, setSavedLogins] = useState([]);
+  const [isExchangingCode, setIsExchangingCode] = useState(false);
+  const exchangeAttempted = useRef(false);
   const t = useTranslations('login');
 
   useEffect(() => {
@@ -30,6 +32,29 @@ const LoginPage = () => {
     const stored = JSON.parse(localStorage.getItem('logins') || '[]');
     setSavedLogins(stored);
   }, []);
+
+  // SSO orqali kelgan ?code= bo'lsa, tokenlarga almashtirib avtomatik login qilish
+  useEffect(() => {
+    if (exchangeAttempted.current) return;
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (!code) return;
+
+    exchangeAttempted.current = true;
+
+    (async () => {
+      setIsExchangingCode(true);
+      const result = await signIn('sso-code', { code, redirect: false });
+
+      if (result?.ok) {
+        toast.success(t('successLogin'));
+        router.replace('/dashboard');
+      } else {
+        router.replace('/');
+        setIsExchangingCode(false);
+        toast.error(t('ssoError'));
+      }
+    })();
+  }, [router, t]);
 
   const saveLogin = (uname, pwd) => {
     let updated = [...savedLogins];
@@ -129,7 +154,7 @@ const LoginPage = () => {
 
         <div className="flex-1 flex flex-col justify-center p-12 md:p-28 lg:p-16">
           <AnimatePresence mode="wait">
-            {status === 'loading' ? (
+            {status === 'loading' || isExchangingCode ? (
               <motion.div key="loading" {...fadeUp(0)}>
                 <LoadingComponent />
               </motion.div>

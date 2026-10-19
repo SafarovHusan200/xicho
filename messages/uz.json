@@ -495,6 +495,7 @@
     "signOut": "Chiqish",
     "loading": "Yuklanmoqda...",
     "errorCredentials": "Username yoki parol noto'g'ri",
+    "ssoError": "Havola orqali kirib bo'lmadi. Qaytadan urinib ko'ring.",
     "successLogin": "Muvaffaqiyatli kirish"
   },
   "common": {
